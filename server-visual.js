@@ -3,9 +3,9 @@ const Stripe = require("stripe")
 
 const app = express()
 
-const PORT = 3010
-const API_BASE = process.env.API_BASE || "http://localhost:3002"
-const BASE_URL = process.env.BASE_URL || "http://localhost:3010"
+const PORT = process.env.PORT || 3010
+const API_BASE = process.env.API_BASE || "http://127.0.0.1:3002"
+const BASE_URL = process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "REPLACE_WITH_YOUR_STRIPE_SECRET_KEY"
 
 const stripe = new Stripe(STRIPE_SECRET_KEY)
