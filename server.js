@@ -176,7 +176,7 @@ function inferBMWGeneration(vehicle) {
   if (year >= 2006 && year <= 2011) {
     if (body === "coupe") return { name: "E92", summary: "Known for strong driving feel with aging cooling and suspension concerns." }
     if (body === "convertible") return { name: "E93", summary: "Adds folding roof complexity on top of core E9x maintenance items." }
-    if (body === "wagon") return { name: "E91", summary: "Practical wagon platform with common aging BMW ownership issues." }
+    if (body === "wagon") return { name: "E91", summary: "Practical wagon platform with common aging ownership issues." }
     return { name: "E90", summary: "Popular platform with cooling, leak, and suspension related ownership checks." }
   }
 
@@ -196,7 +196,7 @@ function inferBMWGeneration(vehicle) {
   }
 }
 
-function buildBMWSpecialist(vehicle, safety) {
+function buildBMWOwnership(vehicle, safety) {
   const generation = inferBMWGeneration(vehicle)
   const engine = inferBMWEngineFamily(vehicle)
   const complaintCount = Number(safety.complaints || 0)
@@ -205,95 +205,142 @@ function buildBMWSpecialist(vehicle, safety) {
   if (complaintCount >= 50) complaintLevel = "Higher"
   else if (complaintCount >= 15) complaintLevel = "Moderate"
 
-  const commonIssues = []
-  const inspectionChecks = []
+  const commonIssues = [
+    "Cooling system checks",
+    "Oil leak inspection",
+    "Electronic faults",
+    "Suspension wear",
+    "Service history gaps"
+  ]
 
-  commonIssues.push("Cooling system checks")
-  commonIssues.push("Oil leak inspection")
-  commonIssues.push("Electronic faults")
-  commonIssues.push("Suspension wear")
-  commonIssues.push("Service history gaps")
+  const inspectionChecks = [
+    "Check for warning lights",
+    "Inspect for coolant or oil leaks",
+    "Test transmission response",
+    "Check suspension noises",
+    "Review full service history",
+    "Inspect for poor accident repairs"
+  ]
 
-  inspectionChecks.push("Check for warning lights")
-  inspectionChecks.push("Inspect for coolant or oil leaks")
-  inspectionChecks.push("Test transmission response")
-  inspectionChecks.push("Check suspension noises")
-  inspectionChecks.push("Review full service history")
-  inspectionChecks.push("Inspect for poor accident repairs")
-
-  if (engine.family === "B48") {
-    commonIssues.push("Turbo four cylinder maintenance sensitivity")
-  }
-
-  if (engine.family === "B58") {
-    commonIssues.push("Cooling and intake related maintenance checks")
-  }
-
-  if (engine.family === "N55") {
-    commonIssues.push("Turbo six cylinder leak and cooling checks")
-  }
+  if (engine.family === "B48") commonIssues.push("Turbo four cylinder maintenance sensitivity")
+  if (engine.family === "B58") commonIssues.push("Cooling and intake related maintenance checks")
+  if (engine.family === "N55") commonIssues.push("Turbo six cylinder leak and cooling checks")
 
   return {
     brandFocus: "BMW",
+    sectionTitle: "Model Specific Ownership Intelligence",
     generation: generation.name,
     generationSummary: generation.summary,
-    likelyEngineFamily: engine.family,
-    likelyEngineLabel: engine.label,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
     engineConfidence: engine.confidence,
     maintenanceComplexity: "Higher",
     complaintLevel,
     commonIssues: Array.from(new Set(commonIssues)),
     inspectionChecks: Array.from(new Set(inspectionChecks)),
+    expensiveFailureAreas: [
+      "Cooling system components",
+      "Oil leaks and gasket repairs",
+      "Electronic modules and sensors",
+      "Suspension bushings and arms"
+    ],
+    testDriveChecks: [
+      "Listen for suspension knocks",
+      "Watch for drivetrain hesitation",
+      "Check for warning lights after restart",
+      "Confirm smooth transmission behavior"
+    ],
     ownershipAdvice: engine.label
-      ? `This ${vehicle.make} ${vehicle.model} likely uses ${engine.label}. Buyers should verify maintenance history and inspect for cooling, leak, and electronics related ownership issues.`
+      ? `This ${vehicle.make} ${vehicle.model} likely uses ${engine.label}. Buyers should verify maintenance history and inspect for cooling, leak, and electronics related issues.`
       : `This ${vehicle.make} ${vehicle.model} sits in a higher maintenance ownership category than a typical mass market vehicle.`
   }
 }
 
-function buildGenericSpecialist(vehicle, safety) {
+function buildGenericOwnership(vehicle, safety) {
   const body = getBodyType(vehicle)
   const fuel = getFuelGroup(vehicle)
   const drive = getDriveTypeGroup(vehicle)
+  const make = safeValue(vehicle.make) || "This vehicle"
 
-  const commonIssues = []
-  const inspectionChecks = []
+  const commonIssues = [
+    "Service history gaps",
+    "Suspension wear",
+    "Brake wear",
+    "Electrical issues"
+  ]
 
-  commonIssues.push("Service history gaps")
-  commonIssues.push("Suspension wear")
-  commonIssues.push("Brake wear")
-  commonIssues.push("Electrical issues")
+  const inspectionChecks = [
+    "Review service history",
+    "Check warning lights",
+    "Inspect tires and brakes",
+    "Test drivetrain response",
+    "Inspect for fluid leaks"
+  ]
 
-  inspectionChecks.push("Review service history")
-  inspectionChecks.push("Check warning lights")
-  inspectionChecks.push("Inspect tires and brakes")
-  inspectionChecks.push("Test drivetrain response")
-  inspectionChecks.push("Inspect for fluid leaks")
+  const expensiveFailureAreas = [
+    "Transmission related repairs",
+    "Suspension wear items",
+    "Electrical and module faults"
+  ]
+
+  const testDriveChecks = [
+    "Check steering straightness",
+    "Listen for brake or suspension noise",
+    "Test acceleration and shifting",
+    "Look for warning lights after driving"
+  ]
 
   if (body === "suv") {
     commonIssues.push("Higher weight related suspension wear")
+    expensiveFailureAreas.push("Front suspension and wheel bearing wear")
   }
 
   if (fuel === "hybrid" || fuel === "electric") {
     commonIssues.push("Electrified system diagnostic complexity")
+    expensiveFailureAreas.push("Battery and power electronics diagnostics")
   }
 
   if (drive === "awd") {
     commonIssues.push("All wheel drive system servicing")
+    expensiveFailureAreas.push("Transfer case or coupling related repairs")
   }
 
+  if (body === "truck") {
+    expensiveFailureAreas.push("Tow related drivetrain wear")
+  }
+
+  const complaintLevel = Number(safety.complaints || 0) >= 20
+    ? "Moderate"
+    : Number(safety.complaints || 0) > 0
+      ? "Low"
+      : "Low"
+
   return {
-    brandFocus: vehicle.make || "Generic",
+    brandFocus: safeValue(vehicle.make) || "Generic",
+    sectionTitle: "Model Specific Ownership Intelligence",
     generation: "",
     generationSummary: "",
-    likelyEngineFamily: "",
-    likelyEngineLabel: "",
+    enginePlatform: "Manufacturer specific",
+    engineLabel: "Varies by trim and engine configuration",
     engineConfidence: "Low",
-    maintenanceComplexity: "Moderate",
-    complaintLevel: Number(safety.complaints || 0) > 20 ? "Moderate" : "Low",
+    maintenanceComplexity: fuel === "hybrid" || fuel === "electric" ? "Moderate to Higher" : "Moderate",
+    complaintLevel,
     commonIssues: Array.from(new Set(commonIssues)),
     inspectionChecks: Array.from(new Set(inspectionChecks)),
-    ownershipAdvice: `This ${vehicle.make} ${vehicle.model} should be evaluated with attention to service history, drivetrain behavior, warning lights, and any visible repair quality issues.`
+    expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
+    testDriveChecks: Array.from(new Set(testDriveChecks)),
+    ownershipAdvice: `${make} should be evaluated with attention to service history, drivetrain behavior, warning lights, and visible repair quality.`
   }
+}
+
+function buildOwnershipIntelligence(vehicle, safety) {
+  const make = upperText(vehicle.make)
+
+  if (make === "BMW") {
+    return buildBMWOwnership(vehicle, safety)
+  }
+
+  return buildGenericOwnership(vehicle, safety)
 }
 
 function buildOptionProfile(vehicle) {
@@ -366,7 +413,8 @@ async function fetchRecalls(year, make, model) {
     if (!year || !make || !model) {
       return {
         recalls: 0,
-        recallSummary: "Recall data could not be checked because key vehicle details were missing."
+        recallSummary: "Recall data could not be checked because key vehicle details were missing.",
+        recallDetails: []
       }
     }
 
@@ -376,25 +424,68 @@ async function fetchRecalls(year, make, model) {
     if (!response.ok) {
       return {
         recalls: 0,
-        recallSummary: "Recall data could not be retrieved right now."
+        recallSummary: "Recall data could not be retrieved right now.",
+        recallDetails: []
       }
     }
 
     const data = await response.json()
     const results = Array.isArray(data.results) ? data.results : []
 
+    const recallDetails = results.slice(0, 12).map(item => ({
+      campaignNumber: safeValue(item.NHTSACampaignNumber || item.nhtsa_campaign_number || item.CampaignNumber),
+      component: safeValue(item.Component || item.component || item.ReportReceivedDate || "General safety item"),
+      summary: safeValue(item.Summary || item.summary || item.MfrCampaignNumber || "Recall details available."),
+      reportDate: safeValue(item.ReportReceivedDate || item.report_received_date),
+      remedy: safeValue(item.Remedy || item.remedy),
+      manufacturer: safeValue(item.Manufacturer || item.manufacturer),
+      severity: buildRecallSeverityLabel(item)
+    }))
+
     return {
       recalls: results.length,
       recallSummary: results.length
         ? `${results.length} manufacturer safety recall records found for this exact model year, make, and model.`
-        : "No manufacturer safety recalls found for this exact model year, make, and model."
+        : "No manufacturer safety recalls found for this exact model year, make, and model.",
+      recallDetails
     }
   } catch {
     return {
       recalls: 0,
-      recallSummary: "Recall data could not be retrieved right now."
+      recallSummary: "Recall data could not be retrieved right now.",
+      recallDetails: []
     }
   }
+}
+
+function buildRecallSeverityLabel(item) {
+  const text = upperText(
+    safeValue(item.Component) + " " +
+    safeValue(item.Summary) + " " +
+    safeValue(item.Remedy)
+  )
+
+  if (
+    text.includes("AIR BAG") ||
+    text.includes("BRAKE") ||
+    text.includes("FIRE") ||
+    text.includes("STEERING") ||
+    text.includes("FUEL LEAK")
+  ) {
+    return "Higher Attention"
+  }
+
+  if (
+    text.includes("VISIBILITY") ||
+    text.includes("ELECTRICAL") ||
+    text.includes("SUSPENSION") ||
+    text.includes("POWER TRAIN") ||
+    text.includes("POWERTRAIN")
+  ) {
+    return "Moderate Attention"
+  }
+
+  return "General Attention"
 }
 
 async function fetchComplaints(year, make, model) {
@@ -404,7 +495,9 @@ async function fetchComplaints(year, make, model) {
         complaints: 0,
         topComponent: "",
         complaintSummary: "Complaint data could not be checked because key vehicle details were missing.",
-        dataAvailable: false
+        dataAvailable: false,
+        complaintComponents: [],
+        complaintDetails: []
       }
     }
 
@@ -416,7 +509,9 @@ async function fetchComplaints(year, make, model) {
         complaints: 0,
         topComponent: "",
         complaintSummary: "Complaint data could not be retrieved right now.",
-        dataAvailable: false
+        dataAvailable: false,
+        complaintComponents: [],
+        complaintDetails: []
       }
     }
 
@@ -445,20 +540,39 @@ async function fetchComplaints(year, make, model) {
       }
     }
 
+    const complaintComponents = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([component, count]) => ({
+        component,
+        count
+      }))
+
+    const complaintDetails = results.slice(0, 10).map(item => ({
+      component: safeValue(item.components || item.component || item.Component || "Unknown Component"),
+      summary: safeValue(item.summary || item.Summary || item.description || "Complaint record present."),
+      date: safeValue(item.dateComplaintFiled || item.DateComplaintFiled || item.ReportReceivedDate),
+      mileage: safeValue(item.mileage || item.Mileage)
+    }))
+
     return {
       complaints: results.length,
       topComponent,
       complaintSummary: results.length
         ? `${results.length} owner complaint records found for this exact model year, make, and model.`
         : "No owner complaints found for this exact model year, make, and model.",
-      dataAvailable: true
+      dataAvailable: true,
+      complaintComponents,
+      complaintDetails
     }
   } catch {
     return {
       complaints: 0,
       topComponent: "",
       complaintSummary: "Complaint data could not be retrieved right now.",
-      dataAvailable: false
+      dataAvailable: false,
+      complaintComponents: [],
+      complaintDetails: []
     }
   }
 }
@@ -552,6 +666,75 @@ async function fetchEfficiency(year, make, model) {
   }
 }
 
+async function fetchInvestigations(year, make, model) {
+  try {
+    if (!year || !make || !model) {
+      return {
+        investigations: [],
+        investigationSummary: "Investigation data could not be checked because key vehicle details were missing."
+      }
+    }
+
+    const url = "https://static.nhtsa.gov/odi/odi_investigations.json"
+    const response = await fetch(url)
+
+    if (!response.ok) {
+      return {
+        investigations: [],
+        investigationSummary: "Investigation data could not be retrieved right now."
+      }
+    }
+
+    const data = await response.json()
+    const rows = Array.isArray(data?.results)
+      ? data.results
+      : Array.isArray(data)
+        ? data
+        : []
+
+    const normalizedMake = upperText(make)
+    const normalizedModel = upperText(model)
+    const numericYear = intValue(year)
+
+    const matches = rows.filter(item => {
+      const text = upperText(
+        safeValue(item.Manufacturer) + " " +
+        safeValue(item.make) + " " +
+        safeValue(item.Product) + " " +
+        safeValue(item.Model) + " " +
+        safeValue(item.Summary)
+      )
+
+      const yearText = safeValue(item.ModelYear || item.modelYear || item.Year)
+      const hasMake = text.includes(normalizedMake)
+      const hasModel = normalizedModel && text.includes(normalizedModel)
+      const hasYear = numericYear ? yearText.includes(String(numericYear)) || text.includes(String(numericYear)) : true
+
+      return hasMake && (hasModel || normalizedModel.length < 3) && hasYear
+    }).slice(0, 8)
+
+    const investigations = matches.map(item => ({
+      actionNumber: safeValue(item.ActionNumber || item.actionNumber),
+      component: safeValue(item.Component || item.component),
+      summary: safeValue(item.Summary || item.summary || "Investigation record present."),
+      dateOpened: safeValue(item.DateOpened || item.dateOpened || item.OpenDate),
+      status: safeValue(item.Status || item.status || item.ClosingResume || "Recorded")
+    }))
+
+    return {
+      investigations,
+      investigationSummary: investigations.length
+        ? `${investigations.length} possible safety investigation matches found for this vehicle profile.`
+        : "No obvious safety investigation matches found for this vehicle profile."
+    }
+  } catch {
+    return {
+      investigations: [],
+      investigationSummary: "Investigation data could not be retrieved right now."
+    }
+  }
+}
+
 function buildAttentionFlags(report) {
   const flags = []
 
@@ -571,16 +754,20 @@ function buildAttentionFlags(report) {
     flags.push(`Top complaint area: ${report.safety.topComponent}`)
   }
 
+  if (report.investigations.items.length) {
+    flags.push("Investigation history present")
+  }
+
   if (!report.efficiency.combinedMPG) {
     flags.push("Fuel economy match unavailable")
   }
 
-  if (report.specialist.maintenanceComplexity === "Higher") {
+  if (report.ownership.maintenanceComplexity === "Higher") {
     flags.push("Higher maintenance platform")
   }
 
-  if (report.specialist.likelyEngineFamily) {
-    flags.push(`Likely engine family: ${report.specialist.likelyEngineFamily}`)
+  if (report.ownership.enginePlatform) {
+    flags.push(`Engine platform: ${report.ownership.enginePlatform}`)
   }
 
   return flags
@@ -591,6 +778,7 @@ function buildRiskLevel(report) {
 
   const recalls = Number(report.safety.recalls || 0)
   const complaints = Number(report.safety.complaints || 0)
+  const investigations = Array.isArray(report.investigations.items) ? report.investigations.items.length : 0
 
   if (recalls >= 8) score += 3
   else if (recalls >= 3) score += 2
@@ -601,7 +789,8 @@ function buildRiskLevel(report) {
     else if (complaints > 0) score += 1
   }
 
-  if (report.specialist.maintenanceComplexity === "Higher") score += 1
+  if (investigations >= 1) score += 1
+  if (report.ownership.maintenanceComplexity === "Higher") score += 1
   if (!report.efficiency.combinedMPG) score += 1
 
   if (score >= 6) return "High"
@@ -623,15 +812,16 @@ function calculateCoverageScore(report) {
   if (typeof report.safety.recalls === "number") score += 15
   if (report.safety.dataAvailable) score += 10
   if (report.efficiency.dataAvailable) score += 15
-  if (report.specialist.commonIssues.length) score += 10
-  if (report.specialist.inspectionChecks.length) score += 10
-  if (report.specialist.likelyEngineFamily) score += 5
+  if (report.ownership.commonIssues.length) score += 10
+  if (report.ownership.inspectionChecks.length) score += 10
+  if (report.ownership.enginePlatform) score += 5
+  if (report.investigations.items.length) score += 5
 
   const dimensionsPresent = !!safeValue(report.specs.dimensions)
   const hpPresent = !!safeValue(report.specs.horsepower)
 
-  if (dimensionsPresent) score += 5
-  if (hpPresent) score += 5
+  if (dimensionsPresent) score += 3
+  if (hpPresent) score += 2
 
   return Math.min(score, 100)
 }
@@ -665,7 +855,7 @@ function buildFrontEndSignals(report) {
     primaryConcern = "High complaint activity"
   }
 
-  if (report.specialist.maintenanceComplexity === "Higher") {
+  if (report.ownership.maintenanceComplexity === "Higher") {
     secondaryConcern = "Higher maintenance platform"
   }
 
@@ -687,7 +877,32 @@ function buildMissingDataFlags(report) {
     efficiencyDataMissing: !report.efficiency.dataAvailable,
     dimensionsMissing: !safeValue(report.specs.dimensions),
     decodedEngineMissing: !safeValue(report.vehicle.engine),
-    inferredEngineUsed: !!safeValue(report.specialist.likelyEngineFamily)
+    inferredEngineUsed: !!safeValue(report.ownership.enginePlatform),
+    investigationDataMissing: !Array.isArray(report.investigations.items)
+  }
+}
+
+function buildBuyerVerdict(report) {
+  const riskLevel = report.signals.riskLevel
+  const recalls = Number(report.safety.recalls || 0)
+  const complaints = Number(report.safety.complaints || 0)
+  const topComponent = safeValue(report.safety.topComponent)
+  const complexity = safeValue(report.ownership.maintenanceComplexity) || "Moderate"
+
+  let headline = "Low public risk profile"
+  let summary = "Public safety and ownership signals look relatively typical for this vehicle profile."
+
+  if (riskLevel === "High") {
+    headline = "Proceed with caution"
+    summary = `This vehicle profile shows elevated public risk signals. ${recalls} recall records and ${complaints} complaint records were found${topComponent ? `, with ${topComponent} as the top complaint area` : ""}. Maintenance complexity is ${complexity.toLowerCase()}.`
+  } else if (riskLevel === "Moderate") {
+    headline = "Worth viewing, but inspect carefully"
+    summary = `This vehicle profile shows some public risk signals. ${recalls} recall records and ${complaints} complaint records were found${topComponent ? `, with ${topComponent} as the leading complaint area` : ""}. Maintenance complexity is ${complexity.toLowerCase()}.`
+  }
+
+  return {
+    headline,
+    summary
   }
 }
 
@@ -716,7 +931,11 @@ async function buildReportFromVin(vin) {
     fuel: safeValue(row.FuelTypePrimary),
     body: safeValue(row.BodyClass),
     drive: safeValue(row.DriveType),
-    vin
+    vin,
+    wmi: safeValue(row.WMI),
+    plantCountry: safeValue(row.PlantCountry),
+    manufacturer: safeValue(row.Manufacturer),
+    series: safeValue(row.Series)
   }
 
   vehicle.title = buildVehicleTitle(vehicle)
@@ -724,6 +943,7 @@ async function buildReportFromVin(vin) {
   const safetyRecalls = await fetchRecalls(vehicle.year, vehicle.make, vehicle.model)
   const safetyComplaints = await fetchComplaints(vehicle.year, vehicle.make, vehicle.model)
   const efficiency = await fetchEfficiency(vehicle.year, vehicle.make, vehicle.model)
+  const investigationData = await fetchInvestigations(vehicle.year, vehicle.make, vehicle.model)
   const specs = buildSpecsFromDecode(row)
 
   const safety = {
@@ -731,10 +951,7 @@ async function buildReportFromVin(vin) {
     ...safetyComplaints
   }
 
-  const specialist = upperText(vehicle.make) === "BMW"
-    ? buildBMWSpecialist(vehicle, safety)
-    : buildGenericSpecialist(vehicle, safety)
-
+  const ownership = buildOwnershipIntelligence(vehicle, safety)
   const optionProfile = buildOptionProfile(vehicle)
 
   const report = {
@@ -742,8 +959,18 @@ async function buildReportFromVin(vin) {
     safety,
     efficiency,
     specs,
-    specialist,
+    ownership,
     optionProfile,
+
+    buyerVerdict: {
+      headline: "",
+      summary: ""
+    },
+
+    investigations: {
+      items: investigationData.investigations,
+      summary: investigationData.investigationSummary
+    },
 
     signals: {
       coverageScore: 0,
@@ -789,6 +1016,7 @@ async function buildReportFromVin(vin) {
   report.frontEndSummary.subheadline = frontSignals.subheadline
   report.freeSignals = frontSignals
 
+  report.buyerVerdict = buildBuyerVerdict(report)
   report.missingDataFlags = buildMissingDataFlags(report)
 
   return report
