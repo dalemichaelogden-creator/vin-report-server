@@ -1,8 +1,8 @@
 const express = require("express")
+const cors = require("cors")
 const Stripe = require("stripe")
-
 const app = express()
-
+app.use(cors())
 const PORT = process.env.PORT || 3010
 const API_BASE = process.env.API_BASE || "http://127.0.0.1:3002"
 const BASE_URL = process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`
