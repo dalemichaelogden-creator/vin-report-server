@@ -1,8 +1,11 @@
 const express = require("express")
 const cors = require("cors")
 const Stripe = require("stripe")
+
 const app = express()
+
 app.use(cors())
+
 const PORT = process.env.PORT || 3010
 const API_BASE = process.env.API_BASE || "http://127.0.0.1:3002"
 const BASE_URL = process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`
@@ -74,6 +77,45 @@ function renderList(items) {
       ${items.map(item => `<span class="pill">${escapeHtml(item)}</span>`).join("")}
     </div>
   `
+}
+
+function buildScanHeadline(report) {
+  const recalls = Number(report.safety && report.safety.recalls || 0)
+  const complaints = Number(report.safety && report.safety.complaints || 0)
+  const risk = safeValue(report.signals && report.signals.riskLevel, "Moderate")
+
+  if (recalls >= 5 || complaints >= 25 || risk === "High") {
+    return "Potential ownership concerns detected"
+  }
+
+  if (recalls >= 1 || complaints >= 1 || risk === "Moderate") {
+    return "Known buyer risk signals detected"
+  }
+
+  return "Vehicle profile flagged for closer review"
+}
+
+function buildScanSubheadline(report) {
+  const recalls = Number(report.safety && report.safety.recalls || 0)
+  const complaints = Number(report.safety && report.safety.complaints || 0)
+
+  if (recalls >= 5 && complaints >= 10) {
+    return "This vehicle profile shows both recall activity and complaint history. A closer inspection is strongly recommended before purchase."
+  }
+
+  if (recalls >= 5) {
+    return "This vehicle profile shows notable recall activity. Buyers usually review safety history more carefully before moving forward."
+  }
+
+  if (complaints >= 25) {
+    return "This vehicle profile shows meaningful complaint activity across public records. Further review is recommended before purchase."
+  }
+
+  if (recalls >= 1 || complaints >= 1) {
+    return "Public data suggests one or more buyer risk indicators for this vehicle profile. The full report reveals where the concern sits."
+  }
+
+  return "The free scan completed successfully and found one or more reasons this vehicle may deserve a closer look."
 }
 
 async function getReport(vin) {
@@ -207,12 +249,14 @@ app.get("/scan/:vin", async (req, res) => {
     const riskColors = getRiskColor(report.signals.riskLevel)
     const confidenceColors = getConfidenceColor(report.signals.confidenceLevel)
     const triggeredCount = Array.isArray(report.signals.attentionFlags) ? report.signals.attentionFlags.length : 0
+    const scanHeadline = buildScanHeadline(report)
+    const scanSubheadline = buildScanSubheadline(report)
 
     const teaserCards = [
-      "Safety Signal Detected",
-      "Reliability Signal Detected",
-      "Maintenance Exposure Detected",
-      "Specification Review Recommended"
+      "Potential Recall Activity Found",
+      "Known Reliability Pattern Detected",
+      "High Maintenance Risk Category",
+      "Specification Mismatch Risk"
     ]
 
     res.send(`
@@ -523,11 +567,11 @@ app.get("/scan/:vin", async (req, res) => {
     <div class="top-grid">
       <div class="card">
         <h2>Scan Result</h2>
-        <div class="meta">This free VIN scan has completed. Internal diagnostic logic found one or more areas that may deserve closer attention before purchase.</div>
+        <div class="meta">This VIN triggered multiple internal risk signals based on public safety data, model specific patterns, and ownership trends. Further detail is available in the full intelligence report.</div>
 
         <div class="warning-box">
-          <div class="warning-title">${escapeHtml(report.frontEndSummary.headline)}</div>
-          <p class="warning-copy">${escapeHtml(report.frontEndSummary.subheadline)}</p>
+          <div class="warning-title">${escapeHtml(scanHeadline)}</div>
+          <p class="warning-copy">${escapeHtml(scanSubheadline)}</p>
         </div>
 
         <div class="scan-list">
@@ -557,7 +601,7 @@ app.get("/scan/:vin", async (req, res) => {
 
     <div class="card">
       <h2>Locked Signal Categories</h2>
-      <div class="meta">The scan completed successfully, but the reasons behind these triggered signals are part of the paid intelligence report.</div>
+      <div class="meta">Your free scan confirmed that this VIN triggered one or more buyer risk categories. The full report reveals what was detected and where closer inspection may be needed.</div>
 
       <div class="locked-grid">
         ${teaserCards.map(title => `
@@ -583,7 +627,7 @@ app.get("/scan/:vin", async (req, res) => {
     <div class="premium-box">
       <div class="premium-eyebrow">Unlock Specialist Intelligence Report</div>
       <div class="premium-title">See exactly what this VIN triggered</div>
-      <p class="premium-copy">Your free scan shows that this vehicle triggered internal risk logic. Unlock the full report to reveal what was detected, what to inspect in person, and where the ownership risks may sit.</p>
+      <p class="premium-copy">Your free scan shows that this VIN triggered one or more meaningful buyer signals. Unlock the full report to see what was detected, what to inspect in person, and whether this vehicle deserves closer scrutiny before purchase.</p>
 
       <div class="premium-list">
         <div class="premium-item">Reveal the actual concern behind each triggered signal</div>
