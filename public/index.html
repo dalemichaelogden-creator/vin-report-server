@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>VIN Intelligence Scan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{
+      font-family:Arial,sans-serif;
+      background:#0f172a;
+      color:#fff;
+      text-align:center;
+      padding:80px 20px;
+      margin:0;
+    }
+    .wrap{
+      max-width:1000px;
+      margin:auto;
+    }
+    h1{
+      font-size:42px;
+      margin-bottom:12px;
+    }
+    p{
+      color:#cbd5e1;
+      font-size:18px;
+      line-height:1.6;
+      margin-bottom:30px;
+    }
+    .search-box{
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:30px;
+    }
+    input{
+      padding:15px;
+      font-size:18px;
+      width:320px;
+      max-width:100%;
+      border-radius:10px;
+      border:none;
+      text-transform:uppercase;
+    }
+    button{
+      padding:15px 25px;
+      font-size:18px;
+      background:#00c853;
+      border:none;
+      color:white;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    button:hover{
+      opacity:0.95;
+    }
+    .results{
+      margin-top:40px;
+      text-align:left;
+      display:none;
+    }
+    .results-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:16px;
+      margin-top:20px;
+    }
+    .card{
+      background:#1e293b;
+      border:1px solid #334155;
+      border-radius:14px;
+      padding:18px;
+    }
+    .label{
+      font-size:12px;
+      color:#94a3b8;
+      text-transform:uppercase;
+      font-weight:700;
+      margin-bottom:8px;
+    }
+    .value{
+      font-size:22px;
+      font-weight:800;
+      color:#fff;
+      line-height:1.3;
+    }
+    .meta{
+      font-size:14px;
+      color:#cbd5e1;
+      line-height:1.6;
+      margin-top:8px;
+    }
+    .vehicle-title{
+      font-size:30px;
+      font-weight:800;
+      margin-bottom:8px;
+      text-align:center;
+    }
+    .cta-wrap{
+      margin-top:30px;
+      text-align:center;
+    }
+    .cta-btn{
+      display:inline-block;
+      padding:16px 28px;
+      font-size:20px;
+      background:#00c853;
+      color:#fff;
+      border-radius:12px;
+      text-decoration:none;
+      font-weight:800;
+      cursor:pointer;
+      border:none;
+    }
+    .cta-note{
+      margin-top:12px;
+      color:#cbd5e1;
+      font-size:14px;
+    }
+    .message{
+      min-height:24px;
+      margin-top:15px;
+      color:#fca5a5;
+      font-weight:700;
+    }
+    .message.success{
+      color:#86efac;
+    }
+    @media (max-width:700px){
+      .results-grid{
+        grid-template-columns:1fr;
+      }
+      h1{
+        font-size:32px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>Vehicle Intelligence Scan</h1>
+    <p>Enter a 17 character VIN to scan for potential ownership and reliability concerns before purchase.</p>
+
+    <div class="search-box">
+      <input id="vin" maxlength="17" placeholder="Enter 17 character VIN">
+      <button id="scanBtn" onclick="scan()">Scan VIN</button>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <div id="results" class="results">
+      <div id="vehicleTitle" class="vehicle-title"></div>
+
+      <div class="results-grid">
+        <div class="card">
+          <div class="label">Recall Records</div>
+          <div id="recallCount" class="value">Checking...</div>
+          <div id="recallMeta" class="meta"></div>
+        </div>
+
+        <div class="card">
+          <div class="label">Owner Complaints</div>
+          <div id="complaintCount" class="value">Checking...</div>
+          <div id="complaintMeta" class="meta"></div>
+        </div>
+
+        <div class="card">
+          <div class="label">Top Complaint Area</div>
+          <div id="topComponent" class="value">Checking...</div>
+          <div class="meta">Most frequent reported problem area for this vehicle profile.</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Risk Level</div>
+          <div id="riskLevel" class="value">Checking...</div>
+          <div id="riskMeta" class="meta"></div>
+        </div>
+      </div>
+
+      <div class="cta-wrap">
+        <button id="checkoutBtn" class="cta-btn" onclick="startCheckout()" disabled>
+          Unlock Full Report • $4.99
+        </button>
+        <div class="cta-note">The paid report is tied to the exact VIN you enter.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentVin = ""
+
+    function setMessage(text, isSuccess) {
+      const el = document.getElementById("message")
+      el.textContent = text || ""
+      el.className = isSuccess ? "message success" : "message"
+    }
+
+    function sanitizeVin(value) {
+      return String(value || "")
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .replace(/[IOQ]/g, "")
+        .slice(0, 17)
+    }
+
+    async function scan() {
+      const vinInput = document.getElementById("vin")
+      const scanBtn = document.getElementById("scanBtn")
+      const checkoutBtn = document.getElementById("checkoutBtn")
+      const results = document.getElementById("results")
+
+      let vin = sanitizeVin(vinInput.value)
+      vinInput.value = vin
+
+      if (vin.length !== 17) {
+        setMessage("Please enter a valid 17 character VIN.", false)
+        results.style.display = "none"
+        checkoutBtn.disabled = true
+        return
+      }
+
+      currentVin = vin
+      setMessage("Scanning VIN...", true)
+      scanBtn.disabled = true
+      scanBtn.textContent = "Scanning..."
+      checkoutBtn.disabled = true
+      results.style.display = "none"
+
+      try {
+        const response = await fetch("http://localhost:3002/api/decode/" + encodeURIComponent(vin))
+        const data = await response.json()
+
+        if (!response.ok || !data.success || !data.report) {
+          throw new Error("Could not decode VIN")
+        }
+
+        const report = data.report
+
+        document.getElementById("vehicleTitle").textContent = report.vehicle.title || vin
+        document.getElementById("recallCount").textContent = String(report.safety.recalls ?? 0)
+        document.getElementById("recallMeta").textContent = report.safety.recallSummary || "No recall summary returned."
+        document.getElementById("complaintCount").textContent = String(report.safety.complaints ?? 0)
+        document.getElementById("complaintMeta").textContent = report.safety.complaintSummary || "No complaint summary returned."
+        document.getElementById("topComponent").textContent = report.safety.topComponent || "No dominant issue"
+        document.getElementById("riskLevel").textContent = report.signals.riskLevel || "Unknown"
+        document.getElementById("riskMeta").textContent =
+          (report.signals.confidenceLevel || "Unknown") + " • Score " + String(report.signals.coverageScore ?? "N/A")
+
+        results.style.display = "block"
+        checkoutBtn.disabled = false
+        setMessage("VIN verified successfully.", true)
+      } catch (error) {
+        results.style.display = "none"
+        checkoutBtn.disabled = true
+        setMessage("We could not decode that VIN right now. Please try again.", false)
+      } finally {
+        scanBtn.disabled = false
+        scanBtn.textContent = "Scan VIN"
+      }
+    }
+
+    async function startCheckout() {
+      if (!currentVin || currentVin.length !== 17) {
+        setMessage("Please scan a valid VIN before continuing.", false)
+        return
+      }
+
+      setMessage("Preparing secure checkout...", true)
+
+      try {
+        const response = await fetch("http://localhost:3010/api/create-checkout-session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            vin: currentVin
+          })
+        })
+
+        const data = await response.json()
+
+        if (!response.ok || !data.success || !data.url) {
+          throw new Error("Checkout failed")
+        }
+
+        window.location.href = data.url
+      } catch (error) {
+        setMessage("We could not start checkout right now. Please try again.", false)
+      }
+    }
+  </script>
+</body>
+</html>
