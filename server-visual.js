@@ -944,20 +944,12 @@ app.get("/customer-report/:vin", async (req, res) => {
 
     const BYPASS_PAYMENT_FOR_TESTING = true
 
-    let paidCheck = { ok: false }
-
     if (!BYPASS_PAYMENT_FOR_TESTING) {
-      paidCheck = await verifyPaidSession(sessionId, vin)
+      const paidCheck = await verifyPaidSession(sessionId, vin)
 
       if (!paidCheck.ok) {
         return res.redirect("/scan/" + encodeURIComponent(vin))
       }
-    }
-
-    const report = await getReport(vin)
-
-    if (!paidCheck.ok) {
-      return res.redirect("/scan/" + encodeURIComponent(vin))
     }
 
     const report = await getReport(vin)
@@ -1636,8 +1628,4 @@ app.get("/customer-report/:vin", async (req, res) => {
   } catch (error) {
     res.status(500).send(`<h1>Error generating customer report</h1><p>${escapeHtml(String(error.message || error))}</p>`)
   }
-})
-
-app.listen(PORT, () => {
-  console.log("Customer visual report server running on port " + PORT)
 })
