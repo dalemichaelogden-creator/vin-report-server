@@ -1356,7 +1356,20 @@ app.get("/processing/:vin", (req, res) => {
     return res.status(500).send(`<h1>Processing error</h1><p>${escapeHtml(String(error.message || error))}</p>`)
   }
 })
+app.get("/preview-report/:vin", async (req, res) => {
+  try {
+    const vin = sanitizeVin(req.params.vin)
 
+    if (vin.length !== 17) {
+      return res.status(400).send("<h1>Invalid VIN</h1><p>Please provide a valid 17 character VIN.</p>")
+    }
+
+    const report = await getReport(vin)
+    return res.send(buildPaidCustomerPage(vin, report))
+  } catch (error) {
+    return res.status(500).send(`<h1>Error generating preview report</h1><p>${escapeHtml(String(error.message || error))}</p>`)
+  }
+})
 app.get("/customer-report/:vin", async (req, res) => {
   try {
     const vin = sanitizeVin(req.params.vin)
