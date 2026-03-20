@@ -942,14 +942,10 @@ app.get("/customer-report/:vin", async (req, res) => {
       return res.status(400).send("<h1>Invalid VIN</h1><p>Please provide a valid 17 character VIN.</p>")
     }
 
-    const BYPASS_PAYMENT_FOR_TESTING = true
+    const paidCheck = await verifyPaidSession(sessionId, vin)
 
-    if (!BYPASS_PAYMENT_FOR_TESTING) {
-      const paidCheck = await verifyPaidSession(sessionId, vin)
-
-      if (!paidCheck.ok) {
-        return res.redirect("/scan/" + encodeURIComponent(vin))
-      }
+    if (!paidCheck.ok) {
+      return res.redirect("/scan/" + encodeURIComponent(vin))
     }
 
     const report = await getReport(vin)
@@ -1628,4 +1624,8 @@ app.get("/customer-report/:vin", async (req, res) => {
   } catch (error) {
     res.status(500).send(`<h1>Error generating customer report</h1><p>${escapeHtml(String(error.message || error))}</p>`)
   }
+})
+
+app.listen(PORT, () => {
+  console.log("Customer visual report server running on port " + PORT)
 })
