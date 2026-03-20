@@ -31,6 +31,18 @@ function intValue(value) {
   return Number.isNaN(n) ? null : n
 }
 
+function numberValue(value) {
+  const n = parseFloat(value)
+  return Number.isNaN(n) ? null : n
+}
+
+function currencyRange(low, high) {
+  if (low && high) return `$${low.toLocaleString()} to $${high.toLocaleString()}`
+  if (low) return `$${low.toLocaleString()}`
+  if (high) return `$${high.toLocaleString()}`
+  return ""
+}
+
 function buildVehicleTitle(vehicle) {
   return [
     safeValue(vehicle.year),
@@ -92,6 +104,28 @@ function getFuelGroup(vehicle) {
   return "unknown"
 }
 
+function isLuxuryBrand(make) {
+  const m = upperText(make)
+  return [
+    "BMW",
+    "AUDI",
+    "MERCEDES BENZ",
+    "MERCEDES-BENZ",
+    "MERCEDES",
+    "PORSCHE",
+    "LEXUS",
+    "ACURA",
+    "INFINITI",
+    "CADILLAC",
+    "GENESIS",
+    "JAGUAR",
+    "LAND ROVER",
+    "VOLVO",
+    "TESLA",
+    "LUCID"
+  ].includes(m)
+}
+
 function inferBMWEngineFamily(vehicle) {
   const year = intValue(vehicle.year)
   const model = upperText(vehicle.model)
@@ -141,7 +175,7 @@ function inferBMWEngineFamily(vehicle) {
     if (year && year >= 2012) {
       return {
         family: "B48 or N20",
-        label: "Likely modern BMW turbocharged four cylinder",
+        label: "Likely BMW turbocharged four cylinder",
         confidence: "Medium"
       }
     }
@@ -154,6 +188,299 @@ function inferBMWEngineFamily(vehicle) {
       confidence: "High"
     }
   }
+
+  return {
+    family: "",
+    label: "",
+    confidence: "Low"
+  }
+}
+
+function inferAudiVwEngineFamily(vehicle) {
+  const year = intValue(vehicle.year)
+  const fuel = getFuelGroup(vehicle)
+  const model = upperText(vehicle.model)
+
+  if (fuel === "electric") {
+    return {
+      family: "EV Platform",
+      label: "Electric drive platform",
+      confidence: "High"
+    }
+  }
+
+  if (model.includes("S") || model.includes("RS")) {
+    return {
+      family: "Performance Turbo Platform",
+      label: "Likely higher output Audi Group turbocharged engine",
+      confidence: "Medium"
+    }
+  }
+
+  if (year && year >= 2009) {
+    return {
+      family: "EA888",
+      label: "Likely EA888 turbocharged four cylinder",
+      confidence: "Medium"
+    }
+  }
+
+  return {
+    family: "Audi Group gasoline platform",
+    label: "Likely Volkswagen Audi Group gasoline engine",
+    confidence: "Low"
+  }
+}
+
+function inferMercedesEngineFamily(vehicle) {
+  const year = intValue(vehicle.year)
+  const model = upperText(vehicle.model)
+  const fuel = getFuelGroup(vehicle)
+
+  if (fuel === "electric") {
+    return {
+      family: "EQ Platform",
+      label: "Mercedes electric drive platform",
+      confidence: "High"
+    }
+  }
+
+  if (model.includes("AMG")) {
+    return {
+      family: "AMG Performance Platform",
+      label: "Mercedes AMG specific performance drivetrain",
+      confidence: "Medium"
+    }
+  }
+
+  if (year && year >= 2015) {
+    return {
+      family: "Modern Mercedes Turbo Platform",
+      label: "Likely modern Mercedes turbocharged drivetrain",
+      confidence: "Medium"
+    }
+  }
+
+  return {
+    family: "",
+    label: "",
+    confidence: "Low"
+  }
+}
+
+function inferToyotaLexusEngineFamily(vehicle) {
+  const fuel = getFuelGroup(vehicle)
+
+  if (fuel === "hybrid") {
+    return {
+      family: "Toyota Hybrid System",
+      label: "Toyota or Lexus hybrid powertrain",
+      confidence: "High"
+    }
+  }
+
+  return {
+    family: "Toyota naturally aspirated or turbo gasoline platform",
+    label: "Toyota or Lexus gasoline drivetrain",
+    confidence: "Medium"
+  }
+}
+
+function inferHondaAcuraEngineFamily(vehicle) {
+  const fuel = getFuelGroup(vehicle)
+  const year = intValue(vehicle.year)
+
+  if (fuel === "hybrid") {
+    return {
+      family: "Honda Hybrid Platform",
+      label: "Honda or Acura hybrid powertrain",
+      confidence: "High"
+    }
+  }
+
+  if (year && year >= 2016) {
+    return {
+      family: "Modern Honda Turbo or DI Platform",
+      label: "Likely modern Honda or Acura direct injection or turbo drivetrain",
+      confidence: "Medium"
+    }
+  }
+
+  return {
+    family: "Honda gasoline platform",
+    label: "Honda or Acura gasoline drivetrain",
+    confidence: "Low"
+  }
+}
+
+function inferFordEngineFamily(vehicle) {
+  const model = upperText(vehicle.model)
+  const fuel = getFuelGroup(vehicle)
+
+  if (fuel === "electric") {
+    return {
+      family: "Ford EV Platform",
+      label: "Ford electric platform",
+      confidence: "High"
+    }
+  }
+
+  if (model.includes("F-150") || model.includes("F150") || model.includes("EXPLORER") || model.includes("ESCAPE") || model.includes("EDGE")) {
+    return {
+      family: "EcoBoost or Modular Truck Platform",
+      label: "Likely Ford turbocharged truck or crossover drivetrain",
+      confidence: "Medium"
+    }
+  }
+
+  return {
+    family: "Ford gasoline platform",
+    label: "Ford gasoline drivetrain",
+    confidence: "Low"
+  }
+}
+
+function inferGmEngineFamily(vehicle) {
+  const make = upperText(vehicle.make)
+  const model = upperText(vehicle.model)
+  const fuel = getFuelGroup(vehicle)
+
+  if (fuel === "electric") {
+    return {
+      family: "GM EV Platform",
+      label: "General Motors electric platform",
+      confidence: "High"
+    }
+  }
+
+  if (make === "CHEVROLET" || make === "GMC" || make === "CADILLAC") {
+    if (model.includes("SILVERADO") || model.includes("SIERRA") || model.includes("TAHOE") || model.includes("SUBURBAN") || model.includes("ESCALADE")) {
+      return {
+        family: "GM Truck V8 Platform",
+        label: "Likely GM truck based V8 or turbo truck platform",
+        confidence: "Medium"
+      }
+    }
+  }
+
+  return {
+    family: "GM gasoline platform",
+    label: "General Motors gasoline drivetrain",
+    confidence: "Low"
+  }
+}
+
+function inferHyundaiKiaEngineFamily(vehicle) {
+  const fuel = getFuelGroup(vehicle)
+  const year = intValue(vehicle.year)
+
+  if (fuel === "electric") {
+    return {
+      family: "E GMP or EV Platform",
+      label: "Hyundai or Kia electric platform",
+      confidence: "High"
+    }
+  }
+
+  if (year && year >= 2011) {
+    return {
+      family: "Theta or Smartstream Platform",
+      label: "Likely Hyundai or Kia modern four cylinder platform",
+      confidence: "Medium"
+    }
+  }
+
+  return {
+    family: "",
+    label: "",
+    confidence: "Low"
+  }
+}
+
+function inferNissanInfinitiEngineFamily(vehicle) {
+  const model = upperText(vehicle.model)
+  const fuel = getFuelGroup(vehicle)
+
+  if (fuel === "electric") {
+    return {
+      family: "Nissan EV Platform",
+      label: "Nissan electric platform",
+      confidence: "High"
+    }
+  }
+
+  if (model.includes("ALTIMA") || model.includes("ROGUE") || model.includes("SENTRA") || model.includes("PATHFINDER")) {
+    return {
+      family: "CVT Based Mainstream Platform",
+      label: "Nissan mainstream CVT oriented platform",
+      confidence: "Medium"
+    }
+  }
+
+  return {
+    family: "Nissan gasoline platform",
+    label: "Nissan or Infiniti gasoline drivetrain",
+    confidence: "Low"
+  }
+}
+
+function inferSubaruEngineFamily(vehicle) {
+  return {
+    family: "Boxer AWD Platform",
+    label: "Subaru boxer engine with AWD architecture",
+    confidence: "Medium"
+  }
+}
+
+function inferMazdaEngineFamily(vehicle) {
+  return {
+    family: "Skyactiv Platform",
+    label: "Mazda Skyactiv powertrain architecture",
+    confidence: "Medium"
+  }
+}
+
+function inferPorscheEngineFamily(vehicle) {
+  const fuel = getFuelGroup(vehicle)
+  if (fuel === "electric") {
+    return {
+      family: "Porsche EV Platform",
+      label: "Porsche electric platform",
+      confidence: "High"
+    }
+  }
+
+  return {
+    family: "Porsche Performance Platform",
+    label: "Porsche gasoline or performance drivetrain",
+    confidence: "Medium"
+  }
+}
+
+function inferTeslaEngineFamily(vehicle) {
+  return {
+    family: "Tesla EV Platform",
+    label: "Tesla battery electric platform",
+    confidence: "High"
+  }
+}
+
+function inferGenericEngineFamily(vehicle) {
+  const make = upperText(vehicle.make)
+
+  if (make === "BMW") return inferBMWEngineFamily(vehicle)
+  if (make === "AUDI" || make === "VOLKSWAGEN" || make === "VW") return inferAudiVwEngineFamily(vehicle)
+  if (make === "MERCEDES-BENZ" || make === "MERCEDES BENZ" || make === "MERCEDES") return inferMercedesEngineFamily(vehicle)
+  if (make === "TOYOTA" || make === "LEXUS") return inferToyotaLexusEngineFamily(vehicle)
+  if (make === "HONDA" || make === "ACURA") return inferHondaAcuraEngineFamily(vehicle)
+  if (make === "FORD") return inferFordEngineFamily(vehicle)
+  if (make === "CHEVROLET" || make === "GMC" || make === "CADILLAC") return inferGmEngineFamily(vehicle)
+  if (make === "HYUNDAI" || make === "KIA" || make === "GENESIS") return inferHyundaiKiaEngineFamily(vehicle)
+  if (make === "NISSAN" || make === "INFINITI") return inferNissanInfinitiEngineFamily(vehicle)
+  if (make === "SUBARU") return inferSubaruEngineFamily(vehicle)
+  if (make === "MAZDA") return inferMazdaEngineFamily(vehicle)
+  if (make === "PORSCHE") return inferPorscheEngineFamily(vehicle)
+  if (make === "TESLA") return inferTeslaEngineFamily(vehicle)
 
   return {
     family: "",
@@ -196,40 +523,85 @@ function inferBMWGeneration(vehicle) {
   }
 }
 
-function dedupe(values) {
-  return Array.from(new Set(values.filter(Boolean)))
-}
+function inferGenericPlatform(vehicle) {
+  const make = upperText(vehicle.make)
+  const model = upperText(vehicle.model)
+  const year = intValue(vehicle.year)
+  const fuel = getFuelGroup(vehicle)
 
-function buildComplaintLevel(safety) {
-  const complaintCount = Number(safety.complaints || 0)
+  if (make === "BMW" && model.includes("3")) return inferBMWGeneration(vehicle)
 
-  if (complaintCount >= 50) return "Higher"
-  if (complaintCount >= 15) return "Moderate"
-  return "Low"
-}
+  if (make === "AUDI") {
+    if (year && year >= 2017) return { name: "Modern Audi MQB or MLB Platform", summary: "Modern Audi platform with strong tech content and turbocharged drivetrain complexity." }
+    return { name: "Audi Legacy Turbo Platform", summary: "Earlier Audi platform with known turbo, cooling, and electrical ownership items." }
+  }
 
-function buildOwnershipBase(vehicle, safety, config) {
+  if (make === "VOLKSWAGEN") {
+    if (year && year >= 2015) return { name: "Modern VW MQB Platform", summary: "Volkswagen MQB platform with broad parts support and common turbo system checks." }
+    return { name: "VW Legacy Platform", summary: "Earlier Volkswagen platform with turbo and transmission related inspection priorities." }
+  }
+
+  if (make === "MERCEDES-BENZ" || make === "MERCEDES BENZ" || make === "MERCEDES") {
+    if (year && year >= 2015) return { name: "Modern Mercedes Turbo Platform", summary: "Modern Mercedes platform with elevated electronic and maintenance complexity." }
+    return { name: "Mercedes Legacy Platform", summary: "Older Mercedes platform with age related suspension, electronics, and leak checks." }
+  }
+
+  if (make === "TOYOTA" || make === "LEXUS") {
+    if (fuel === "hybrid") return { name: "Toyota Hybrid Platform", summary: "Hybrid architecture with strong durability reputation but age related battery considerations." }
+    return { name: "Toyota Mainstream Platform", summary: "Generally durable platform with lower maintenance burden than many luxury rivals." }
+  }
+
+  if (make === "HONDA" || make === "ACURA") {
+    return { name: "Honda Mainstream Platform", summary: "Generally strong daily use platform with transmission and DI related inspection priorities depending on engine." }
+  }
+
+  if (make === "FORD") {
+    if (model.includes("F-150") || model.includes("F150")) return { name: "Ford Truck Platform", summary: "Truck platform with drivetrain, towing, and front end wear considerations." }
+    return { name: "Ford Mainstream Platform", summary: "Mainstream Ford platform with turbo and transmission condition as major value drivers." }
+  }
+
+  if (make === "CHEVROLET" || make === "GMC" || make === "CADILLAC") {
+    return { name: "GM Platform", summary: "GM platform where transmission behavior, engine servicing, and suspension wear matter heavily at used age." }
+  }
+
+  if (make === "HYUNDAI" || make === "KIA" || make === "GENESIS") {
+    return { name: "Hyundai Kia Platform", summary: "Modern Korean platform with good feature value but engine family specific history that should be checked carefully." }
+  }
+
+  if (make === "NISSAN" || make === "INFINITI") {
+    return { name: "Nissan Platform", summary: "Nissan platform where transmission behavior is often the key used car risk driver." }
+  }
+
+  if (make === "SUBARU") {
+    return { name: "Subaru AWD Platform", summary: "AWD boxer platform where fluid service history and tire matching matter more than average." }
+  }
+
+  if (make === "MAZDA") {
+    return { name: "Mazda Skyactiv Platform", summary: "Mazda platform with relatively strong reliability reputation and lower luxury style operating exposure." }
+  }
+
+  if (make === "PORSCHE") {
+    return { name: "Porsche Performance Platform", summary: "High performance ownership profile where maintenance quality and prior use matter heavily." }
+  }
+
+  if (make === "TESLA") {
+    return { name: "Tesla EV Platform", summary: "Software heavy EV platform where suspension wear, tire wear, and charging history matter more than engine items." }
+  }
+
   return {
-    brandFocus: config.brandFocus || safeValue(vehicle.make) || "Generic",
-    sectionTitle: config.sectionTitle || `${safeValue(vehicle.make) || "Vehicle"} Ownership Intelligence`,
-    generation: safeValue(config.generation),
-    generationSummary: safeValue(config.generationSummary),
-    enginePlatform: safeValue(config.enginePlatform),
-    engineLabel: safeValue(config.engineLabel),
-    engineConfidence: safeValue(config.engineConfidence) || "Low",
-    maintenanceComplexity: safeValue(config.maintenanceComplexity) || "Moderate",
-    complaintLevel: safeValue(config.complaintLevel) || buildComplaintLevel(safety),
-    commonIssues: dedupe(config.commonIssues || []),
-    inspectionChecks: dedupe(config.inspectionChecks || []),
-    expensiveFailureAreas: dedupe(config.expensiveFailureAreas || []),
-    testDriveChecks: dedupe(config.testDriveChecks || []),
-    ownershipAdvice: safeValue(config.ownershipAdvice) || `${safeValue(vehicle.make) || "This vehicle"} should be evaluated with attention to service history, warning lights, drivetrain behavior, and visible repair quality.`
+    name: year ? `${year} ${safeValue(vehicle.make)} Platform` : "Vehicle Platform",
+    summary: "Platform specific advisory is available at a general level for this vehicle."
   }
 }
 
 function buildBMWOwnership(vehicle, safety) {
   const generation = inferBMWGeneration(vehicle)
   const engine = inferBMWEngineFamily(vehicle)
+  const complaintCount = Number(safety.complaints || 0)
+
+  let complaintLevel = "Low"
+  if (complaintCount >= 50) complaintLevel = "Higher"
+  else if (complaintCount >= 15) complaintLevel = "Moderate"
 
   const commonIssues = [
     "Cooling system checks",
@@ -239,388 +611,719 @@ function buildBMWOwnership(vehicle, safety) {
     "Service history gaps"
   ]
 
-  if (engine.family === "B48") commonIssues.push("Turbo four cylinder maintenance sensitivity")
-  if (engine.family === "B58") commonIssues.push("Cooling and intake related maintenance checks")
-  if (engine.family === "N55") commonIssues.push("Turbo six cylinder leak and cooling checks")
+  const inspectionChecks = [
+    "Check for warning lights",
+    "Inspect for coolant or oil leaks",
+    "Test transmission response",
+    "Check suspension noises",
+    "Review full service history",
+    "Inspect for poor accident repairs"
+  ]
 
-  return buildOwnershipBase(vehicle, safety, {
+  const expensiveFailureAreas = [
+    "Cooling system components",
+    "Oil leaks and gasket repairs",
+    "Electronic modules and sensors",
+    "Suspension bushings and arms"
+  ]
+
+  const testDriveChecks = [
+    "Cold start from fully cold engine",
+    "Check for warning lights after restart",
+    "Test low speed steering feel",
+    "Watch for drivetrain hesitation",
+    "Confirm smooth transmission behavior"
+  ]
+
+  if (engine.family === "B48") {
+    commonIssues.push("Coolant hose brittleness")
+    commonIssues.push("Oil filter housing leak checks")
+  }
+
+  if (engine.family === "B58") {
+    commonIssues.push("Cooling and intake system checks")
+    expensiveFailureAreas.push("Turbocharger support component repairs")
+  }
+
+  if (engine.family === "N55" || engine.family === "B48 or N20") {
+    commonIssues.push("Turbocharged four or six cylinder service sensitivity")
+  }
+
+  if (getDriveTypeGroup(vehicle) === "awd") {
+    commonIssues.push("Transfer case fluid neglect")
+    expensiveFailureAreas.push("Transfer case or AWD system repairs")
+    testDriveChecks.push("Do a full lock slow U turn to check for binding")
+  }
+
+  return {
     brandFocus: "BMW",
-    generation: generation.name,
-    generationSummary: generation.summary,
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: generation.name,
+    platformSummary: generation.summary,
     enginePlatform: engine.family,
     engineLabel: engine.label,
     engineConfidence: engine.confidence,
     maintenanceComplexity: "Higher",
-    commonIssues,
-    inspectionChecks: [
-      "Check for warning lights",
-      "Inspect for coolant or oil leaks",
-      "Test transmission response",
-      "Check suspension noises",
-      "Review full service history",
-      "Inspect for poor accident repairs"
-    ],
-    expensiveFailureAreas: [
-      "Cooling system components",
-      "Oil leaks and gasket repairs",
-      "Electronic modules and sensors",
-      "Suspension bushings and arms"
-    ],
-    testDriveChecks: [
-      "Listen for suspension knocks",
-      "Watch for drivetrain hesitation",
-      "Check for warning lights after restart",
-      "Confirm smooth transmission behavior"
-    ],
+    complaintLevel,
+    commonIssues: Array.from(new Set(commonIssues)),
+    inspectionChecks: Array.from(new Set(inspectionChecks)),
+    expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
+    testDriveChecks: Array.from(new Set(testDriveChecks)),
     ownershipAdvice: engine.label
-      ? `This ${vehicle.make} ${vehicle.model} likely uses ${engine.label}. Buyers should verify maintenance history and inspect for cooling, leak, and electronics related issues.`
+      ? `This ${vehicle.make} ${vehicle.model} likely uses ${engine.label}. Buyers should verify service quality, cooling system health, and fluid maintenance before purchase.`
       : `This ${vehicle.make} ${vehicle.model} sits in a higher maintenance ownership category than a typical mass market vehicle.`
-  })
+  }
 }
 
-function buildAudiOwnership(vehicle, safety) {
-  return buildOwnershipBase(vehicle, safety, {
-    brandFocus: "Audi",
-    maintenanceComplexity: "Higher",
-    enginePlatform: "Audi turbocharged platform",
-    engineLabel: "Likely turbocharged Audi petrol, diesel, or hybrid powertrain",
-    engineConfidence: "Medium",
-    commonIssues: [
-      "Cooling system faults",
-      "Oil leaks",
-      "Electronic issues",
-      "Suspension wear",
-      "Carbon buildup on some direct injection engines"
-    ],
-    inspectionChecks: [
-      "Check coolant level and leaks",
-      "Scan for warning lights",
-      "Test transmission response",
-      "Listen for suspension noise",
-      "Check quattro behavior under load",
-      "Inspect service history carefully"
-    ],
-    expensiveFailureAreas: [
-      "Cooling system repairs",
-      "Timing related repairs on older engines",
-      "Transmission faults",
-      "Electronic module issues"
-    ],
-    testDriveChecks: [
-      "Watch for hesitation under load",
-      "Check steering and braking feel",
-      "Listen for driveline vibration",
-      "Confirm smooth gear changes"
-    ],
-    ownershipAdvice: `Audi ownership can be rewarding, but buyers should pay close attention to cooling system health, oil leaks, transmission behavior, and electrical faults before purchase.`
-  })
-}
-
-function buildMercedesOwnership(vehicle, safety) {
-  return buildOwnershipBase(vehicle, safety, {
-    brandFocus: "Mercedes",
-    maintenanceComplexity: "Higher",
-    enginePlatform: "Mercedes platform",
-    engineLabel: "Likely Mercedes petrol, diesel, hybrid, or AMG oriented powertrain",
-    engineConfidence: "Medium",
-    commonIssues: [
-      "Air suspension or suspension wear on some models",
-      "Electronic and module faults",
-      "Oil leaks",
-      "Cooling system wear",
-      "Service history gaps"
-    ],
-    inspectionChecks: [
-      "Check for suspension sag or warning lights",
-      "Inspect infotainment and screen functions",
-      "Test transmission smoothness",
-      "Inspect for oil or coolant leaks",
-      "Review service history thoroughly"
-    ],
-    expensiveFailureAreas: [
-      "Air suspension repairs",
-      "Electronic modules and control units",
-      "Turbo and cooling system repairs",
-      "Transmission related repairs"
-    ],
-    testDriveChecks: [
-      "Check ride quality over bumps",
-      "Watch for drivetrain hesitation",
-      "Confirm all interior electronics work",
-      "Check for warning lights after restart"
-    ],
-    ownershipAdvice: `Mercedes vehicles often feel refined, but buyers should inspect electronic systems, suspension condition, and service history carefully before committing.`
-  })
-}
-
-function buildPorscheOwnership(vehicle, safety) {
-  return buildOwnershipBase(vehicle, safety, {
-    brandFocus: "Porsche",
-    maintenanceComplexity: "Higher",
-    enginePlatform: "Porsche performance platform",
-    engineLabel: "Likely Porsche performance oriented petrol, hybrid, or EV powertrain",
-    engineConfidence: "Medium",
-    commonIssues: [
-      "Cooling system wear",
-      "Brake and tire wear",
-      "Oil leaks on some older platforms",
-      "Suspension component wear",
-      "Electronic faults"
-    ],
-    inspectionChecks: [
-      "Inspect service history closely",
-      "Check for coolant leaks",
-      "Inspect brakes and tires carefully",
-      "Test transmission response",
-      "Look for evidence of poor repairs or track abuse"
-    ],
-    expensiveFailureAreas: [
-      "Braking system refresh",
-      "Suspension component replacement",
-      "Cooling system repairs",
-      "Transmission or driveline repairs"
-    ],
-    testDriveChecks: [
-      "Check for vibration under braking",
-      "Confirm smooth shifting",
-      "Listen for suspension knocks",
-      "Watch for overheating or warning lights"
-    ],
-    ownershipAdvice: `Porsche vehicles can hide expensive wear if they have been driven hard. Buyers should prioritize documentation, cooling system health, and careful brake and suspension inspection.`
-  })
-}
-
-function buildToyotaOwnership(vehicle, safety) {
+function buildAudiVwOwnership(vehicle, safety) {
+  const platform = inferGenericPlatform(vehicle)
+  const engine = inferAudiVwEngineFamily(vehicle)
   const fuel = getFuelGroup(vehicle)
 
   const commonIssues = [
-    "Water pump wear on some engines",
-    "Oil seepage on higher mileage examples",
+    "Water pump and thermostat checks",
+    "PCV and intake related faults",
+    "Oil consumption monitoring",
+    "Electronic warning light history",
+    "Service history gaps"
+  ]
+
+  const inspectionChecks = [
+    "Check cold idle quality",
+    "Inspect for coolant seepage",
+    "Test turbo response",
+    "Watch for transmission hesitation",
+    "Review service records closely"
+  ]
+
+  const expensiveFailureAreas = [
+    "Cooling system assemblies",
+    "Turbocharger support repairs",
+    "DSG or transmission service issues",
+    "AWD system service neglect"
+  ]
+
+  const testDriveChecks = [
+    "Check for boost hesitation under acceleration",
+    "Verify smooth downshifts",
+    "Listen for suspension knocks",
+    "Check for warning lights after drive"
+  ]
+
+  if (upperText(vehicle.make) === "AUDI" || getDriveTypeGroup(vehicle) === "awd") {
+    testDriveChecks.push("Check low speed AWD behavior on tight turns")
+  }
+
+  if (fuel === "electric") {
+    commonIssues.length = 0
+    commonIssues.push("Battery and charging system checks", "Suspension wear from curb weight", "Tire wear monitoring", "Software or module faults")
+    expensiveFailureAreas.length = 0
+    expensiveFailureAreas.push("Battery system diagnostics", "Suspension wear items", "Electronic module repairs")
+  }
+
+  return {
+    brandFocus: safeValue(vehicle.make),
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: platform.name,
+    platformSummary: platform.summary,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
+    engineConfidence: engine.confidence,
+    maintenanceComplexity: isLuxuryBrand(vehicle.make) ? "Higher" : "Moderate",
+    complaintLevel: Number(safety.complaints || 0) >= 20 ? "Moderate" : "Low",
+    commonIssues: Array.from(new Set(commonIssues)),
+    inspectionChecks: Array.from(new Set(inspectionChecks)),
+    expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
+    testDriveChecks: Array.from(new Set(testDriveChecks)),
+    ownershipAdvice: `${vehicle.make} platforms are strongly influenced by cooling system health, transmission service quality, and warning light history.`
+  }
+}
+
+function buildMercedesOwnership(vehicle, safety) {
+  const platform = inferGenericPlatform(vehicle)
+  const engine = inferMercedesEngineFamily(vehicle)
+  const fuel = getFuelGroup(vehicle)
+
+  const commonIssues = [
+    "Oil leak inspection",
+    "Electronic feature faults",
     "Suspension wear",
-    "Infotainment or sensor faults"
+    "Cooling system checks",
+    "Service history gaps"
+  ]
+
+  const inspectionChecks = [
+    "Check all electronic features",
+    "Inspect for leaks",
+    "Test transmission smoothness",
+    "Check ride quality",
+    "Review service history carefully"
+  ]
+
+  const expensiveFailureAreas = [
+    "Electronic modules",
+    "Cooling system repairs",
+    "Suspension components",
+    "Transmission related repairs"
+  ]
+
+  const testDriveChecks = [
+    "Check for harsh low speed shifts",
+    "Check for steering pull or brake shudder",
+    "Test every major electrical function",
+    "Recheck for warning lights after drive"
+  ]
+
+  if (fuel === "electric") {
+    commonIssues.push("Battery and charging system checks")
+    expensiveFailureAreas.push("Battery system diagnostics")
+  }
+
+  return {
+    brandFocus: safeValue(vehicle.make),
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: platform.name,
+    platformSummary: platform.summary,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
+    engineConfidence: engine.confidence,
+    maintenanceComplexity: "Higher",
+    complaintLevel: Number(safety.complaints || 0) >= 20 ? "Moderate" : "Low",
+    commonIssues: Array.from(new Set(commonIssues)),
+    inspectionChecks: Array.from(new Set(inspectionChecks)),
+    expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
+    testDriveChecks: Array.from(new Set(testDriveChecks)),
+    ownershipAdvice: `${vehicle.make} ownership is usually defined by maintenance quality and electronic system condition more than headline mileage alone.`
+  }
+}
+
+function buildToyotaLexusOwnership(vehicle, safety) {
+  const platform = inferGenericPlatform(vehicle)
+  const engine = inferToyotaLexusEngineFamily(vehicle)
+  const fuel = getFuelGroup(vehicle)
+
+  const commonIssues = [
+    "Routine fluid service neglect",
+    "Brake wear",
+    "Suspension wear",
+    "Cooling system age checks"
+  ]
+
+  const inspectionChecks = [
+    "Check service intervals",
+    "Inspect for accident repairs",
+    "Test cold start and idle quality",
+    "Check suspension noises",
+    "Confirm warning light free operation"
+  ]
+
+  const expensiveFailureAreas = [
+    "Hybrid battery aging" ,
+    "Suspension wear items",
+    "Cooling system repairs"
+  ]
+
+  const testDriveChecks = [
+    "Check for smooth idle and acceleration",
+    "Listen for suspension noise",
+    "Verify straight braking",
+    "Check that all dash lights clear properly"
+  ]
+
+  if (fuel !== "hybrid") {
+    const index = expensiveFailureAreas.indexOf("Hybrid battery aging")
+    if (index !== -1) expensiveFailureAreas.splice(index, 1)
+  }
+
+  return {
+    brandFocus: safeValue(vehicle.make),
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: platform.name,
+    platformSummary: platform.summary,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
+    engineConfidence: engine.confidence,
+    maintenanceComplexity: isLuxuryBrand(vehicle.make) ? "Moderate" : "Lower",
+    complaintLevel: Number(safety.complaints || 0) >= 20 ? "Moderate" : "Low",
+    commonIssues: Array.from(new Set(commonIssues)),
+    inspectionChecks: Array.from(new Set(inspectionChecks)),
+    expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
+    testDriveChecks: Array.from(new Set(testDriveChecks)),
+    ownershipAdvice: `${vehicle.make} generally carries a lower risk ownership profile than many rivals, but hybrid age, service quality, and crash repair quality still matter.`
+  }
+}
+
+function buildHondaAcuraOwnership(vehicle, safety) {
+  const platform = inferGenericPlatform(vehicle)
+  const engine = inferHondaAcuraEngineFamily(vehicle)
+
+  const commonIssues = [
+    "Transmission service neglect",
+    "Direct injection carbon related drivability issues",
+    "Suspension wear",
+    "Service history gaps"
+  ]
+
+  const inspectionChecks = [
+    "Check idle quality",
+    "Test transmission response",
+    "Check for warning lights",
+    "Inspect for fluid leaks",
+    "Review service history"
+  ]
+
+  const expensiveFailureAreas = [
+    "Transmission related repairs",
+    "Turbocharger support repairs",
+    "Suspension repairs"
+  ]
+
+  const testDriveChecks = [
+    "Check low speed shift quality",
+    "Test acceleration from a stop",
+    "Listen for suspension knocks",
+    "Recheck dashboard after drive"
+  ]
+
+  return {
+    brandFocus: safeValue(vehicle.make),
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: platform.name,
+    platformSummary: platform.summary,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
+    engineConfidence: engine.confidence,
+    maintenanceComplexity: isLuxuryBrand(vehicle.make) ? "Moderate" : "Moderate",
+    complaintLevel: Number(safety.complaints || 0) >= 20 ? "Moderate" : "Low",
+    commonIssues: Array.from(new Set(commonIssues)),
+    inspectionChecks: Array.from(new Set(inspectionChecks)),
+    expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
+    testDriveChecks: Array.from(new Set(testDriveChecks)),
+    ownershipAdvice: `${vehicle.make} reliability is usually strongest when transmission service, fluid intervals, and warning light history are all clean.`
+  }
+}
+
+function buildFordOwnership(vehicle, safety) {
+  const platform = inferGenericPlatform(vehicle)
+  const engine = inferFordEngineFamily(vehicle)
+  const body = getBodyType(vehicle)
+
+  const commonIssues = [
+    "Turbo system checks",
+    "Transmission behavior",
+    "Cooling system checks",
+    "Service history gaps",
+    "Suspension wear"
+  ]
+
+  const inspectionChecks = [
+    "Check acceleration under load",
+    "Verify smooth shifts",
+    "Inspect for coolant leaks",
+    "Review service history",
+    "Inspect underbody condition"
+  ]
+
+  const expensiveFailureAreas = [
+    "Transmission related repairs",
+    "Turbocharger support repairs",
+    "Cooling system work",
+    "AWD or transfer case repairs"
+  ]
+
+  const testDriveChecks = [
+    "Check for harsh shifts",
+    "Test highway acceleration",
+    "Listen for front end noises",
+    "Check steering alignment"
+  ]
+
+  if (body === "truck") {
+    commonIssues.push("Tow related wear", "Front suspension wear")
+    inspectionChecks.push("Check 4WD operation if equipped")
+    testDriveChecks.push("Check for driveline vibration")
+  }
+
+  return {
+    brandFocus: safeValue(vehicle.make),
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: platform.name,
+    platformSummary: platform.summary,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
+    engineConfidence: engine.confidence,
+    maintenanceComplexity: body === "truck" ? "Moderate to Higher" : "Moderate",
+    complaintLevel: Number(safety.complaints || 0) >= 20 ? "Moderate" : "Low",
+    commonIssues: Array.from(new Set(commonIssues)),
+    inspectionChecks: Array.from(new Set(inspectionChecks)),
+    expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
+    testDriveChecks: Array.from(new Set(testDriveChecks)),
+    ownershipAdvice: `${vehicle.make} values are often driven by drivetrain condition, transmission behavior, and evidence of proper fluid servicing.`
+  }
+}
+
+function buildGmOwnership(vehicle, safety) {
+  const platform = inferGenericPlatform(vehicle)
+  const engine = inferGmEngineFamily(vehicle)
+  const body = getBodyType(vehicle)
+
+  const commonIssues = [
+    "Transmission behavior",
+    "Suspension wear",
+    "Cooling system age checks",
+    "Electrical module issues",
+    "Service history gaps"
+  ]
+
+  const inspectionChecks = [
+    "Check shift quality at low speed and highway speed",
+    "Inspect for coolant leaks",
+    "Listen for suspension noise",
+    "Check warning lights",
+    "Review service history"
   ]
 
   const expensiveFailureAreas = [
     "Transmission repairs",
-    "Hybrid battery replacement on older hybrids",
-    "Suspension refresh work"
+    "Suspension rebuild work",
+    "Electronic module repairs",
+    "Engine oil management system issues"
   ]
 
-  if (fuel === "hybrid") {
-    commonIssues.push("Hybrid battery aging on older examples")
+  const testDriveChecks = [
+    "Check for shudder or harsh shifts",
+    "Test braking smoothness",
+    "Check steering feel",
+    "Recheck dash lights after drive"
+  ]
+
+  if (body === "truck" || body === "suv") {
+    commonIssues.push("Front end wear", "4WD or AWD service neglect")
+    expensiveFailureAreas.push("Transfer case or differential service issues")
   }
 
-  return buildOwnershipBase(vehicle, safety, {
-    brandFocus: safeValue(vehicle.make) || "Toyota",
-    maintenanceComplexity: fuel === "hybrid" ? "Moderate" : "Lower to Moderate",
-    enginePlatform: fuel === "hybrid" ? "Toyota or Lexus hybrid platform" : "Toyota or Lexus petrol platform",
-    engineLabel: fuel === "hybrid" ? "Likely Toyota or Lexus hybrid powertrain" : "Likely Toyota or Lexus naturally aspirated or turbo petrol engine",
-    engineConfidence: "Medium",
-    commonIssues,
-    inspectionChecks: [
-      "Check cold start smoothness",
-      "Inspect for fluid leaks",
-      "Test transmission shift quality",
-      "Listen for suspension knocks",
-      "Check hybrid warnings where applicable",
-      "Review service history"
-    ],
-    expensiveFailureAreas,
-    testDriveChecks: [
-      "Confirm smooth steering and braking",
-      "Watch for drivetrain hesitation",
-      "Check for warning lights",
-      "Listen for wheel bearing or suspension noise"
-    ],
-    ownershipAdvice: `${vehicle.make || "Toyota or Lexus"} vehicles are often dependable, but buyers should still inspect service history, suspension condition, fluid leaks, and hybrid health where applicable.`
-  })
-}
-
-function buildHondaOwnership(vehicle, safety) {
-  return buildOwnershipBase(vehicle, safety, {
-    brandFocus: safeValue(vehicle.make) || "Honda",
-    maintenanceComplexity: "Moderate",
-    enginePlatform: "Honda or Acura platform",
-    engineLabel: "Likely Honda or Acura petrol, hybrid, or VTEC based powertrain",
-    engineConfidence: "Medium",
-    commonIssues: [
-      "Oil seepage on higher mileage examples",
-      "Transmission wear on some models",
-      "Suspension wear",
-      "Aging air conditioning components",
-      "Electronic sensor issues"
-    ],
-    inspectionChecks: [
-      "Check transmission behavior when cold and warm",
-      "Inspect for leaks",
-      "Test air conditioning performance",
-      "Listen for suspension knocks",
-      "Review maintenance history"
-    ],
-    expensiveFailureAreas: [
-      "Transmission related repairs",
-      "Air conditioning compressor repairs",
-      "Suspension rebuild work"
-    ],
-    testDriveChecks: [
-      "Check shift quality carefully",
-      "Confirm straight line braking",
-      "Listen for front suspension noise",
-      "Check for warning lights after driving"
-    ],
-    ownershipAdvice: `${vehicle.make || "Honda or Acura"} vehicles are often durable, but transmission condition, suspension wear, and maintenance history still matter a great deal on used examples.`
-  })
-}
-
-function buildFordOwnership(vehicle, safety) {
-  return buildOwnershipBase(vehicle, safety, {
-    brandFocus: safeValue(vehicle.make) || "Ford",
-    maintenanceComplexity: "Moderate",
-    enginePlatform: "Ford or Lincoln platform",
-    engineLabel: "Likely Ford petrol, EcoBoost, hybrid, or truck oriented powertrain",
-    engineConfidence: "Medium",
-    commonIssues: [
-      "Turbo or cooling concerns on some EcoBoost engines",
-      "Transmission behavior on some models",
-      "Suspension wear",
-      "Electrical faults",
-      "Service history gaps"
-    ],
-    inspectionChecks: [
-      "Check for coolant leaks",
-      "Test transmission smoothness",
-      "Inspect for turbo noises where applicable",
-      "Check steering and suspension feel",
-      "Review service history"
-    ],
-    expensiveFailureAreas: [
-      "Turbocharger and cooling repairs",
-      "Transmission repairs",
-      "Front suspension work",
-      "Electronic module issues"
-    ],
-    testDriveChecks: [
-      "Watch for hesitation under acceleration",
-      "Check for harsh shifts",
-      "Listen for driveline noises",
-      "Confirm warning light free restart"
-    ],
-    ownershipAdvice: `${vehicle.make || "Ford or Lincoln"} vehicles should be checked for transmission behavior, cooling system condition, and suspension wear before purchase, especially on higher mileage examples.`
-  })
-}
-
-function buildGMOwnership(vehicle, safety) {
-  return buildOwnershipBase(vehicle, safety, {
-    brandFocus: safeValue(vehicle.make) || "GM",
-    maintenanceComplexity: "Moderate",
-    enginePlatform: "GM platform",
-    engineLabel: "Likely GM petrol, diesel, truck, or performance oriented powertrain",
-    engineConfidence: "Medium",
-    commonIssues: [
-      "Transmission wear on some models",
-      "Electrical and sensor faults",
-      "Suspension wear",
-      "Oil leaks on higher mileage examples",
-      "Active fuel management concerns on some engines"
-    ],
-    inspectionChecks: [
-      "Test transmission response carefully",
-      "Inspect for oil leaks",
-      "Check for warning lights",
-      "Listen for lifter or valvetrain noise where relevant",
-      "Review service history"
-    ],
-    expensiveFailureAreas: [
-      "Transmission rebuilds",
-      "Engine top end repairs on some V8 platforms",
-      "Suspension work",
-      "Electronic module replacement"
-    ],
-    testDriveChecks: [
-      "Check for harsh shifts or flares",
-      "Listen for engine noise at idle and load",
-      "Check steering straightness",
-      "Confirm all electronics work"
-    ],
-    ownershipAdvice: `${vehicle.make || "GM"} vehicles can be solid used buys, but buyers should pay special attention to transmission behavior, engine noises, and maintenance documentation.`
-  })
+  return {
+    brandFocus: safeValue(vehicle.make),
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: platform.name,
+    platformSummary: platform.summary,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
+    engineConfidence: engine.confidence,
+    maintenanceComplexity: isLuxuryBrand(vehicle.make) ? "Higher" : "Moderate",
+    complaintLevel: Number(safety.complaints || 0) >= 20 ? "Moderate" : "Low",
+    commonIssues: Array.from(new Set(commonIssues)),
+    inspectionChecks: Array.from(new Set(inspectionChecks)),
+    expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
+    testDriveChecks: Array.from(new Set(testDriveChecks)),
+    ownershipAdvice: `${vehicle.make} used values depend heavily on transmission behavior, front end condition, and whether major fluid services have been ignored.`
+  }
 }
 
 function buildHyundaiKiaOwnership(vehicle, safety) {
-  return buildOwnershipBase(vehicle, safety, {
-    brandFocus: safeValue(vehicle.make) || "Hyundai, Kia, or Genesis",
+  const platform = inferGenericPlatform(vehicle)
+  const engine = inferHyundaiKiaEngineFamily(vehicle)
+  const fuel = getFuelGroup(vehicle)
+
+  const commonIssues = [
+    "Engine family specific history checks",
+    "Oil consumption monitoring",
+    "Warning light history",
+    "Cooling system checks",
+    "Service history gaps"
+  ]
+
+  const inspectionChecks = [
+    "Check cold start behavior",
+    "Listen for engine noise",
+    "Check for smoke or rough idle",
+    "Review recall completion history",
+    "Inspect for warning lights"
+  ]
+
+  const expensiveFailureAreas = [
+    "Engine replacement exposure",
+    "Transmission related repairs",
+    "Turbocharger support repairs",
+    "Battery or electrified system diagnostics"
+  ]
+
+  const testDriveChecks = [
+    "Check for engine knock or hesitation",
+    "Test transmission smoothness",
+    "Watch dashboard for warning lights",
+    "Check braking and alignment"
+  ]
+
+  if (fuel !== "electric" && fuel !== "hybrid") {
+    const idx = expensiveFailureAreas.indexOf("Battery or electrified system diagnostics")
+    if (idx !== -1) expensiveFailureAreas.splice(idx, 1)
+  }
+
+  return {
+    brandFocus: safeValue(vehicle.make),
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: platform.name,
+    platformSummary: platform.summary,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
+    engineConfidence: engine.confidence,
+    maintenanceComplexity: upperText(vehicle.make) === "GENESIS" ? "Moderate to Higher" : "Moderate",
+    complaintLevel: Number(safety.complaints || 0) >= 20 ? "Moderate" : "Low",
+    commonIssues: Array.from(new Set(commonIssues)),
+    inspectionChecks: Array.from(new Set(inspectionChecks)),
+    expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
+    testDriveChecks: Array.from(new Set(testDriveChecks)),
+    ownershipAdvice: `${vehicle.make} can offer strong value, but engine family history and recall completion status should be treated as major purchase drivers.`
+  }
+}
+
+function buildNissanOwnership(vehicle, safety) {
+  const platform = inferGenericPlatform(vehicle)
+  const engine = inferNissanInfinitiEngineFamily(vehicle)
+
+  const commonIssues = [
+    "Transmission condition",
+    "Service history gaps",
+    "Steering and suspension wear",
+    "Cooling system checks"
+  ]
+
+  const inspectionChecks = [
+    "Test transmission response from a stop",
+    "Check for rpm flare or hesitation",
+    "Inspect for leaks",
+    "Check for warning lights",
+    "Review service history"
+  ]
+
+  const expensiveFailureAreas = [
+    "Transmission replacement exposure",
+    "Suspension repair work",
+    "Cooling system repairs"
+  ]
+
+  const testDriveChecks = [
+    "Check for transmission flare",
+    "Check acceleration smoothness",
+    "Listen for front end noise",
+    "Recheck dash after drive"
+  ]
+
+  return {
+    brandFocus: safeValue(vehicle.make),
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: platform.name,
+    platformSummary: platform.summary,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
+    engineConfidence: engine.confidence,
+    maintenanceComplexity: isLuxuryBrand(vehicle.make) ? "Moderate to Higher" : "Moderate",
+    complaintLevel: Number(safety.complaints || 0) >= 20 ? "Moderate" : "Low",
+    commonIssues: Array.from(new Set(commonIssues)),
+    inspectionChecks: Array.from(new Set(inspectionChecks)),
+    expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
+    testDriveChecks: Array.from(new Set(testDriveChecks)),
+    ownershipAdvice: `${vehicle.make} purchase risk is often dominated by transmission behavior and proof of consistent servicing.`
+  }
+}
+
+function buildSubaruOwnership(vehicle, safety) {
+  const platform = inferGenericPlatform(vehicle)
+  const engine = inferSubaruEngineFamily(vehicle)
+
+  const commonIssues = [
+    "Tire mismatch related AWD stress",
+    "CVT or transmission servicing",
+    "Wheel bearing or suspension wear",
+    "Oil seepage or fluid checks"
+  ]
+
+  const inspectionChecks = [
+    "Confirm matching tires on all four corners",
+    "Test low speed turning behavior",
+    "Check transmission response",
+    "Inspect for leaks",
+    "Review service records"
+  ]
+
+  const expensiveFailureAreas = [
+    "CVT replacement exposure",
+    "AWD system wear from tire mismatch",
+    "Wheel bearing and suspension work"
+  ]
+
+  const testDriveChecks = [
+    "Check for binding on tight turns",
+    "Check acceleration smoothness",
+    "Listen for bearing hum",
+    "Check for warning lights after drive"
+  ]
+
+  return {
+    brandFocus: safeValue(vehicle.make),
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: platform.name,
+    platformSummary: platform.summary,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
+    engineConfidence: engine.confidence,
     maintenanceComplexity: "Moderate",
-    enginePlatform: "Hyundai, Kia, or Genesis platform",
-    engineLabel: "Likely Korean petrol, hybrid, or EV platform",
-    engineConfidence: "Medium",
+    complaintLevel: Number(safety.complaints || 0) >= 20 ? "Moderate" : "Low",
+    commonIssues: Array.from(new Set(commonIssues)),
+    inspectionChecks: Array.from(new Set(inspectionChecks)),
+    expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
+    testDriveChecks: Array.from(new Set(testDriveChecks)),
+    ownershipAdvice: `${vehicle.make} ownership is heavily influenced by proper tire matching, fluid servicing, and CVT or AWD condition.`
+  }
+}
+
+function buildMazdaOwnership(vehicle, safety) {
+  const platform = inferGenericPlatform(vehicle)
+  const engine = inferMazdaEngineFamily(vehicle)
+
+  return {
+    brandFocus: safeValue(vehicle.make),
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: platform.name,
+    platformSummary: platform.summary,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
+    engineConfidence: engine.confidence,
+    maintenanceComplexity: "Lower to Moderate",
+    complaintLevel: Number(safety.complaints || 0) >= 20 ? "Moderate" : "Low",
     commonIssues: [
-      "Engine wear on some older petrol platforms",
-      "Electrical and sensor issues",
-      "Suspension wear",
-      "Infotainment faults",
+      "Routine suspension wear",
+      "Brake wear",
+      "Cooling system age checks",
       "Service history gaps"
     ],
     inspectionChecks: [
-      "Check for engine noise and smoke",
-      "Inspect for warning lights",
-      "Test transmission response",
-      "Verify recall completion",
-      "Review service history closely"
+      "Check for warning lights",
+      "Listen for suspension knocks",
+      "Test transmission smoothness",
+      "Inspect for leaks",
+      "Review service history"
     ],
     expensiveFailureAreas: [
-      "Engine replacement on affected platforms",
-      "Transmission repairs",
-      "Electronic module repairs",
-      "Suspension work"
+      "Suspension work",
+      "Cooling system repairs",
+      "Electronic module repairs"
     ],
     testDriveChecks: [
-      "Listen for knocking or ticking",
-      "Watch for hesitation or poor shifting",
       "Check steering feel",
-      "Verify all screens and driver assists work"
+      "Check braking smoothness",
+      "Listen for front end noises",
+      "Recheck dashboard after drive"
     ],
-    ownershipAdvice: `${vehicle.make || "These vehicles"} should be checked carefully for engine health, recall history, warning lights, and maintenance documentation before purchase.`
-  })
+    ownershipAdvice: `${vehicle.make} typically offers a lower ownership stress profile than many rivals, but maintenance history and crash repair quality still matter greatly.`
+  }
+}
+
+function buildPorscheOwnership(vehicle, safety) {
+  const platform = inferGenericPlatform(vehicle)
+  const engine = inferPorscheEngineFamily(vehicle)
+  const fuel = getFuelGroup(vehicle)
+
+  const commonIssues = [
+    "Cooling system checks",
+    "Suspension and brake wear",
+    "Electronic feature faults",
+    "Service history gaps"
+  ]
+
+  const inspectionChecks = [
+    "Check cold start behavior",
+    "Test braking and steering feel",
+    "Inspect for warning lights",
+    "Review specialist service history",
+    "Check body and underbody carefully"
+  ]
+
+  const expensiveFailureAreas = [
+    "Suspension components",
+    "Cooling system repairs",
+    "Brake system wear",
+    "Electronic module faults"
+  ]
+
+  const testDriveChecks = [
+    "Check steering precision",
+    "Check brake feel and vibration",
+    "Test acceleration cleanly",
+    "Check all warning lights after drive"
+  ]
+
+  if (fuel === "electric") {
+    commonIssues.push("Battery and charging system checks")
+    expensiveFailureAreas.push("Battery system diagnostics")
+  }
+
+  return {
+    brandFocus: safeValue(vehicle.make),
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: platform.name,
+    platformSummary: platform.summary,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
+    engineConfidence: engine.confidence,
+    maintenanceComplexity: "Higher",
+    complaintLevel: Number(safety.complaints || 0) >= 20 ? "Moderate" : "Low",
+    commonIssues: Array.from(new Set(commonIssues)),
+    inspectionChecks: Array.from(new Set(inspectionChecks)),
+    expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
+    testDriveChecks: Array.from(new Set(testDriveChecks)),
+    ownershipAdvice: `${vehicle.make} ownership depends heavily on specialist service history, prior use, and evidence of careful maintenance rather than mileage alone.`
+  }
 }
 
 function buildTeslaOwnership(vehicle, safety) {
-  return buildOwnershipBase(vehicle, safety, {
-    brandFocus: "Tesla",
-    maintenanceComplexity: "Moderate to Higher",
-    enginePlatform: "Tesla EV platform",
-    engineLabel: "Tesla electric drive unit and battery platform",
-    engineConfidence: "High",
+  const platform = inferGenericPlatform(vehicle)
+  const engine = inferTeslaEngineFamily(vehicle)
+
+  return {
+    brandFocus: safeValue(vehicle.make),
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: platform.name,
+    platformSummary: platform.summary,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
+    engineConfidence: engine.confidence,
+    maintenanceComplexity: "Moderate",
+    complaintLevel: Number(safety.complaints || 0) >= 20 ? "Moderate" : "Low",
     commonIssues: [
-      "Suspension wear",
-      "Alignment and tire wear",
-      "Screen or module faults",
-      "Charging system diagnostics",
-      "Fit and finish issues"
+      "Suspension wear from curb weight",
+      "Tire wear",
+      "Electronic or sensor faults",
+      "Charging system checks",
+      "Panel or trim quality issues"
     ],
     inspectionChecks: [
-      "Check range consistency",
-      "Verify charging performance",
-      "Inspect for warning messages",
-      "Listen for suspension noises",
-      "Inspect panel alignment and water ingress"
+      "Check charging behavior",
+      "Inspect tires closely",
+      "Check suspension noises",
+      "Test cameras and sensors",
+      "Inspect panel fit and glass condition"
     ],
     expensiveFailureAreas: [
-      "Battery pack diagnostics",
-      "Drive unit repairs",
-      "Screen and module replacement",
-      "Suspension work"
+      "Suspension repairs",
+      "Battery system diagnostics",
+      "Screen or module replacement",
+      "Tire replacement cost"
     ],
     testDriveChecks: [
-      "Watch for warning messages",
-      "Check regen and braking smoothness",
-      "Listen for suspension noise",
-      "Test charging where possible"
+      "Check for clunks over bumps",
+      "Test regen and braking feel",
+      "Check steering and alignment",
+      "Verify warning light free operation"
     ],
-    ownershipAdvice: `Tesla ownership is very different from a combustion vehicle. Buyers should prioritize battery health, charging behavior, suspension condition, and software or warning message checks.`
-  })
+    ownershipAdvice: `${vehicle.make} ownership risk is centered more on suspension, tires, charging, and module faults than traditional engine maintenance.`
+  }
 }
 
 function buildGenericOwnership(vehicle, safety) {
+  const platform = inferGenericPlatform(vehicle)
+  const engine = inferGenericEngineFamily(vehicle)
   const body = getBodyType(vehicle)
   const fuel = getFuelGroup(vehicle)
   const drive = getDriveTypeGroup(vehicle)
@@ -671,35 +1374,48 @@ function buildGenericOwnership(vehicle, safety) {
 
   if (body === "truck") {
     expensiveFailureAreas.push("Tow related drivetrain wear")
+    inspectionChecks.push("Check 4WD operation if equipped")
   }
 
-  return buildOwnershipBase(vehicle, safety, {
-    brandFocus: make,
-    sectionTitle: `${make} Ownership Intelligence`,
+  const complaintLevel = Number(safety.complaints || 0) >= 20
+    ? "Moderate"
+    : Number(safety.complaints || 0) > 0
+      ? "Low"
+      : "Low"
+
+  return {
+    brandFocus: safeValue(vehicle.make) || "Generic",
+    sectionTitle: "Model Specific Ownership Intelligence",
+    platform: platform.name,
+    platformSummary: platform.summary,
+    enginePlatform: engine.family,
+    engineLabel: engine.label,
+    engineConfidence: engine.confidence,
     maintenanceComplexity: fuel === "hybrid" || fuel === "electric" ? "Moderate to Higher" : "Moderate",
-    enginePlatform: "Manufacturer specific",
-    engineLabel: "Varies by trim and engine configuration",
-    engineConfidence: "Low",
-    commonIssues,
-    inspectionChecks,
-    expensiveFailureAreas,
-    testDriveChecks,
+    complaintLevel,
+    commonIssues: Array.from(new Set(commonIssues)),
+    inspectionChecks: Array.from(new Set(inspectionChecks)),
+    expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
+    testDriveChecks: Array.from(new Set(testDriveChecks)),
     ownershipAdvice: `${make} should be evaluated with attention to service history, drivetrain behavior, warning lights, and visible repair quality.`
-  })
+  }
 }
 
 function buildOwnershipIntelligence(vehicle, safety) {
   const make = upperText(vehicle.make)
 
   if (make === "BMW") return buildBMWOwnership(vehicle, safety)
-  if (make === "AUDI") return buildAudiOwnership(vehicle, safety)
+  if (make === "AUDI" || make === "VOLKSWAGEN" || make === "VW") return buildAudiVwOwnership(vehicle, safety)
   if (make === "MERCEDES-BENZ" || make === "MERCEDES BENZ" || make === "MERCEDES") return buildMercedesOwnership(vehicle, safety)
-  if (make === "PORSCHE") return buildPorscheOwnership(vehicle, safety)
-  if (make === "TOYOTA" || make === "LEXUS") return buildToyotaOwnership(vehicle, safety)
-  if (make === "HONDA" || make === "ACURA") return buildHondaOwnership(vehicle, safety)
-  if (make === "FORD" || make === "LINCOLN") return buildFordOwnership(vehicle, safety)
-  if (make === "CHEVROLET" || make === "GMC" || make === "CADILLAC" || make === "BUICK") return buildGMOwnership(vehicle, safety)
+  if (make === "TOYOTA" || make === "LEXUS") return buildToyotaLexusOwnership(vehicle, safety)
+  if (make === "HONDA" || make === "ACURA") return buildHondaAcuraOwnership(vehicle, safety)
+  if (make === "FORD") return buildFordOwnership(vehicle, safety)
+  if (make === "CHEVROLET" || make === "GMC" || make === "CADILLAC") return buildGmOwnership(vehicle, safety)
   if (make === "HYUNDAI" || make === "KIA" || make === "GENESIS") return buildHyundaiKiaOwnership(vehicle, safety)
+  if (make === "NISSAN" || make === "INFINITI") return buildNissanOwnership(vehicle, safety)
+  if (make === "SUBARU") return buildSubaruOwnership(vehicle, safety)
+  if (make === "MAZDA") return buildMazdaOwnership(vehicle, safety)
+  if (make === "PORSCHE") return buildPorscheOwnership(vehicle, safety)
   if (make === "TESLA") return buildTeslaOwnership(vehicle, safety)
 
   return buildGenericOwnership(vehicle, safety)
@@ -725,30 +1441,30 @@ function buildOptionProfile(vehicle) {
     sportLabel = "M Sport Package"
     comfortLabel = "Premium Package"
     techLabel = year >= 2019 ? "Driver Assistance or Live Cockpit Package" : "Technology Package"
-  } else if (make === "AUDI") {
-    sportLabel = "Sport or S line Package"
+  }
+
+  if (make === "AUDI") {
+    sportLabel = "S line Package"
     comfortLabel = "Premium Package"
-    techLabel = "Technology or Driver Assistance Package"
-  } else if (make === "MERCEDES-BENZ" || make === "MERCEDES BENZ" || make === "MERCEDES") {
-    sportLabel = "Sport or AMG Line Package"
+    techLabel = "Tech or Driver Assistance Package"
+  }
+
+  if (make === "MERCEDES-BENZ" || make === "MERCEDES BENZ" || make === "MERCEDES") {
+    sportLabel = "AMG Line or Sport Package"
     comfortLabel = "Premium Package"
-    techLabel = "Driver Assistance or Multimedia Package"
-  } else if (make === "PORSCHE") {
-    sportLabel = "Sport Chrono or Sport Package"
+    techLabel = "Driver Assistance Package"
+  }
+
+  if (make === "LEXUS") {
+    sportLabel = "F Sport Package"
     comfortLabel = "Premium Package"
-    techLabel = "Driver Assistance or Infotainment Package"
-  } else if (make === "TOYOTA" || make === "LEXUS") {
-    sportLabel = "Sport Appearance Package"
-    comfortLabel = "Comfort or Luxury Package"
-    techLabel = "Safety or Navigation Package"
-  } else if (make === "HONDA" || make === "ACURA") {
-    sportLabel = "Sport Package"
-    comfortLabel = "Comfort Package"
-    techLabel = "Technology Package"
-  } else if (make === "TESLA") {
-    sportLabel = "Performance Trim"
-    comfortLabel = "Premium Interior Package"
-    techLabel = "Autopilot or Full Self Driving Package"
+    techLabel = "Navigation or Safety Package"
+  }
+
+  if (make === "ACURA") {
+    sportLabel = "A Spec Package"
+    comfortLabel = "Technology Package"
+    techLabel = "Advance or Driver Assistance Package"
   }
 
   if (body === "coupe" || body === "convertible") sportScore += 18
@@ -757,9 +1473,9 @@ function buildOptionProfile(vehicle) {
   if (fuel === "hybrid" || fuel === "electric") techScore += 16
   if (year >= 2019) techScore += 14
 
-  if (trim.includes("M SPORT") || trim.includes("SPORT") || trim.includes("S LINE") || trim.includes("AMG")) sportScore += 18
+  if (trim.includes("SPORT") || trim.includes("S LINE") || trim.includes("M SPORT") || trim.includes("AMG") || trim.includes("F SPORT")) sportScore += 18
   if (trim.includes("PREMIUM") || trim.includes("LUXURY") || trim.includes("LIMITED") || trim.includes("PLATINUM")) comfortScore += 18
-  if (trim.includes("TECH") || trim.includes("ADVANCE") || trim.includes("PRESTIGE") || trim.includes("ELITE")) techScore += 18
+  if (trim.includes("TECH") || trim.includes("ADVANCE") || trim.includes("ADVANCED") || trim.includes("PRESTIGE")) techScore += 18
 
   const clamp = (n) => Math.max(18, Math.min(99, Math.round(n)))
 
@@ -850,8 +1566,8 @@ async function fetchRecalls(year, make, model) {
 
     const recallDetails = results.slice(0, 12).map(item => ({
       campaignNumber: safeValue(item.NHTSACampaignNumber || item.nhtsa_campaign_number || item.CampaignNumber),
-      component: safeValue(item.Component || item.component || "General safety item"),
-      summary: safeValue(item.Summary || item.summary || "Recall details available."),
+      component: safeValue(item.Component || item.component || item.ReportReceivedDate || "General safety item"),
+      summary: safeValue(item.Summary || item.summary || item.MfrCampaignNumber || "Recall details available."),
       reportDate: safeValue(item.ReportReceivedDate || item.report_received_date),
       remedy: safeValue(item.Remedy || item.remedy),
       manufacturer: safeValue(item.Manufacturer || item.manufacturer),
@@ -1121,76 +1837,6 @@ async function fetchInvestigations(year, make, model) {
   }
 }
 
-async function fetchManufacturerCommunications(year, make, model) {
-  try {
-    if (!year || !make || !model) {
-      return {
-        items: [],
-        summary: "Manufacturer communication data could not be checked because key vehicle details were missing."
-      }
-    }
-
-    const url = "https://static.nhtsa.gov/odi/tsbs/tsbs.json"
-    const response = await fetch(url)
-
-    if (!response.ok) {
-      return {
-        items: [],
-        summary: "Manufacturer communication data could not be retrieved right now."
-      }
-    }
-
-    const data = await response.json()
-    const rows = Array.isArray(data?.results)
-      ? data.results
-      : Array.isArray(data)
-        ? data
-        : []
-
-    const normalizedMake = upperText(make)
-    const normalizedModel = upperText(model)
-    const numericYear = intValue(year)
-
-    const matches = rows.filter(item => {
-      const text = upperText(
-        safeValue(item.make) + " " +
-        safeValue(item.Make) + " " +
-        safeValue(item.model) + " " +
-        safeValue(item.Model) + " " +
-        safeValue(item.summary) + " " +
-        safeValue(item.Summary)
-      )
-
-      const yearText = safeValue(item.modelYear || item.ModelYear || item.year || item.Year)
-      const hasMake = text.includes(normalizedMake)
-      const hasModel = normalizedModel && text.includes(normalizedModel)
-      const hasYear = numericYear ? yearText.includes(String(numericYear)) || text.includes(String(numericYear)) : true
-
-      return hasMake && (hasModel || normalizedModel.length < 3) && hasYear
-    }).slice(0, 12)
-
-    const items = matches.map(item => ({
-      bulletinNumber: safeValue(item.bulletinNumber || item.BulletinNumber || item.NHTSANumber),
-      component: safeValue(item.component || item.Component),
-      summary: safeValue(item.summary || item.Summary || "Manufacturer communication record present."),
-      date: safeValue(item.date || item.Date),
-      type: safeValue(item.type || item.Type || "Manufacturer Communication")
-    }))
-
-    return {
-      items,
-      summary: items.length
-        ? `${items.length} manufacturer communication matches found for this vehicle profile.`
-        : "No obvious manufacturer communication matches found for this vehicle profile."
-    }
-  } catch {
-    return {
-      items: [],
-      summary: "Manufacturer communication data could not be retrieved right now."
-    }
-  }
-}
-
 function buildAttentionFlags(report) {
   const flags = []
 
@@ -1214,10 +1860,6 @@ function buildAttentionFlags(report) {
     flags.push("Investigation history present")
   }
 
-  if (report.communications.items.length) {
-    flags.push("Manufacturer bulletins present")
-  }
-
   if (!report.efficiency.combinedMPG) {
     flags.push("Fuel economy match unavailable")
   }
@@ -1239,6 +1881,7 @@ function buildRiskLevel(report) {
   const recalls = Number(report.safety.recalls || 0)
   const complaints = Number(report.safety.complaints || 0)
   const investigations = Array.isArray(report.investigations.items) ? report.investigations.items.length : 0
+  const expensiveAreas = Array.isArray(report.ownership.expensiveFailureAreas) ? report.ownership.expensiveFailureAreas.length : 0
 
   if (recalls >= 8) score += 3
   else if (recalls >= 3) score += 2
@@ -1252,6 +1895,7 @@ function buildRiskLevel(report) {
   if (investigations >= 1) score += 1
   if (report.ownership.maintenanceComplexity === "Higher" || report.ownership.maintenanceComplexity === "Moderate to Higher") score += 1
   if (!report.efficiency.combinedMPG) score += 1
+  if (expensiveAreas >= 4) score += 1
 
   if (score >= 6) return "High"
   if (score >= 3) return "Moderate"
@@ -1268,21 +1912,17 @@ function buildConfidenceLevel(coverageScore) {
 function calculateCoverageScore(report) {
   let score = 0
 
-  if (report.vehicle.make && report.vehicle.model && report.vehicle.year) score += 25
+  if (report.vehicle.make && report.vehicle.model && report.vehicle.year) score += 20
   if (typeof report.safety.recalls === "number") score += 15
-  if (report.safety.dataAvailable) score += 10
-  if (report.efficiency.dataAvailable) score += 15
-  if (report.ownership.commonIssues.length) score += 10
-  if (report.ownership.inspectionChecks.length) score += 10
+  if (report.safety.dataAvailable) score += 12
+  if (report.efficiency.dataAvailable) score += 10
+  if (report.ownership.commonIssues.length) score += 8
+  if (report.ownership.inspectionChecks.length) score += 8
+  if (report.ownership.expensiveFailureAreas.length) score += 8
+  if (report.ownership.testDriveChecks.length) score += 8
   if (report.ownership.enginePlatform) score += 5
-  if (report.investigations.items.length) score += 5
-  if (report.communications.items.length) score += 5
-
-  const dimensionsPresent = !!safeValue(report.specs.dimensions)
-  const hpPresent = !!safeValue(report.specs.horsepower)
-
-  if (dimensionsPresent) score += 3
-  if (hpPresent) score += 2
+  if (report.investigations.items.length) score += 4
+  if (report.marketAnalysis.retailValues.good) score += 2
 
   return Math.min(score, 100)
 }
@@ -1339,8 +1979,7 @@ function buildMissingDataFlags(report) {
     dimensionsMissing: !safeValue(report.specs.dimensions),
     decodedEngineMissing: !safeValue(report.vehicle.engine),
     inferredEngineUsed: !!safeValue(report.ownership.enginePlatform),
-    investigationDataMissing: !Array.isArray(report.investigations.items),
-    communicationDataMissing: !Array.isArray(report.communications.items)
+    investigationDataMissing: !Array.isArray(report.investigations.items)
   }
 }
 
@@ -1365,6 +2004,455 @@ function buildBuyerVerdict(report) {
   return {
     headline,
     summary
+  }
+}
+
+function buildMarketAnalysis(vehicle, report) {
+  const year = intValue(vehicle.year)
+  const make = upperText(vehicle.make)
+  const luxury = isLuxuryBrand(vehicle.make)
+  const body = getBodyType(vehicle)
+  const fuel = getFuelGroup(vehicle)
+  const risk = report ? report.signals.riskLevel : "Moderate"
+
+  let baseRetailGood = 9000
+
+  if (!year) baseRetailGood = 8000
+  else {
+    const age = Math.max(1, 2026 - year)
+
+    if (luxury) baseRetailGood = 17000 - age * 800
+    else if (body === "truck") baseRetailGood = 21000 - age * 700
+    else if (body === "suv") baseRetailGood = 16000 - age * 700
+    else baseRetailGood = 12000 - age * 650
+
+    if (fuel === "electric") baseRetailGood -= 1500
+    if (fuel === "hybrid") baseRetailGood += 500
+    if (risk === "High") baseRetailGood -= 1200
+    if (risk === "Moderate") baseRetailGood -= 600
+  }
+
+  if (make === "BMW" || make === "AUDI" || make === "MERCEDES-BENZ" || make === "MERCEDES BENZ" || make === "MERCEDES") {
+    baseRetailGood -= 500
+  }
+
+  baseRetailGood = Math.max(3500, Math.round(baseRetailGood / 100) * 100)
+
+  const goodRetail = baseRetailGood
+  const excellentRetail = Math.round(goodRetail * 1.15 / 100) * 100
+  const fairRetail = Math.round(goodRetail * 0.83 / 100) * 100
+
+  const excellentTrade = Math.round(excellentRetail * 0.67 / 100) * 100
+  const goodTrade = Math.round(goodRetail * 0.64 / 100) * 100
+  const fairTrade = Math.round(fairRetail * 0.61 / 100) * 100
+
+  let analystNote = "This is a modeled market positioning estimate, not a live appraisal. Final value depends heavily on mileage, title status, options, condition, and local buyer demand."
+
+  if (luxury) {
+    analystNote = "This vehicle sits in a lower entry price but higher running cost ownership band. Clean service history and condition have a large influence on buyer confidence and liquidity."
+  }
+
+  if (body === "truck") {
+    analystNote = "Truck values are especially sensitive to mileage, drivetrain condition, tow history, tire condition, and underbody wear."
+  }
+
+  if (fuel === "electric") {
+    analystNote = "EV values are especially sensitive to battery confidence, software condition, warranty status, and charging history."
+  }
+
+  return {
+    valuationDate: "March 19, 2026",
+    method: "Modeled secondary market positioning estimate",
+    retailValues: {
+      excellent: excellentRetail,
+      good: goodRetail,
+      fair: fairRetail
+    },
+    tradeValues: {
+      excellent: excellentTrade,
+      good: goodTrade,
+      fair: fairTrade
+    },
+    analystNote
+  }
+}
+
+function buildEngineAdvisory(vehicle, ownership) {
+  const year = intValue(vehicle.year)
+  const make = upperText(vehicle.make)
+  const model = upperText(vehicle.model)
+  const fuel = getFuelGroup(vehicle)
+  const drive = getDriveTypeGroup(vehicle)
+
+  const title = "Platform and Engine Advisory"
+  let summary = ownership.engineLabel
+    ? `This vehicle likely uses ${ownership.engineLabel}.`
+    : `This vehicle sits on ${ownership.platform}.`
+
+  const advisoryItems = []
+
+  if (make === "BMW" && model.includes("320") && year === 2016) {
+    return {
+      title: "The Split Year Engine Advisory",
+      summary: "2016 was a transition year for some BMW 320i production. The long term ownership profile can change depending on which engine architecture is under the hood.",
+      advisoryItems: [
+        {
+          heading: "Earlier Production Logic",
+          body: "Some vehicles from this period may map to the outgoing turbo four cylinder architecture, which carries stronger buyer sensitivity around timing chain related reputation and long term maintenance anxiety."
+        },
+        {
+          heading: "Later Production Logic",
+          body: "Later production examples are more likely to align with BMW's newer closed deck turbo four cylinder family, which is generally viewed as the preferred long term architecture."
+        },
+        {
+          heading: "Action",
+          body: "Confirm the physical engine layout before purchase and cross check servicing history for oil changes, cooling system work, and gasket repairs."
+        }
+      ]
+    }
+  }
+
+  if (make === "BMW") {
+    advisoryItems.push({
+      heading: "BMW Ownership Context",
+      body: "BMW values are heavily influenced by engine family, fluid service quality, cooling system condition, and whether warning lights or leaks are present."
+    })
+  }
+
+  if (make === "AUDI" || make === "VOLKSWAGEN" || make === "VW") {
+    advisoryItems.push({
+      heading: "Turbocharged Platform Advisory",
+      body: "Audi and Volkswagen ownership value is strongly tied to cooling system history, transmission service quality, oil consumption monitoring, and warning light free operation."
+    })
+  }
+
+  if (make === "MERCEDES-BENZ" || make === "MERCEDES BENZ" || make === "MERCEDES") {
+    advisoryItems.push({
+      heading: "Electronic Complexity Advisory",
+      body: "Mercedes ownership risk often sits in electronics, leaks, suspension wear, and evidence of high quality servicing rather than mileage alone."
+    })
+  }
+
+  if (make === "TOYOTA" || make === "LEXUS") {
+    advisoryItems.push({
+      heading: "Durability Advisory",
+      body: "These platforms often carry a lower public risk profile than rivals, but hybrid battery age, crash repair quality, and neglected fluid service still materially affect ownership quality."
+    })
+  }
+
+  if (make === "FORD") {
+    advisoryItems.push({
+      heading: "Drivetrain Advisory",
+      body: "Ford used values are often shaped by transmission behavior, turbo system health, towing related wear, and underbody condition."
+    })
+  }
+
+  if (make === "CHEVROLET" || make === "GMC" || make === "CADILLAC") {
+    advisoryItems.push({
+      heading: "Transmission and Engine Advisory",
+      body: "GM ownership risk often centers on transmission behavior, oil management system history, and front end wear on larger vehicles."
+    })
+  }
+
+  if (make === "HYUNDAI" || make === "KIA" || make === "GENESIS") {
+    advisoryItems.push({
+      heading: "Engine Family Advisory",
+      body: "Engine family history and recall completion status matter significantly on used Hyundai and Kia platform vehicles."
+    })
+  }
+
+  if (make === "NISSAN" || make === "INFINITI") {
+    advisoryItems.push({
+      heading: "Transmission Advisory",
+      body: "Nissan purchase risk is often dominated by transmission behavior and proof of proper service history."
+    })
+  }
+
+  if (make === "SUBARU") {
+    advisoryItems.push({
+      heading: "AWD Advisory",
+      body: "Subaru ownership is unusually sensitive to tire matching, fluid servicing, and transmission or AWD condition."
+    })
+  }
+
+  if (make === "TESLA") {
+    advisoryItems.push({
+      heading: "EV Advisory",
+      body: "Tesla ownership risk centers on suspension wear, tire wear, battery confidence, charging behavior, and sensor or module function."
+    })
+  }
+
+  if (fuel === "electric") {
+    advisoryItems.push({
+      heading: "Electrified System Note",
+      body: "This vehicle uses an electrified powertrain, so battery condition, charging behavior, and software or module health matter more than engine wear."
+    })
+  }
+
+  if (drive === "awd") {
+    advisoryItems.push({
+      heading: "AWD System Note",
+      body: "All wheel drive vehicles should be checked carefully for tire matching, transfer case or coupling behavior, and low speed binding during tight turns."
+    })
+  }
+
+  return {
+    title,
+    summary,
+    advisoryItems
+  }
+}
+
+function buildRiskForecast(vehicle, ownership, safety) {
+  const make = upperText(vehicle.make)
+  const body = getBodyType(vehicle)
+  const drive = getDriveTypeGroup(vehicle)
+  const fuel = getFuelGroup(vehicle)
+
+  const items = []
+
+  items.push({
+    risk: "High",
+    area: "Cooling System",
+    note: "Cooling system age is one of the most common used vehicle ownership cost triggers on modern cars, especially turbocharged or luxury platforms.",
+    estimatedCost: body === "truck" ? currencyRange(900, 1800) : currencyRange(700, 1400)
+  })
+
+  items.push({
+    risk: "Medium",
+    area: "Suspension Wear",
+    note: "Bushings, arms, links, and dampers often become cost items at this age, especially on heavier AWD, SUV, truck, and luxury platforms.",
+    estimatedCost: currencyRange(500, 1600)
+  })
+
+  if (fuel !== "electric") {
+    items.push({
+      risk: "Medium",
+      area: "Oil Leaks and Gaskets",
+      note: "Age related gasket seepage and oil leak repairs are common on many turbocharged and luxury vehicles.",
+      estimatedCost: currencyRange(400, 1400)
+    })
+  }
+
+  if (drive === "awd") {
+    items.push({
+      risk: "Medium",
+      area: "AWD System Service Exposure",
+      note: "AWD systems are more sensitive to tire mismatch, missed fluid service, and transfer case wear than two wheel drive layouts.",
+      estimatedCost: currencyRange(500, 3500)
+    })
+  }
+
+  if (fuel === "hybrid") {
+    items.push({
+      risk: "Medium",
+      area: "Hybrid System Aging",
+      note: "As hybrid vehicles age, battery support systems, cooling, and related diagnostics become more relevant ownership variables.",
+      estimatedCost: currencyRange(600, 3000)
+    })
+  }
+
+  if (fuel === "electric") {
+    items.push({
+      risk: "Medium",
+      area: "Battery and Charging Diagnostics",
+      note: "EV ownership risk shifts toward battery confidence, charging behavior, thermal management, and module issues.",
+      estimatedCost: currencyRange(700, 4000)
+    })
+  }
+
+  if (make === "BMW") {
+    items.push({
+      risk: "High",
+      area: "BMW Cooling and Leak Exposure",
+      note: "BMW ownership cost is often driven by coolant system parts, oil filter housing leaks, valve cover leaks, and service neglect.",
+      estimatedCost: currencyRange(800, 1800)
+    })
+  }
+
+  if (make === "AUDI" || make === "VOLKSWAGEN" || make === "VW") {
+    items.push({
+      risk: "Medium",
+      area: "Turbo Cooling and Intake Systems",
+      note: "VW Group turbo platforms often require attention around water pumps, PCV systems, intake related faults, and transmission service.",
+      estimatedCost: currencyRange(700, 2000)
+    })
+  }
+
+  if (make === "NISSAN" || make === "INFINITI") {
+    items.push({
+      risk: "High",
+      area: "Transmission Exposure",
+      note: "Transmission behavior should be treated as a major purchase driver on many Nissan platforms.",
+      estimatedCost: currencyRange(2500, 5000)
+    })
+  }
+
+  return {
+    title: "24 Month Risk Forecast",
+    summary: "This section models common ownership cost areas based on platform type, age, drivetrain, and public safety context. These are not guarantees, but they are meaningful buyer focus points.",
+    items: items.slice(0, 6)
+  }
+}
+
+function buildNegotiationLeverage(vehicle, ownership, marketAnalysis) {
+  const drive = getDriveTypeGroup(vehicle)
+  const fuel = getFuelGroup(vehicle)
+  const make = safeValue(vehicle.make) || "This vehicle"
+
+  const scripts = [
+    {
+      title: "The Maintenance Reserve Credit",
+      script: `This ${make} sits in a maintenance sensitive age band. Without recent major service receipts, I need to budget immediately for deferred items.`
+    },
+    {
+      title: "The Tire and Brake Adjustment",
+      script: "Tires and brakes are immediate ownership costs. If tread depth or brake life is low, that becomes a direct negotiation point rather than a future surprise."
+    },
+    {
+      title: "The Service History Gap",
+      script: "If key fluids or age related maintenance are undocumented, I have to price in risk rather than assume the best case scenario."
+    }
+  ]
+
+  if (drive === "awd") {
+    scripts.push({
+      title: "The AWD Risk Credit",
+      script: "All wheel drive systems add cost exposure if tires are mismatched or fluid service has been skipped. I need to budget for that risk today."
+    })
+  }
+
+  if (fuel === "hybrid" || fuel === "electric") {
+    scripts.push({
+      title: "The Electrified System Reserve",
+      script: "On an electrified vehicle, battery confidence, charging behavior, and electronic diagnostics materially affect value, so I need pricing that reflects that uncertainty."
+    })
+  }
+
+  if (upperText(vehicle.make) === "BMW") {
+    scripts.push({
+      title: "The Cooling and Leak Credit",
+      script: "BMW ownership costs are often shaped by cooling parts and oil leaks at this age. Without proof those items were handled, I need to budget for them right away."
+    })
+  }
+
+  if (upperText(vehicle.make) === "NISSAN") {
+    scripts.push({
+      title: "The Transmission Risk Adjustment",
+      script: "Transmission condition is one of the biggest value variables on this platform, so without strong service evidence I need a price that reflects that risk."
+    })
+  }
+
+  return {
+    title: "Negotiation Leverage",
+    summary: `Use these talking points to justify a lower offer if service history, tire condition, fluid service, or inspection quality are weak. Modeled market position for a good example is approximately $${marketAnalysis.retailValues.good.toLocaleString()}.`,
+    items: scripts.slice(0, 5)
+  }
+}
+
+function buildOwnershipRoadmap(vehicle, ownership) {
+  const fuel = getFuelGroup(vehicle)
+  const drive = getDriveTypeGroup(vehicle)
+  const make = upperText(vehicle.make)
+
+  const immediate = [
+    "Oil service if interval is unclear",
+    "Full inspection for leaks, tires, brakes, and warning lights",
+    "Baseline fluid and service record review"
+  ]
+
+  const next5k = [
+    "Check tires, brakes, and alignment",
+    "Inspect suspension wear items",
+    "Recheck fluid levels and leaks"
+  ]
+
+  const next10k = [
+    "Spark plugs if the platform is turbocharged and service is unknown",
+    "Brake fluid review",
+    "Cooling system inspection"
+  ]
+
+  const next20k = [
+    "Serpentine belt inspection or replacement where age appropriate",
+    "Transmission or drivetrain service review",
+    "Battery and charging system review for electrified vehicles"
+  ]
+
+  const next30k = [
+    "Comprehensive fluid service review",
+    "Suspension and steering condition reinspection",
+    "Update preventive maintenance baseline"
+  ]
+
+  if (drive === "awd") {
+    next5k.push("Transfer case or AWD fluid service review")
+  }
+
+  if (fuel === "hybrid") {
+    next20k.push("Hybrid cooling and battery support system inspection")
+  }
+
+  if (fuel === "electric") {
+    immediate.push("Charging and battery health review")
+    next10k.push("Brake system and tire wear review due to EV curb weight")
+  }
+
+  if (make === "BMW") {
+    immediate.push("Ignore long factory oil intervals if service history is weak")
+    next20k.push("Transmission service consideration if age and mileage justify it")
+  }
+
+  if (make === "AUDI" || make === "VOLKSWAGEN" || make === "VW") {
+    next10k.push("Cooling system and water pump checks")
+  }
+
+  if (make === "NISSAN") {
+    immediate.push("Transmission behavior review should be treated as a priority")
+  }
+
+  return {
+    title: "30,000 Mile Ownership Roadmap",
+    summary: "This is a preventive ownership roadmap designed to reduce the chance that the vehicle becomes a high surprise cost purchase.",
+    intervals: [
+      { interval: "Immediate", actions: Array.from(new Set(immediate)) },
+      { interval: "Next 5k Miles", actions: Array.from(new Set(next5k)) },
+      { interval: "Next 10k Miles", actions: Array.from(new Set(next10k)) },
+      { interval: "Next 20k Miles", actions: Array.from(new Set(next20k)) },
+      { interval: "Next 30k Miles", actions: Array.from(new Set(next30k)) }
+    ]
+  }
+}
+
+function buildPurchaseChecklist(vehicle, ownership) {
+  const checks = [
+    "Cold start the vehicle from fully cold if possible",
+    "Scan for warning lights before and after the drive",
+    "Review service history for regular oil changes and annual servicing",
+    "Inspect tire age, tread, and brand matching",
+    "Check for obvious fluid leaks or repair shortcuts",
+    "Confirm all major electronics work correctly"
+  ]
+
+  if (getDriveTypeGroup(vehicle) === "awd") {
+    checks.push("Do a tight low speed turn to check for binding or jerking")
+  }
+
+  if (getFuelGroup(vehicle) === "electric") {
+    checks.push("Verify charging behavior and battery related warnings")
+  }
+
+  if (getFuelGroup(vehicle) === "hybrid") {
+    checks.push("Check for smooth transition between electric and gasoline operation")
+  }
+
+  for (const test of ownership.testDriveChecks || []) {
+    if (!checks.includes(test)) checks.push(test)
+  }
+
+  return {
+    title: "Final Purchase Checklist",
+    items: checks.slice(0, 10)
   }
 }
 
@@ -1397,7 +2485,12 @@ async function buildReportFromVin(vin) {
     wmi: safeValue(row.WMI),
     plantCountry: safeValue(row.PlantCountry),
     manufacturer: safeValue(row.Manufacturer),
-    series: safeValue(row.Series)
+    series: safeValue(row.Series),
+    series2: safeValue(row.Series2),
+    displacementL: safeValue(row.DisplacementL),
+    cylinders: safeValue(row.EngineCylinders || row.Cylinders),
+    transmissionSpeeds: safeValue(row.TransmissionSpeeds),
+    assemblyPlant: safeValue(row.PlantCompanyName)
   }
 
   vehicle.title = buildVehicleTitle(vehicle)
@@ -1406,7 +2499,6 @@ async function buildReportFromVin(vin) {
   const safetyComplaints = await fetchComplaints(vehicle.year, vehicle.make, vehicle.model)
   const efficiency = await fetchEfficiency(vehicle.year, vehicle.make, vehicle.model)
   const investigationData = await fetchInvestigations(vehicle.year, vehicle.make, vehicle.model)
-  const communicationData = await fetchManufacturerCommunications(vehicle.year, vehicle.make, vehicle.model)
   const specs = buildSpecsFromDecode(row)
 
   const safety = {
@@ -1418,12 +2510,60 @@ async function buildReportFromVin(vin) {
   const optionProfile = buildOptionProfile(vehicle)
 
   const report = {
+    reportMeta: {
+      headline: "PRE PURCHASE INTELLIGENCE REPORT",
+      stockId: [
+        safeValue(vehicle.year),
+        safeValue(vehicle.make),
+        safeValue(vehicle.model),
+        safeValue(ownership.platform || ownership.enginePlatform || vehicle.trim)
+      ].filter(Boolean).join("-").replace(/\s+/g, "-"),
+      date: "March 19, 2026"
+    },
+
     vehicle,
     safety,
     efficiency,
     specs,
     ownership,
     optionProfile,
+
+    marketAnalysis: {
+      valuationDate: "",
+      method: "",
+      retailValues: {},
+      tradeValues: {},
+      analystNote: ""
+    },
+
+    engineAdvisory: {
+      title: "",
+      summary: "",
+      advisoryItems: []
+    },
+
+    riskForecast: {
+      title: "",
+      summary: "",
+      items: []
+    },
+
+    negotiationLeverage: {
+      title: "",
+      summary: "",
+      items: []
+    },
+
+    ownershipRoadmap: {
+      title: "",
+      summary: "",
+      intervals: []
+    },
+
+    purchaseChecklist: {
+      title: "",
+      items: []
+    },
 
     buyerVerdict: {
       headline: "",
@@ -1433,11 +2573,6 @@ async function buildReportFromVin(vin) {
     investigations: {
       items: investigationData.investigations,
       summary: investigationData.investigationSummary
-    },
-
-    communications: {
-      items: communicationData.items,
-      summary: communicationData.summary
     },
 
     signals: {
@@ -1478,6 +2613,13 @@ async function buildReportFromVin(vin) {
   report.signals.riskLevel = buildRiskLevel(report)
   report.signals.attentionFlags = buildAttentionFlags(report)
   report.signals.allowPurchase = report.signals.coverageScore >= 60
+
+  report.marketAnalysis = buildMarketAnalysis(vehicle, report)
+  report.engineAdvisory = buildEngineAdvisory(vehicle, ownership)
+  report.riskForecast = buildRiskForecast(vehicle, ownership, safety)
+  report.negotiationLeverage = buildNegotiationLeverage(vehicle, ownership, report.marketAnalysis)
+  report.ownershipRoadmap = buildOwnershipRoadmap(vehicle, ownership)
+  report.purchaseChecklist = buildPurchaseChecklist(vehicle, ownership)
 
   const frontSignals = buildFrontEndSignals(report)
   report.frontEndSummary.headline = frontSignals.headline
