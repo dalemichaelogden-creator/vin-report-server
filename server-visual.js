@@ -945,7 +945,7 @@ app.get("/customer-report/:vin", async (req, res) => {
       return res.status(400).send("<h1>Invalid VIN</h1><p>Please provide a valid 17 character VIN.</p>")
     }
 
-    const BYPASS_PAYMENT_FOR_TESTING = true
+    const BYPASS_PAYMENT_FOR_TESTING = false
 
     if (!BYPASS_PAYMENT_FOR_TESTING) {
       const paidCheck = await verifyPaidSession(sessionId, vin)
