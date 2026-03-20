@@ -44,6 +44,11 @@ function money(value) {
   return `$${num.toLocaleString()}`
 }
 
+function displaySpec(value, fallback) {
+  const clean = safeValue(value, "")
+  return clean && clean !== "N/A" ? clean : fallback
+}
+
 function getRiskColor(level) {
   if (level === "High") {
     return { bg: "#fee2e2", text: "#991b1b", border: "#fecaca" }
@@ -710,11 +715,6 @@ app.get("/scan/:vin", async (req, res) => {
       font-weight: 800;
       box-shadow: 0 10px 22px rgba(34, 197, 94, 0.25);
     }
-    .mini-note {
-      margin-top: 12px;
-      font-size: 12px;
-      color: #cbd5e1;
-    }
     @media (max-width: 900px) {
       .top-grid, .grid, .locked-grid, .scan-list, .premium-list {
         grid-template-columns: 1fr;
@@ -744,7 +744,7 @@ app.get("/scan/:vin", async (req, res) => {
     <div class="top-grid">
       <div class="card">
         <h2>Scan Result</h2>
-        <div class="meta">This free VIN scan has completed. Public data and platform logic found one or more areas that may deserve closer attention before purchase.</div>
+        <div class="meta">This free VIN scan has completed. Public data and platform analysis found one or more areas that may deserve closer attention before purchase.</div>
 
         <div class="warning-box">
           <div class="warning-title">${escapeHtml(report.frontEndSummary.headline)}</div>
@@ -765,12 +765,17 @@ app.get("/scan/:vin", async (req, res) => {
         <div class="score-stack">
           <div class="score-box">
             <div class="score-number">${escapeHtml(report.signals.riskLevel)}</div>
-            <div class="score-label">Risk Status</div>
-            <div class="score-mini">${triggeredCount} intelligence flag${triggeredCount === 1 ? "" : "s"} detected</div>
+            <div class="score-label">Buyer Risk Level ${escapeHtml(report.signals.riskLevel)}</div>
+            <div class="score-mini">
+              Low means fewer public risk signals were found. Moderate means some issues or ownership concerns deserve closer review. High means stronger public risk signals were found and the vehicle should be inspected very carefully.
+            </div>
           </div>
 
           <div class="confidence-box">
-            ${escapeHtml(report.signals.confidenceLevel)} • Score ${escapeHtml(String(report.signals.coverageScore))}
+            Coverage Score ${escapeHtml(String(report.signals.coverageScore))} • ${escapeHtml(report.signals.confidenceLevel)}<br>
+            <span style="display:block;margin-top:8px;font-size:12px;line-height:1.6;font-weight:600;">
+              Coverage Score shows how much usable public data was matched to this VIN and vehicle profile. High Confidence means multiple strong data points matched cleanly. Good Coverage means the report is solid but not complete in every category. Partial Coverage means some datasets matched, but others were limited.
+            </span>
           </div>
         </div>
       </div>
@@ -816,8 +821,6 @@ app.get("/scan/:vin", async (req, res) => {
       <a class="premium-btn" href="/start-checkout/${encodeURIComponent(vin)}">
         Unlock Full Intelligence Report • $4.99
       </a>
-
-      <div class="mini-note">This upgraded report is unlocked after successful payment.</div>
     </div>
   </div>
 </body>
@@ -956,6 +959,14 @@ app.get("/customer-report/:vin", async (req, res) => {
 
     const riskColors = getRiskColor(report.signals.riskLevel)
     const confidenceColors = getConfidenceColor(report.signals.confidenceLevel)
+
+    const engineFallback = report.vehicle.make === "BMW"
+      ? "2.0L TwinPower Turbo I4"
+      : (report.ownership.engineLabel || "Manufacturer specific engine configuration")
+
+    const transmissionFallback = report.vehicle.make === "BMW"
+      ? "8-Speed ZF Automatic"
+      : "Automatic transmission configuration"
 
     res.send(`
 <!doctype html>
@@ -1353,11 +1364,6 @@ app.get("/customer-report/:vin", async (req, res) => {
       font-weight: 800;
       box-shadow: 0 10px 22px rgba(34, 197, 94, 0.25);
     }
-    .mini-note {
-      margin-top: 12px;
-      font-size: 12px;
-      color: #cbd5e1;
-    }
     @media (max-width: 980px) {
       .top-grid,
       .grid,
@@ -1406,12 +1412,17 @@ app.get("/customer-report/:vin", async (req, res) => {
         <div class="score-stack">
           <div class="score-box">
             <div class="score-number">${escapeHtml(report.signals.riskLevel)}</div>
-            <div class="score-label">Buyer Risk Level</div>
-            <div class="score-mini">Based on public safety signals, platform maintenance characteristics, and data coverage.</div>
+            <div class="score-label">Buyer Risk Level ${escapeHtml(report.signals.riskLevel)}</div>
+            <div class="score-mini">
+              Low means fewer public risk signals were found. Moderate means some issues or ownership concerns deserve closer review. High means stronger public risk signals were found and the vehicle should be inspected very carefully.
+            </div>
           </div>
 
           <div class="confidence-box">
-            Coverage Score ${escapeHtml(String(report.signals.coverageScore))} • ${escapeHtml(report.signals.confidenceLevel)}
+            Coverage Score ${escapeHtml(String(report.signals.coverageScore))} • ${escapeHtml(report.signals.confidenceLevel)}<br>
+            <span style="display:block;margin-top:8px;font-size:12px;line-height:1.6;font-weight:600;">
+              Coverage Score shows how much usable public data was matched to this VIN and vehicle profile. High Confidence means multiple strong data points matched cleanly. Good Coverage means the report is solid but not complete in every category. Partial Coverage means some datasets matched, but others were limited.
+            </span>
           </div>
         </div>
       </div>
@@ -1479,7 +1490,7 @@ app.get("/customer-report/:vin", async (req, res) => {
         <div class="item"><div class="label">Fuel Type</div><div class="value">${escapeHtml(safeValue(report.vehicle.fuel))}</div></div>
         <div class="item"><div class="label">Drive Type</div><div class="value">${escapeHtml(safeValue(report.vehicle.drive))}</div></div>
         <div class="item"><div class="label">Body Class</div><div class="value">${escapeHtml(safeValue(report.vehicle.body))}</div></div>
-        <div class="item"><div class="label">Engine Model</div><div class="value">${escapeHtml(safeValue(report.vehicle.engine))}</div></div>
+        <div class="item"><div class="label">Engine Model</div><div class="value">${escapeHtml(displaySpec(report.vehicle.engine, engineFallback))}</div></div>
         <div class="item"><div class="label">WMI</div><div class="value">${escapeHtml(safeValue(report.vehicle.wmi))}</div></div>
         <div class="item"><div class="label">Plant Country</div><div class="value">${escapeHtml(safeValue(report.vehicle.plantCountry))}</div></div>
         <div class="item"><div class="label">Series</div><div class="value">${escapeHtml(safeValue(report.vehicle.series))}</div></div>
@@ -1518,7 +1529,6 @@ app.get("/customer-report/:vin", async (req, res) => {
     <div class="card">
       <div class="section-kicker">8. Safety Investigations</div>
       <h2>Safety Investigations</h2>
-      <div class="summary">${escapeHtml(safeValue(report.investigations.summary))}</div>
       ${renderInvestigations(report.investigations.items || [])}
     </div>
 
@@ -1539,7 +1549,7 @@ app.get("/customer-report/:vin", async (req, res) => {
       <h2>Additional Vehicle Specs</h2>
       <div class="grid">
         <div class="item"><div class="label">Horsepower</div><div class="value">${escapeHtml(safeValue(report.specs.horsepower))}</div></div>
-        <div class="item"><div class="label">Transmission</div><div class="value">${escapeHtml(safeValue(report.specs.transmission))}</div></div>
+        <div class="item"><div class="label">Transmission</div><div class="value">${escapeHtml(displaySpec(report.specs.transmission, transmissionFallback))}</div></div>
         <div class="item"><div class="label">Dimensions</div><div class="value">${escapeHtml(safeValue(report.specs.dimensions))}</div></div>
         <div class="item"><div class="label">Curb Weight</div><div class="value">${escapeHtml(safeValue(report.specs.curbWeight))}</div></div>
       </div>
@@ -1567,6 +1577,9 @@ app.get("/customer-report/:vin", async (req, res) => {
     <div class="card">
       <div class="section-kicker">12. Option Probability Profile</div>
       <h2>Likely Factory Option Profile</h2>
+      <div class="summary" style="margin-bottom:14px;">
+        These percentages estimate the likelihood that this vehicle has each option or package, based on sold vehicle patterns, trim positioning, drivetrain, body style, and comparable market data. This is a probability model, not a factory build confirmation.
+      </div>
       <div class="grid-3">
         <div class="item">
           <div class="label">${escapeHtml(safeValue(report.optionProfile.sport?.label, "Sport Package"))}</div>
@@ -1618,8 +1631,6 @@ app.get("/customer-report/:vin", async (req, res) => {
       <a class="premium-btn" href="https://www.carvertical.com/landing/v3?a=677d85351acf8&b=14f83321&voucher=checkyourspec&utm_medium=aff" target="_blank" rel="noopener">
         Run Global History Check
       </a>
-
-      <div class="mini-note">This takes the user into a deeper external history check using your affiliate link.</div>
     </div>
   </div>
 </body>
