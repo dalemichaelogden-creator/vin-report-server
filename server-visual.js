@@ -66,19 +66,7 @@ function getConfidenceColor(level) {
   return { bg: "#fee2e2", text: "#991b1b" }
 }
 
-function getSeverityColors(level) {
-  if (level === "Higher Attention") {
-    return { bg: "#fee2e2", text: "#991b1b", border: "#fecaca" }
-  }
-
-  if (level === "Moderate Attention") {
-    return { bg: "#fef3c7", text: "#92400e", border: "#fcd34d" }
-  }
-
-  return { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" }
-}
-
-function renderList(items) {
+function renderPills(items) {
   if (!Array.isArray(items) || !items.length) {
     return `<div class="empty-copy">No additional items were returned.</div>`
   }
@@ -90,101 +78,106 @@ function renderList(items) {
   `
 }
 
-function renderComplaintComponents(items) {
-  if (!Array.isArray(items) || !items.length) {
-    return `<div class="empty-copy">No complaint component breakdown was returned.</div>`
-  }
-
+function renderKeyValueGrid(items) {
   return `
-    <div class="mini-grid">
+    <div class="grid">
       ${items.map(item => `
-        <div class="mini-stat">
-          <div class="mini-stat-top">${escapeHtml(safeValue(item.component))}</div>
-          <div class="mini-stat-bottom">${escapeHtml(String(item.count || 0))} reports</div>
+        <div class="item ${item.wide ? "wide" : ""}">
+          <div class="label">${escapeHtml(item.label)}</div>
+          <div class="${item.summary ? "summary" : "value"}">${escapeHtml(item.value)}</div>
         </div>
       `).join("")}
     </div>
   `
 }
 
-function renderRecallCards(items) {
+function renderDetailCards(items, type) {
   if (!Array.isArray(items) || !items.length) {
-    return `<div class="empty-copy">No recall detail cards were returned for this vehicle profile.</div>`
+    return `<div class="empty-copy">No records were returned for this section.</div>`
   }
 
-  return `
-    <div class="detail-grid">
-      ${items.map(item => {
-        const colors = getSeverityColors(safeValue(item.severity, "General Attention"))
-        return `
+  if (type === "recalls") {
+    return `
+      <div class="stack-list">
+        ${items.map(item => `
           <div class="detail-card">
             <div class="detail-top">
-              <span class="detail-chip" style="background:${colors.bg};color:${colors.text};border-color:${colors.border};">
-                ${escapeHtml(safeValue(item.severity, "General Attention"))}
-              </span>
-              <span class="detail-campaign">${escapeHtml(safeValue(item.campaignNumber, "Campaign N/A"))}</span>
+              <div>
+                <div class="detail-title">${escapeHtml(safeValue(item.component, "Recall Item"))}</div>
+                <div class="detail-meta">
+                  Campaign ${escapeHtml(safeValue(item.campaignNumber, "N/A"))}
+                  •
+                  ${escapeHtml(safeValue(item.severity, "General Attention"))}
+                </div>
+              </div>
+              <div class="chip">${escapeHtml(safeValue(item.reportDate, "Date unavailable"))}</div>
             </div>
-            <div class="detail-title">${escapeHtml(safeValue(item.component, "General safety item"))}</div>
-            <div class="detail-copy">${escapeHtml(safeValue(item.summary, "Recall summary unavailable."))}</div>
-            <div class="detail-meta">
-              ${safeValue(item.reportDate, "") ? `<div><strong>Date:</strong> ${escapeHtml(item.reportDate)}</div>` : ""}
-              ${safeValue(item.manufacturer, "") ? `<div><strong>Manufacturer:</strong> ${escapeHtml(item.manufacturer)}</div>` : ""}
-              ${safeValue(item.remedy, "") ? `<div><strong>Remedy:</strong> ${escapeHtml(item.remedy)}</div>` : ""}
-            </div>
+            <div class="detail-copy">${escapeHtml(safeValue(item.summary, "Recall details available."))}</div>
+            ${item.remedy && item.remedy !== "N/A" ? `<div class="detail-copy detail-remedy"><strong>Remedy:</strong> ${escapeHtml(item.remedy)}</div>` : ""}
           </div>
-        `
-      }).join("")}
-    </div>
-  `
+        `).join("")}
+      </div>
+    `
+  }
+
+  if (type === "complaints") {
+    return `
+      <div class="stack-list">
+        ${items.map(item => `
+          <div class="detail-card">
+            <div class="detail-top">
+              <div>
+                <div class="detail-title">${escapeHtml(safeValue(item.component, "Complaint Record"))}</div>
+                <div class="detail-meta">
+                  ${escapeHtml(safeValue(item.date, "Date unavailable"))}
+                  ${item.mileage && item.mileage !== "N/A" ? ` • ${escapeHtml(item.mileage)} miles` : ""}
+                </div>
+              </div>
+            </div>
+            <div class="detail-copy">${escapeHtml(safeValue(item.summary, "Complaint record present."))}</div>
+          </div>
+        `).join("")}
+      </div>
+    `
+  }
+
+  if (type === "investigations") {
+    return `
+      <div class="stack-list">
+        ${items.map(item => `
+          <div class="detail-card">
+            <div class="detail-top">
+              <div>
+                <div class="detail-title">${escapeHtml(safeValue(item.component, "Safety Investigation"))}</div>
+                <div class="detail-meta">
+                  ${escapeHtml(safeValue(item.actionNumber, "Reference unavailable"))}
+                  •
+                  ${escapeHtml(safeValue(item.status, "Recorded"))}
+                </div>
+              </div>
+              <div class="chip">${escapeHtml(safeValue(item.dateOpened, "Date unavailable"))}</div>
+            </div>
+            <div class="detail-copy">${escapeHtml(safeValue(item.summary, "Investigation record present."))}</div>
+          </div>
+        `).join("")}
+      </div>
+    `
+  }
+
+  return `<div class="empty-copy">No records were returned for this section.</div>`
 }
 
-function renderComplaintCards(items) {
+function renderRankedComponents(items) {
   if (!Array.isArray(items) || !items.length) {
-    return `<div class="empty-copy">No complaint detail cards were returned for this vehicle profile.</div>`
+    return `<div class="empty-copy">No component ranking data was returned.</div>`
   }
 
   return `
-    <div class="detail-grid">
+    <div class="rank-grid">
       ${items.map(item => `
-        <div class="detail-card">
-          <div class="detail-top">
-            <span class="detail-chip" style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;">
-              Complaint Record
-            </span>
-            <span class="detail-campaign">${escapeHtml(safeValue(item.date, "Date N/A"))}</span>
-          </div>
-          <div class="detail-title">${escapeHtml(safeValue(item.component, "Unknown Component"))}</div>
-          <div class="detail-copy">${escapeHtml(safeValue(item.summary, "Complaint summary unavailable."))}</div>
-          <div class="detail-meta">
-            ${safeValue(item.mileage, "") ? `<div><strong>Mileage:</strong> ${escapeHtml(item.mileage)}</div>` : ""}
-          </div>
-        </div>
-      `).join("")}
-    </div>
-  `
-}
-
-function renderInvestigationCards(items) {
-  if (!Array.isArray(items) || !items.length) {
-    return `<div class="empty-copy">No obvious investigation matches were returned for this vehicle profile.</div>`
-  }
-
-  return `
-    <div class="detail-grid">
-      ${items.map(item => `
-        <div class="detail-card">
-          <div class="detail-top">
-            <span class="detail-chip" style="background:#fef3c7;color:#92400e;border-color:#fcd34d;">
-              Investigation Match
-            </span>
-            <span class="detail-campaign">${escapeHtml(safeValue(item.actionNumber, "Action N/A"))}</span>
-          </div>
-          <div class="detail-title">${escapeHtml(safeValue(item.component, "Component not specified"))}</div>
-          <div class="detail-copy">${escapeHtml(safeValue(item.summary, "Investigation summary unavailable."))}</div>
-          <div class="detail-meta">
-            ${safeValue(item.dateOpened, "") ? `<div><strong>Opened:</strong> ${escapeHtml(item.dateOpened)}</div>` : ""}
-            ${safeValue(item.status, "") ? `<div><strong>Status:</strong> ${escapeHtml(item.status)}</div>` : ""}
-          </div>
+        <div class="rank-card">
+          <div class="rank-label">${escapeHtml(safeValue(item.component, "Unknown Component"))}</div>
+          <div class="rank-value">${escapeHtml(String(item.count || 0))}</div>
         </div>
       `).join("")}
     </div>
@@ -267,70 +260,21 @@ async function verifyPaidSession(sessionId, expectedVin) {
   return { ok: true, session }
 }
 
-app.get("/", (req, res) => {
-  res.send(`<h1>Customer visual report server running</h1><p>Try /scan/YOURVINHERE</p>`)
-})
+function buildPublicScanPage(vin, report) {
+  const riskColors = getRiskColor(report.signals.riskLevel)
+  const confidenceColors = getConfidenceColor(report.signals.confidenceLevel)
+  const triggeredCount = Array.isArray(report.signals.attentionFlags) ? report.signals.attentionFlags.length : 0
 
-app.get("/start-checkout/:vin", async (req, res) => {
-  try {
-    const vin = sanitizeVin(req.params.vin)
+  const teaserCards = [
+    "Executive Buyer Verdict",
+    "Recall Campaign Detail",
+    "Complaint Pattern Breakdown",
+    "Investigation History",
+    "High Cost Failure Areas",
+    "Test Drive Checklist"
+  ]
 
-    if (vin.length !== 17) {
-      return res.status(400).send("<h1>Invalid VIN</h1><p>Please provide a valid 17 character VIN.</p>")
-    }
-
-    const session = await createCheckoutSession(vin)
-    return res.redirect(session.url)
-  } catch (error) {
-    return res.status(500).send(`<h1>Checkout error</h1><p>${escapeHtml(String(error.message || error))}</p>`)
-  }
-})
-
-app.post("/api/create-checkout-session", async (req, res) => {
-  try {
-    const vin = sanitizeVin(req.body && req.body.vin)
-
-    if (vin.length !== 17) {
-      return res.status(400).json({ error: "Valid 17 character VIN required" })
-    }
-
-    const session = await createCheckoutSession(vin)
-
-    return res.json({
-      success: true,
-      url: session.url
-    })
-  } catch (error) {
-    console.error("Stripe session error:", error)
-    return res.status(500).json({
-      success: false,
-      error: "Failed to create checkout session"
-    })
-  }
-})
-
-app.get("/scan/:vin", async (req, res) => {
-  try {
-    const vin = sanitizeVin(req.params.vin)
-
-    if (vin.length !== 17) {
-      return res.status(400).send("<h1>Invalid VIN</h1><p>Please provide a valid 17 character VIN.</p>")
-    }
-
-    const report = await getReport(vin)
-
-    const riskColors = getRiskColor(report.signals.riskLevel)
-    const confidenceColors = getConfidenceColor(report.signals.confidenceLevel)
-    const triggeredCount = Array.isArray(report.signals.attentionFlags) ? report.signals.attentionFlags.length : 0
-
-    const teaserCards = [
-      "Recall Type Breakdown",
-      "Complaint System Analysis",
-      "Ownership Risk Layer",
-      "Model Specific Inspection Guidance"
-    ]
-
-    res.send(`
+  return `
 <!doctype html>
 <html>
 <head>
@@ -346,7 +290,7 @@ app.get("/scan/:vin", async (req, res) => {
       color: #0f172a;
     }
     .wrap {
-      max-width: 1120px;
+      max-width: 1180px;
       margin: 0 auto;
       padding: 28px 16px 56px;
     }
@@ -477,33 +421,11 @@ app.get("/scan/:vin", async (req, res) => {
       grid-template-columns: repeat(2, 1fr);
       gap: 14px;
     }
-    .locked-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      margin-top: 16px;
-    }
     .item {
       background: #f8fafc;
       border: 1px solid #eef2f7;
       border-radius: 16px;
       padding: 16px;
-    }
-    .locked-card {
-      background: linear-gradient(180deg, #fffaf0, #fff7ed);
-      border: 1px solid #fed7aa;
-      border-radius: 16px;
-      padding: 18px;
-      position: relative;
-      overflow: hidden;
-    }
-    .locked-card::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04), rgba(255,255,255,0.18));
-      opacity: 0.35;
-      pointer-events: none;
     }
     .label {
       font-size: 11px;
@@ -519,8 +441,22 @@ app.get("/scan/:vin", async (req, res) => {
       line-height: 1.28;
       color: #0f172a;
     }
+    .locked-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .locked-card {
+      background: linear-gradient(180deg, #fffaf0, #fff7ed);
+      border: 1px solid #fed7aa;
+      border-radius: 16px;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
     .locked-title {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 800;
       color: #7c2d12;
       margin: 0 0 8px;
@@ -533,7 +469,7 @@ app.get("/scan/:vin", async (req, res) => {
     }
     .scan-list {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 12px;
       margin-top: 16px;
     }
@@ -638,7 +574,7 @@ app.get("/scan/:vin", async (req, res) => {
     <div class="top-grid">
       <div class="card">
         <h2>Scan Result</h2>
-        <div class="meta">This free VIN scan has completed. Internal diagnostic logic found one or more areas that may deserve closer attention before purchase.</div>
+        <div class="meta">This free VIN scan completed successfully and found signals worth reviewing before purchase.</div>
 
         <div class="warning-box">
           <div class="warning-title">${escapeHtml(report.frontEndSummary.headline)}</div>
@@ -646,12 +582,12 @@ app.get("/scan/:vin", async (req, res) => {
         </div>
 
         <div class="scan-list">
-          <div class="scan-item">Factory Build Architecture Decoded</div>
-          <div class="scan-item">Recall Records Cross Referenced</div>
-          <div class="scan-item">Complaint Activity Analyzed</div>
-          <div class="scan-item">Inspection Risk Layer Generated</div>
-          <div class="scan-item">Option Probability Modeled</div>
-          <div class="scan-item">Ownership Intelligence Prepared</div>
+          <div class="scan-item">Risk Level: ${escapeHtml(safeValue(report.signals.riskLevel))}</div>
+          <div class="scan-item">Recalls: ${escapeHtml(String(report.safety.recalls || 0))}</div>
+          <div class="scan-item">Complaints: ${escapeHtml(String(report.safety.complaints || 0))}</div>
+          <div class="scan-item">Top Issue: ${escapeHtml(safeValue(report.safety.topComponent, "Not identified"))}</div>
+          <div class="scan-item">Maintenance: ${escapeHtml(safeValue(report.ownership.maintenanceComplexity, "Moderate"))}</div>
+          <div class="scan-item">Fuel Match: ${report.efficiency.combinedMPG ? "Matched" : "Unavailable"}</div>
         </div>
       </div>
 
@@ -659,8 +595,8 @@ app.get("/scan/:vin", async (req, res) => {
         <div class="score-stack">
           <div class="score-box">
             <div class="score-number">${escapeHtml(report.signals.riskLevel)}</div>
-            <div class="score-label">Risk Status</div>
-            <div class="score-mini">${triggeredCount} internal logic flag${triggeredCount === 1 ? "" : "s"} detected</div>
+            <div class="score-label">Buyer Risk Status</div>
+            <div class="score-mini">${triggeredCount} public and modeled signal${triggeredCount === 1 ? "" : "s"} detected</div>
           </div>
 
           <div class="confidence-box">
@@ -671,54 +607,648 @@ app.get("/scan/:vin", async (req, res) => {
     </div>
 
     <div class="card">
-      <h2>Locked Signal Categories</h2>
-      <div class="meta">The scan completed successfully, but the reasons behind these triggered signals are part of the paid intelligence report.</div>
+      <h2>Vehicle Identity</h2>
+      ${renderKeyValueGrid([
+        { label: "Year", value: safeValue(report.vehicle.year) },
+        { label: "Make", value: safeValue(report.vehicle.make) },
+        { label: "Model", value: safeValue(report.vehicle.model) },
+        { label: "Trim", value: safeValue(report.vehicle.trim) },
+        { label: "Fuel", value: safeValue(report.vehicle.fuel) },
+        { label: "Drive", value: safeValue(report.vehicle.drive) }
+      ])}
+    </div>
+
+    <div class="card">
+      <h2>What unlocks in the full report</h2>
+      <div class="meta">The paid report turns this preview into a full buyer dossier tied to the exact VIN you entered.</div>
 
       <div class="locked-grid">
         ${teaserCards.map(title => `
           <div class="locked-card">
-            <div class="label">Signal Category</div>
+            <div class="label">Unlocked After Payment</div>
             <div class="locked-title">${escapeHtml(title)}</div>
-            <p class="locked-copy">Details hidden until the full vehicle intelligence report is unlocked.</p>
+            <p class="locked-copy">Deeper buyer context, full detail, and expanded ownership guidance are hidden until the report is unlocked.</p>
           </div>
         `).join("")}
       </div>
     </div>
 
-    <div class="card">
-      <h2>Vehicle Identity</h2>
-      <div class="grid">
-        <div class="item"><div class="label">Year</div><div class="value">${escapeHtml(safeValue(report.vehicle.year))}</div></div>
-        <div class="item"><div class="label">Make</div><div class="value">${escapeHtml(safeValue(report.vehicle.make))}</div></div>
-        <div class="item"><div class="label">Model</div><div class="value">${escapeHtml(safeValue(report.vehicle.model))}</div></div>
-        <div class="item"><div class="label">Trim</div><div class="value">${escapeHtml(safeValue(report.vehicle.trim))}</div></div>
-      </div>
-    </div>
-
     <div class="premium-box">
-      <div class="premium-eyebrow">Unlock Full Intelligence Report</div>
-      <div class="premium-title">See the full recall, complaint, and ownership picture</div>
-      <p class="premium-copy">Unlock the paid report to reveal recall categories, complaint system breakdowns, model specific ownership intelligence, likely expensive failure areas, and a more complete buyer verdict tied to this VIN.</p>
+      <div class="premium-eyebrow">Unlock Full Buyer Dossier</div>
+      <div class="premium-title">See the full recall, complaint, and ownership intelligence</div>
+      <p class="premium-copy">Unlock the complete VIN linked report to reveal campaign level recall detail, complaint breakdowns, investigations, failure areas, test drive checks, and model specific ownership guidance.</p>
 
       <div class="premium-list">
-        <div class="premium-item">Recall type and severity breakdown</div>
-        <div class="premium-item">Complaint component clustering</div>
-        <div class="premium-item">Model specific ownership guidance</div>
-        <div class="premium-item">Inspection and test drive checks</div>
+        <div class="premium-item">Executive buyer verdict</div>
+        <div class="premium-item">Recall campaign detail cards</div>
+        <div class="premium-item">Complaint component rankings</div>
+        <div class="premium-item">Safety investigation matches</div>
+        <div class="premium-item">High cost failure areas</div>
+        <div class="premium-item">Brand specific ownership guidance</div>
       </div>
 
       <a class="premium-btn" href="/start-checkout/${encodeURIComponent(vin)}">
         Unlock Full Intelligence Report • $4.99
       </a>
 
-      <div class="mini-note">This upgraded report is unlocked after successful payment.</div>
+      <div class="mini-note">One time payment. The unlocked report is tied to this VIN.</div>
     </div>
   </div>
 </body>
 </html>
-    `)
+  `
+}
+
+function buildPaidCustomerPage(vin, report) {
+  const riskColors = getRiskColor(report.signals.riskLevel)
+  const confidenceColors = getConfidenceColor(report.signals.confidenceLevel)
+  const attentionFlags = Array.isArray(report.signals.attentionFlags) ? report.signals.attentionFlags : []
+
+  return `
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(report.vehicle.title)} Customer Report</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #edf3f8;
+      color: #0f172a;
+    }
+    .wrap {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 28px 16px 56px;
+    }
+    .hero {
+      background: linear-gradient(135deg, #0f172a, #1e293b 58%, #334155);
+      color: white;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.22);
+      margin-bottom: 22px;
+    }
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .eyebrow {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      color: #dbeafe;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 12px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 38px;
+      line-height: 1.08;
+    }
+    .hero-sub {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 15px;
+    }
+    .status-chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      background: ${report.signals.allowPurchase ? "#dcfce7" : "#fee2e2"};
+      color: ${report.signals.allowPurchase ? "#166534" : "#991b1b"};
+    }
+    .top-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+    .card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+      margin-bottom: 22px;
+    }
+    .card h2 {
+      margin: 0 0 16px;
+      font-size: 22px;
+    }
+    .meta {
+      font-size: 14px;
+      line-height: 1.65;
+      color: #64748b;
+    }
+    .score-stack {
+      display: grid;
+      gap: 14px;
+    }
+    .score-box {
+      border-radius: 20px;
+      padding: 22px;
+      text-align: center;
+      border: 1px solid ${riskColors.border};
+      background: ${riskColors.bg};
+      color: ${riskColors.text};
+    }
+    .score-number {
+      font-size: 46px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .score-label {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .score-mini {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .confidence-box {
+      border-radius: 18px;
+      padding: 16px;
+      text-align: center;
+      background: ${confidenceColors.bg};
+      color: ${confidenceColors.text};
+      font-weight: 700;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .item {
+      background: #f8fafc;
+      border: 1px solid #eef2f7;
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .wide {
+      grid-column: 1 / -1;
+    }
+    .label {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .value {
+      font-size: 21px;
+      font-weight: 700;
+      line-height: 1.28;
+      color: #0f172a;
+    }
+    .summary {
+      font-size: 14px;
+      line-height: 1.65;
+      color: #475569;
+    }
+    .pill-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    .empty-copy {
+      font-size: 14px;
+      color: #64748b;
+    }
+    .stack-list {
+      display: grid;
+      gap: 14px;
+    }
+    .detail-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .detail-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .detail-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .detail-meta {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+    .detail-copy {
+      font-size: 14px;
+      color: #334155;
+      line-height: 1.7;
+    }
+    .detail-remedy {
+      margin-top: 10px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      white-space: nowrap;
+    }
+    .rank-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .rank-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .rank-label {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.45;
+      margin-bottom: 8px;
+      min-height: 34px;
+    }
+    .rank-value {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .section-band {
+      background: linear-gradient(135deg, #f8fbff, #f1f5f9);
+      border: 1px solid #dbeafe;
+      border-radius: 22px;
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+    .section-band h2 {
+      margin: 0 0 10px;
+      font-size: 22px;
+    }
+    .section-band .meta {
+      margin-bottom: 16px;
+    }
+    .history-box {
+      background: linear-gradient(135deg, #111827, #1f2937);
+      color: white;
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+      margin-top: 22px;
+    }
+    .history-eyebrow {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      color: #dbeafe;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .history-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin: 0 0 10px;
+    }
+    .history-copy {
+      color: #cbd5e1;
+      font-size: 14px;
+      line-height: 1.7;
+      margin: 0 0 18px;
+    }
+    .history-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .history-item {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 14px;
+      color: #f8fafc;
+      font-size: 14px;
+      line-height: 1.5;
+      font-weight: 700;
+    }
+    .history-btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(180deg, #22c55e, #16a34a);
+      color: white;
+      text-decoration: none;
+      padding: 13px 18px;
+      border-radius: 12px;
+      font-weight: 800;
+      box-shadow: 0 10px 22px rgba(34, 197, 94, 0.25);
+    }
+    @media (max-width: 900px) {
+      .top-grid, .grid, .rank-grid, .history-list {
+        grid-template-columns: 1fr;
+      }
+      .hero h1 {
+        font-size: 30px;
+      }
+      .wrap {
+        padding: 18px 12px 36px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="eyebrow">Vehicle Intelligence Report</div>
+          <h1>${escapeHtml(report.vehicle.title)}</h1>
+          <p class="hero-sub">VIN: ${escapeHtml(vin)}</p>
+        </div>
+        <div class="status-chip">Unlocked Report</div>
+      </div>
+    </div>
+
+    <div class="top-grid">
+      <div class="card">
+        <h2>Executive Buyer Verdict</h2>
+        <div class="summary">${escapeHtml(safeValue(report.buyerVerdict.headline, "Buyer verdict unavailable"))}</div>
+        <div class="meta" style="margin-top:10px;">${escapeHtml(safeValue(report.buyerVerdict.summary, "No additional verdict summary was returned."))}</div>
+        <div style="margin-top:16px;">${renderPills(attentionFlags)}</div>
+      </div>
+
+      <div class="card">
+        <div class="score-stack">
+          <div class="score-box">
+            <div class="score-number">${escapeHtml(safeValue(report.signals.riskLevel))}</div>
+            <div class="score-label">Buyer Risk Level</div>
+            <div class="score-mini">Public safety, complaint, efficiency, and ownership signals synthesized into one verdict.</div>
+          </div>
+
+          <div class="confidence-box">
+            Coverage Score ${escapeHtml(String(report.signals.coverageScore || 0))} • ${escapeHtml(safeValue(report.signals.confidenceLevel))}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>VIN Identity and Factory Spec</h2>
+      ${renderKeyValueGrid([
+        { label: "Year", value: safeValue(report.vehicle.year) },
+        { label: "Make", value: safeValue(report.vehicle.make) },
+        { label: "Model", value: safeValue(report.vehicle.model) },
+        { label: "Trim", value: safeValue(report.vehicle.trim) },
+        { label: "Fuel Type", value: safeValue(report.vehicle.fuel) },
+        { label: "Drive Type", value: safeValue(report.vehicle.drive) },
+        { label: "Body Class", value: safeValue(report.vehicle.body) },
+        { label: "Engine", value: safeValue(report.vehicle.engine) },
+        { label: "WMI", value: safeValue(report.vehicle.wmi) },
+        { label: "Plant Country", value: safeValue(report.vehicle.plantCountry) },
+        { label: "Manufacturer", value: safeValue(report.vehicle.manufacturer) },
+        { label: "Series", value: safeValue(report.vehicle.series) }
+      ])}
+    </div>
+
+    <div class="card">
+      <h2>Safety and Reliability Summary</h2>
+      ${renderKeyValueGrid([
+        { label: "Recall Count", value: String(report.safety.recalls || 0) },
+        { label: "Complaint Count", value: String(report.safety.complaints || 0) },
+        { label: "Top Complaint Area", value: safeValue(report.safety.topComponent, "Not identified") },
+        { label: "Complaint Data", value: report.safety.dataAvailable ? "Available" : "Unavailable" },
+        { label: "Recall Summary", value: safeValue(report.safety.recallSummary), summary: true, wide: true },
+        { label: "Complaint Summary", value: safeValue(report.safety.complaintSummary), summary: true, wide: true }
+      ])}
+    </div>
+
+    <div class="section-band">
+      <h2>Recall Campaign Detail</h2>
+      <div class="meta">Campaign level recall cards for this exact model year, make, and model profile.</div>
+      ${renderDetailCards(report.safety.recallDetails, "recalls")}
+    </div>
+
+    <div class="section-band">
+      <h2>Complaint Intelligence</h2>
+      <div class="meta">Component clustering and complaint records help show where owner reported issues are concentrated.</div>
+      ${renderRankedComponents(report.safety.complaintComponents)}
+      <div style="height:16px;"></div>
+      ${renderDetailCards(report.safety.complaintDetails, "complaints")}
+    </div>
+
+    <div class="section-band">
+      <h2>Safety Investigation Matches</h2>
+      <div class="meta">${escapeHtml(safeValue(report.investigations.summary, "No investigation summary returned."))}</div>
+      ${renderDetailCards(report.investigations.items, "investigations")}
+    </div>
+
+    <div class="card">
+      <h2>Efficiency and Running Cost</h2>
+      ${renderKeyValueGrid([
+        { label: "Combined MPG", value: safeValue(report.efficiency.combinedMPG) },
+        { label: "Annual Fuel Cost", value: safeValue(report.efficiency.annualFuelCost) },
+        { label: "Greenhouse Gas Score", value: safeValue(report.efficiency.ghgScore) },
+        { label: "Eco Badge", value: safeValue(report.efficiency.ecoBadge) },
+        { label: "Efficiency Summary", value: safeValue(report.efficiency.efficiencySummary), summary: true, wide: true }
+      ])}
+    </div>
+
+    <div class="card">
+      <h2>Specifications</h2>
+      ${renderKeyValueGrid([
+        { label: "Horsepower", value: safeValue(report.specs.horsepower) },
+        { label: "Transmission", value: safeValue(report.specs.transmission) },
+        { label: "Dimensions", value: safeValue(report.specs.dimensions) },
+        { label: "Curb Weight", value: safeValue(report.specs.curbWeight) },
+        { label: "Weight Class", value: safeValue(report.specs.weightClass) }
+      ])}
+    </div>
+
+    <div class="card">
+      <h2>${escapeHtml(safeValue(report.ownership.sectionTitle, "Model Specific Ownership Intelligence"))}</h2>
+      ${renderKeyValueGrid([
+        { label: "Brand Focus", value: safeValue(report.ownership.brandFocus) },
+        { label: "Generation", value: safeValue(report.ownership.generation) },
+        { label: "Engine Platform", value: safeValue(report.ownership.enginePlatform) },
+        { label: "Likely Engine", value: safeValue(report.ownership.engineLabel) },
+        { label: "Engine Confidence", value: safeValue(report.ownership.engineConfidence) },
+        { label: "Maintenance Complexity", value: safeValue(report.ownership.maintenanceComplexity) },
+        { label: "Complaint Level", value: safeValue(report.ownership.complaintLevel) },
+        { label: "Generation Summary", value: safeValue(report.ownership.generationSummary), summary: true, wide: true },
+        { label: "Ownership Advice", value: safeValue(report.ownership.ownershipAdvice), summary: true, wide: true }
+      ])}
+      <div style="height:16px;"></div>
+      <div class="label">Common Problem Areas</div>
+      ${renderPills(report.ownership.commonIssues)}
+      <div style="height:16px;"></div>
+      <div class="label">What To Check Before Buying</div>
+      ${renderPills(report.ownership.inspectionChecks)}
+      <div style="height:16px;"></div>
+      <div class="label">Most Likely Expensive Failure Areas</div>
+      ${renderPills(report.ownership.expensiveFailureAreas)}
+      <div style="height:16px;"></div>
+      <div class="label">What Matters On A Test Drive</div>
+      ${renderPills(report.ownership.testDriveChecks)}
+    </div>
+
+    <div class="card">
+      <h2>Likely Factory Option Profile</h2>
+      ${renderKeyValueGrid([
+        { label: safeValue(report.optionProfile?.sport?.label, "Sport Package"), value: `${safeValue(report.optionProfile?.sport?.probability, "N/A")}%` },
+        { label: safeValue(report.optionProfile?.comfort?.label, "Comfort Package"), value: `${safeValue(report.optionProfile?.comfort?.probability, "N/A")}%` },
+        { label: safeValue(report.optionProfile?.tech?.label, "Technology Package"), value: `${safeValue(report.optionProfile?.tech?.probability, "N/A")}%` }
+      ])}
+    </div>
+
+    <div class="history-box">
+      <div class="history-eyebrow">Deeper History Layer</div>
+      <div class="history-title">Need title, damage, auction, or mileage history too?</div>
+      <p class="history-copy">This intelligence report focuses on decoded identity, public safety data, efficiency data, and ownership context. For deeper title brands, salvage, theft, odometer, auction, and damage related history, run a dedicated history check.</p>
+
+      <div class="history-list">
+        <div class="history-item">Accident and damage databases</div>
+        <div class="history-item">Title brand and salvage signals</div>
+        <div class="history-item">Mileage anomaly checks</div>
+        <div class="history-item">Auction and ownership history</div>
+      </div>
+
+      <a class="history-btn" href="https://www.carvertical.com/landing/v3?a=677d85351acf8&b=14f83321&voucher=checkyourspec&utm_medium=aff" target="_blank" rel="noopener">
+        Run Global History Check
+      </a>
+    </div>
+  </div>
+</body>
+</html>
+  `
+}
+
+app.get("/", (req, res) => {
+  res.send(`<h1>Customer visual report server running</h1><p>Try /scan/YOURVINHERE</p>`)
+})
+
+app.get("/api/health", (req, res) => {
+  res.json({ status: "visual server running" })
+})
+
+app.get("/api/decode/:vin", async (req, res) => {
+  try {
+    const vin = sanitizeVin(req.params.vin)
+
+    if (vin.length !== 17) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid 17 character VIN"
+      })
+    }
+
+    const report = await getReport(vin)
+
+    return res.json({
+      success: true,
+      vin,
+      report
+    })
   } catch (error) {
-    res.status(500).send(`<h1>Error generating scan preview</h1><p>${escapeHtml(String(error.message || error))}</p>`)
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while decoding the VIN",
+      error: String(error.message || error)
+    })
+  }
+})
+
+app.get("/start-checkout/:vin", async (req, res) => {
+  try {
+    const vin = sanitizeVin(req.params.vin)
+
+    if (vin.length !== 17) {
+      return res.status(400).send("<h1>Invalid VIN</h1><p>Please provide a valid 17 character VIN.</p>")
+    }
+
+    const session = await createCheckoutSession(vin)
+    return res.redirect(session.url)
+  } catch (error) {
+    return res.status(500).send(`<h1>Checkout error</h1><p>${escapeHtml(String(error.message || error))}</p>`)
+  }
+})
+
+app.post("/api/create-checkout-session", async (req, res) => {
+  try {
+    const vin = sanitizeVin(req.body && req.body.vin)
+
+    if (vin.length !== 17) {
+      return res.status(400).json({ error: "Valid 17 character VIN required" })
+    }
+
+    const session = await createCheckoutSession(vin)
+
+    return res.json({
+      success: true,
+      url: session.url
+    })
+  } catch (error) {
+    console.error("Stripe session error:", error)
+    return res.status(500).json({
+      success: false,
+      error: "Failed to create checkout session"
+    })
+  }
+})
+
+app.get("/scan/:vin", async (req, res) => {
+  try {
+    const vin = sanitizeVin(req.params.vin)
+
+    if (vin.length !== 17) {
+      return res.status(400).send("<h1>Invalid VIN</h1><p>Please provide a valid 17 character VIN.</p>")
+    }
+
+    const report = await getReport(vin)
+    return res.send(buildPublicScanPage(vin, report))
+  } catch (error) {
+    return res.status(500).send(`<h1>Error generating scan preview</h1><p>${escapeHtml(String(error.message || error))}</p>`)
   }
 })
 
@@ -810,7 +1340,7 @@ app.get("/processing/:vin", (req, res) => {
     <div class="eyebrow">Payment Confirmed</div>
     <div class="loader"></div>
     <h1>Analyzing VIN</h1>
-    <p>Building your full vehicle intelligence report and preparing the unlocked results.</p>
+    <p>Building your full buyer dossier and preparing the unlocked report.</p>
     <div class="vin">VIN: ${escapeHtml(vin)}</div>
   </div>
 
@@ -823,7 +1353,7 @@ app.get("/processing/:vin", (req, res) => {
 </html>
     `)
   } catch (error) {
-    res.status(500).send(`<h1>Processing error</h1><p>${escapeHtml(String(error.message || error))}</p>`)
+    return res.status(500).send(`<h1>Processing error</h1><p>${escapeHtml(String(error.message || error))}</p>`)
   }
 })
 
@@ -843,516 +1373,9 @@ app.get("/customer-report/:vin", async (req, res) => {
     }
 
     const report = await getReport(vin)
-
-    const riskColors = getRiskColor(report.signals.riskLevel)
-    const confidenceColors = getConfidenceColor(report.signals.confidenceLevel)
-
-    res.send(`
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>${escapeHtml(report.vehicle.title)} Customer Report</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #edf3f8;
-      color: #0f172a;
-    }
-    .wrap {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 28px 16px 56px;
-    }
-    .hero {
-      background: linear-gradient(135deg, #0f172a, #1e293b 58%, #334155);
-      color: white;
-      border-radius: 24px;
-      padding: 28px;
-      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.22);
-      margin-bottom: 22px;
-    }
-    .hero-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-    .eyebrow {
-      display: inline-block;
-      background: rgba(255,255,255,0.12);
-      color: #dbeafe;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 7px 12px;
-      border-radius: 999px;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .hero h1 {
-      margin: 0 0 8px;
-      font-size: 38px;
-      line-height: 1.08;
-    }
-    .hero-sub {
-      margin: 0;
-      color: #cbd5e1;
-      font-size: 15px;
-    }
-    .status-chip {
-      padding: 10px 14px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      white-space: nowrap;
-      background: ${report.signals.allowPurchase ? "#dcfce7" : "#fee2e2"};
-      color: ${report.signals.allowPurchase ? "#166534" : "#991b1b"};
-    }
-    .top-grid {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 20px;
-      margin-bottom: 22px;
-    }
-    .card {
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 22px;
-      padding: 22px;
-      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
-      margin-bottom: 22px;
-    }
-    .card h2 {
-      margin: 0 0 16px;
-      font-size: 22px;
-    }
-    .meta {
-      font-size: 14px;
-      line-height: 1.7;
-      color: #64748b;
-    }
-    .score-stack {
-      display: grid;
-      gap: 14px;
-    }
-    .score-box {
-      border-radius: 20px;
-      padding: 22px;
-      text-align: center;
-      border: 1px solid ${riskColors.border};
-      background: ${riskColors.bg};
-      color: ${riskColors.text};
-    }
-    .score-number {
-      font-size: 46px;
-      font-weight: 800;
-      line-height: 1;
-      margin-bottom: 8px;
-    }
-    .score-label {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-    .score-mini {
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    .confidence-box {
-      border-radius: 18px;
-      padding: 16px;
-      text-align: center;
-      background: ${confidenceColors.bg};
-      color: ${confidenceColors.text};
-      font-weight: 700;
-    }
-    .verdict-box {
-      border-radius: 18px;
-      padding: 18px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      margin-top: 16px;
-    }
-    .verdict-title {
-      font-size: 24px;
-      font-weight: 800;
-      margin: 0 0 8px;
-      color: #0f172a;
-    }
-    .verdict-copy {
-      font-size: 14px;
-      line-height: 1.75;
-      color: #475569;
-      margin: 0;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-    }
-    .item {
-      background: #f8fafc;
-      border: 1px solid #eef2f7;
-      border-radius: 16px;
-      padding: 16px;
-    }
-    .wide {
-      grid-column: 1 / -1;
-    }
-    .label {
-      font-size: 11px;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    .value {
-      font-size: 21px;
-      font-weight: 700;
-      line-height: 1.28;
-      color: #0f172a;
-    }
-    .summary {
-      font-size: 14px;
-      line-height: 1.7;
-      color: #475569;
-    }
-    .pill-wrap {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 7px 11px;
-      border-radius: 999px;
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      font-size: 13px;
-      font-weight: 600;
-      color: #1f2937;
-    }
-    .empty-copy {
-      font-size: 14px;
-      color: #64748b;
-    }
-    .mini-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-    .mini-stat {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 14px;
-    }
-    .mini-stat-top {
-      font-size: 14px;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 6px;
-      line-height: 1.4;
-    }
-    .mini-stat-bottom {
-      font-size: 12px;
-      color: #64748b;
-    }
-    .detail-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-    }
-    .detail-card {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 18px;
-      padding: 16px;
-    }
-    .detail-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
-    .detail-chip {
-      display: inline-flex;
-      align-items: center;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid;
-      font-size: 11px;
-      font-weight: 700;
-    }
-    .detail-campaign {
-      font-size: 12px;
-      color: #64748b;
-      font-weight: 700;
-    }
-    .detail-title {
-      font-size: 18px;
-      font-weight: 800;
-      color: #0f172a;
-      margin-bottom: 8px;
-      line-height: 1.3;
-    }
-    .detail-copy {
-      font-size: 14px;
-      color: #475569;
-      line-height: 1.7;
-      margin-bottom: 10px;
-    }
-    .detail-meta {
-      font-size: 12px;
-      color: #64748b;
-      line-height: 1.7;
-    }
-    .premium-box {
-      background: linear-gradient(135deg, #111827, #1f2937);
-      color: white;
-      border-radius: 22px;
-      padding: 24px;
-      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
-    }
-    .premium-eyebrow {
-      display: inline-block;
-      background: rgba(255,255,255,0.12);
-      color: #dbeafe;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 6px 10px;
-      border-radius: 999px;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .premium-title {
-      font-size: 24px;
-      font-weight: 800;
-      margin: 0 0 10px;
-    }
-    .premium-copy {
-      color: #cbd5e1;
-      font-size: 14px;
-      line-height: 1.7;
-      margin: 0 0 18px;
-    }
-    .premium-list {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-    .premium-item {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 16px;
-      padding: 14px;
-      color: #f8fafc;
-      font-size: 14px;
-      line-height: 1.5;
-      font-weight: 700;
-    }
-    .premium-btn {
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(180deg, #22c55e, #16a34a);
-      color: white;
-      text-decoration: none;
-      padding: 13px 18px;
-      border-radius: 12px;
-      font-weight: 800;
-      box-shadow: 0 10px 22px rgba(34, 197, 94, 0.25);
-    }
-    .mini-note {
-      margin-top: 12px;
-      font-size: 12px;
-      color: #cbd5e1;
-    }
-    @media (max-width: 900px) {
-      .top-grid, .grid, .premium-list, .detail-grid, .mini-grid {
-        grid-template-columns: 1fr;
-      }
-      .hero h1 {
-        font-size: 30px;
-      }
-      .wrap {
-        padding: 18px 12px 36px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="hero">
-      <div class="hero-top">
-        <div>
-          <div class="eyebrow">Vehicle Intelligence Report</div>
-          <h1>${escapeHtml(report.vehicle.title)}</h1>
-          <p class="hero-sub">VIN: ${escapeHtml(vin)}</p>
-        </div>
-        <div class="status-chip">Unlocked Report</div>
-      </div>
-    </div>
-
-    <div class="top-grid">
-      <div class="card">
-        <h2>Buyer Verdict</h2>
-        <div class="meta">${escapeHtml(report.frontEndSummary.subheadline)}</div>
-
-        <div class="verdict-box">
-          <div class="verdict-title">${escapeHtml(safeValue(report.buyerVerdict?.headline, "Buyer verdict unavailable"))}</div>
-          <p class="verdict-copy">${escapeHtml(safeValue(report.buyerVerdict?.summary, "Detailed buyer verdict unavailable."))}</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="score-stack">
-          <div class="score-box">
-            <div class="score-number">${escapeHtml(report.signals.riskLevel)}</div>
-            <div class="score-label">Buyer Risk Level</div>
-            <div class="score-mini">Based on recalls, complaint activity, ownership complexity, and public data coverage.</div>
-          </div>
-
-          <div class="confidence-box">
-            Coverage Score ${escapeHtml(String(report.signals.coverageScore))} • ${escapeHtml(report.signals.confidenceLevel)}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Vehicle Identity</h2>
-      <div class="grid">
-        <div class="item"><div class="label">Year</div><div class="value">${escapeHtml(safeValue(report.vehicle.year))}</div></div>
-        <div class="item"><div class="label">Make</div><div class="value">${escapeHtml(safeValue(report.vehicle.make))}</div></div>
-        <div class="item"><div class="label">Model</div><div class="value">${escapeHtml(safeValue(report.vehicle.model))}</div></div>
-        <div class="item"><div class="label">Trim</div><div class="value">${escapeHtml(safeValue(report.vehicle.trim))}</div></div>
-        <div class="item"><div class="label">Fuel Type</div><div class="value">${escapeHtml(safeValue(report.vehicle.fuel))}</div></div>
-        <div class="item"><div class="label">Drive Type</div><div class="value">${escapeHtml(safeValue(report.vehicle.drive))}</div></div>
-        <div class="item"><div class="label">Manufacturer</div><div class="value">${escapeHtml(safeValue(report.vehicle.manufacturer))}</div></div>
-        <div class="item"><div class="label">WMI</div><div class="value">${escapeHtml(safeValue(report.vehicle.wmi))}</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Safety and Reliability Summary</h2>
-      <div class="grid">
-        <div class="item"><div class="label">Recall Count</div><div class="value">${escapeHtml(String(report.safety.recalls))}</div></div>
-        <div class="item"><div class="label">Complaint Count</div><div class="value">${escapeHtml(String(report.safety.complaints))}</div></div>
-        <div class="item"><div class="label">Top Complaint Area</div><div class="value">${escapeHtml(safeValue(report.safety.topComponent))}</div></div>
-        <div class="item"><div class="label">Complaint Data Status</div><div class="value">${report.safety.dataAvailable ? "Available" : "Unavailable"}</div></div>
-        <div class="item wide"><div class="label">Recall Summary</div><div class="summary">${escapeHtml(safeValue(report.safety.recallSummary))}</div></div>
-        <div class="item wide"><div class="label">Complaint Summary</div><div class="summary">${escapeHtml(safeValue(report.safety.complaintSummary))}</div></div>
-        <div class="item wide"><div class="label">Investigation Summary</div><div class="summary">${escapeHtml(safeValue(report.investigations?.summary))}</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Recall Type Breakdown</h2>
-      ${renderRecallCards(report.safety.recallDetails)}
-    </div>
-
-    <div class="card">
-      <h2>Complaint System Breakdown</h2>
-      <div class="summary" style="margin-bottom:14px;">This shows the most frequently reported complaint systems returned for this vehicle profile.</div>
-      ${renderComplaintComponents(report.safety.complaintComponents)}
-    </div>
-
-    <div class="card">
-      <h2>Recent Complaint Detail</h2>
-      ${renderComplaintCards(report.safety.complaintDetails)}
-    </div>
-
-    <div class="card">
-      <h2>Investigation Matches</h2>
-      ${renderInvestigationCards(report.investigations?.items)}
-    </div>
-
-    <div class="card">
-      <h2>${escapeHtml(safeValue(report.ownership?.sectionTitle, "Model Specific Ownership Intelligence"))}</h2>
-      <div class="grid">
-        <div class="item"><div class="label">Brand Focus</div><div class="value">${escapeHtml(safeValue(report.ownership?.brandFocus))}</div></div>
-        <div class="item"><div class="label">Maintenance Complexity</div><div class="value">${escapeHtml(safeValue(report.ownership?.maintenanceComplexity))}</div></div>
-        <div class="item"><div class="label">Generation</div><div class="value">${escapeHtml(safeValue(report.ownership?.generation))}</div></div>
-        <div class="item"><div class="label">Complaint Trend Level</div><div class="value">${escapeHtml(safeValue(report.ownership?.complaintLevel))}</div></div>
-        <div class="item"><div class="label">Engine Platform</div><div class="value">${escapeHtml(safeValue(report.ownership?.enginePlatform))}</div></div>
-        <div class="item"><div class="label">Likely Engine</div><div class="value">${escapeHtml(safeValue(report.ownership?.engineLabel))}</div></div>
-        <div class="item wide"><div class="label">Generation Summary</div><div class="summary">${escapeHtml(safeValue(report.ownership?.generationSummary))}</div></div>
-        <div class="item wide"><div class="label">Ownership Advice</div><div class="summary">${escapeHtml(safeValue(report.ownership?.ownershipAdvice))}</div></div>
-        <div class="item wide"><div class="label">Common Problem Areas</div>${renderList(report.ownership?.commonIssues)}</div>
-        <div class="item wide"><div class="label">What To Check Before Buying</div>${renderList(report.ownership?.inspectionChecks)}</div>
-        <div class="item wide"><div class="label">Likely Expensive Failure Areas</div>${renderList(report.ownership?.expensiveFailureAreas)}</div>
-        <div class="item wide"><div class="label">Best Test Drive Checks</div>${renderList(report.ownership?.testDriveChecks)}</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Efficiency and Specs</h2>
-      <div class="grid">
-        <div class="item"><div class="label">Combined MPG</div><div class="value">${escapeHtml(safeValue(report.efficiency.combinedMPG))}</div></div>
-        <div class="item"><div class="label">Annual Fuel Cost</div><div class="value">${escapeHtml(safeValue(report.efficiency.annualFuelCost))}</div></div>
-        <div class="item"><div class="label">Greenhouse Gas Score</div><div class="value">${escapeHtml(safeValue(report.efficiency.ghgScore))}</div></div>
-        <div class="item"><div class="label">Eco Badge</div><div class="value">${escapeHtml(safeValue(report.efficiency.ecoBadge))}</div></div>
-        <div class="item"><div class="label">Horsepower</div><div class="value">${escapeHtml(safeValue(report.specs.horsepower))}</div></div>
-        <div class="item"><div class="label">Transmission</div><div class="value">${escapeHtml(safeValue(report.specs.transmission))}</div></div>
-        <div class="item"><div class="label">Dimensions</div><div class="value">${escapeHtml(safeValue(report.specs.dimensions))}</div></div>
-        <div class="item"><div class="label">Curb Weight</div><div class="value">${escapeHtml(safeValue(report.specs.curbWeight))}</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Likely Factory Package Profile</h2>
-      <div class="grid">
-        <div class="item">
-          <div class="label">${escapeHtml(safeValue(report.optionProfile?.sport?.label, "Sport Package"))}</div>
-          <div class="value">${escapeHtml(String(report.optionProfile?.sport?.probability || 0))}%</div>
-        </div>
-        <div class="item">
-          <div class="label">${escapeHtml(safeValue(report.optionProfile?.comfort?.label, "Comfort Package"))}</div>
-          <div class="value">${escapeHtml(String(report.optionProfile?.comfort?.probability || 0))}%</div>
-        </div>
-        <div class="item wide">
-          <div class="label">${escapeHtml(safeValue(report.optionProfile?.tech?.label, "Tech Package"))}</div>
-          <div class="value">${escapeHtml(String(report.optionProfile?.tech?.probability || 0))}% probability</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="premium-box">
-      <div class="premium-eyebrow">Global Vehicle History Check</div>
-      <div class="premium-title">Need deeper history beyond this intelligence report?</div>
-      <p class="premium-copy">Use CarVertical for wider global database checks including accident records, title flags, auction history, mileage anomalies, and ownership related history where available.</p>
-
-      <div class="premium-list">
-        <div class="premium-item">Global accident and damage databases</div>
-        <div class="premium-item">Title and branding related history</div>
-        <div class="premium-item">Mileage anomaly checks</div>
-        <div class="premium-item">Auction and ownership history signals</div>
-      </div>
-
-      <a class="premium-btn" href="https://www.carvertical.com/landing/v3?a=677d85351acf8&b=14f83321&voucher=checkyourspec&utm_medium=aff" target="_blank" rel="noopener">
-        Run Global History Check
-      </a>
-
-      <div class="mini-note">This takes the user into a deeper external history check using your affiliate link.</div>
-    </div>
-  </div>
-</body>
-</html>
-    `)
+    return res.send(buildPaidCustomerPage(vin, report))
   } catch (error) {
-    res.status(500).send(`<h1>Error generating customer report</h1><p>${escapeHtml(String(error.message || error))}</p>`)
+    return res.status(500).send(`<h1>Error generating customer report</h1><p>${escapeHtml(String(error.message || error))}</p>`)
   }
 })
 
