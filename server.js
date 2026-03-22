@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3002;
 
 console.log("THIS IS THE BACKEND 3002 FILE");
-console.log("RUNNING SERVER.JS FILE");
+console.log("RUNNING SERVER.JS FILE CUSTOMER REPORT VERSION");
 
 if (!process.env.STRIPE_SECRET_KEY) {
   console.error("Missing STRIPE_SECRET_KEY in environment variables");
@@ -25,12 +25,18 @@ if (!process.env.BASE_URL) {
   process.exit(1);
 }
 
+if (!process.env.API_BASE) {
+  console.error("Missing API_BASE in environment variables");
+  process.exit(1);
+}
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 console.log("Stripe key loaded:", process.env.STRIPE_SECRET_KEY ? "YES" : "NO");
 console.log("Stripe key prefix:", process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.slice(0, 8) : "MISSING");
 console.log("Stripe price id actual:", JSON.stringify(process.env.STRIPE_VIN_REPORT_PRICE_ID));
 console.log("BASE_URL loaded:", process.env.BASE_URL);
+console.log("API_BASE loaded:", process.env.API_BASE);
 
 app.use(cors());
 app.use(express.json());
@@ -1405,6 +1411,7 @@ app.post("/create-checkout-session", async (req, res) => {
     console.log("Incoming checkout request for VIN:", vin);
     console.log("Checkout route using price id:", JSON.stringify(process.env.STRIPE_VIN_REPORT_PRICE_ID));
     console.log("Checkout route using BASE_URL:", JSON.stringify(process.env.BASE_URL));
+    console.log("Checkout route using API_BASE:", JSON.stringify(process.env.API_BASE));
 
     if (!vin || vin.length !== 17) {
       return res.status(400).json({ error: "Invalid VIN" });
@@ -1418,7 +1425,7 @@ app.post("/create-checkout-session", async (req, res) => {
           quantity: 1
         }
       ],
-      success_url: `${process.env.BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}&vin=${encodeURIComponent(vin)}`,
+      success_url: `${process.env.API_BASE}/customer-report/${encodeURIComponent(vin)}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.BASE_URL}/cancel?vin=${encodeURIComponent(vin)}`,
       metadata: {
         vin,
@@ -1436,7 +1443,8 @@ app.post("/create-checkout-session", async (req, res) => {
       error: "Stripe failed",
       details: err && err.message ? err.message : String(err),
       priceIdUsed: process.env.STRIPE_VIN_REPORT_PRICE_ID,
-      baseUrlUsed: process.env.BASE_URL
+      baseUrlUsed: process.env.BASE_URL,
+      apiBaseUsed: process.env.API_BASE
     });
   }
 });
