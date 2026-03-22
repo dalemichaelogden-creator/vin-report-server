@@ -1,15 +1,38 @@
-require('dotenv').config();
+require("dotenv").config();
+
 const express = require("express");
+const cors = require("cors");
 const Stripe = require("stripe");
 
 const app = express();
+const PORT = process.env.PORT || 3002;
 
 console.log("THIS IS THE BACKEND 3002 FILE");
+console.log("RUNNING SERVER.JS FILE");
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error("Missing STRIPE_SECRET_KEY in environment variables");
+  process.exit(1);
+}
+
+if (!process.env.STRIPE_VIN_REPORT_PRICE_ID) {
+  console.error("Missing STRIPE_VIN_REPORT_PRICE_ID in environment variables");
+  process.exit(1);
+}
+
+if (!process.env.BASE_URL) {
+  console.error("Missing BASE_URL in environment variables");
+  process.exit(1);
+}
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-console.log("Stripe key loaded:", process.env.STRIPE_SECRET_KEY);
+console.log("Stripe key loaded:", process.env.STRIPE_SECRET_KEY ? "YES" : "NO");
+console.log("Stripe key prefix:", process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.slice(0, 8) : "MISSING");
+console.log("Stripe price id actual:", JSON.stringify(process.env.STRIPE_VIN_REPORT_PRICE_ID));
+console.log("BASE_URL loaded:", process.env.BASE_URL);
 
+app.use(cors());
 app.use(express.json());
 
 function sanitizeVin(value) {
@@ -28,17 +51,8 @@ function upperText(value) {
   return safeValue(value).toUpperCase();
 }
 
-function normalizeText(value) {
-  return upperText(value).replace(/[-_/]/g, " ").replace(/\s+/g, " ").trim();
-}
-
 function intValue(value) {
   const n = parseInt(value, 10);
-  return Number.isNaN(n) ? null : n;
-}
-
-function numValue(value) {
-  const n = parseFloat(value);
   return Number.isNaN(n) ? null : n;
 }
 
@@ -128,11 +142,11 @@ function buildStockId(vehicle) {
     safeValue(vehicle.trim || vehicle.series || "BASE")
   ]
     .filter(Boolean)
-    .join("-")
-    .replace(/[^A-Za-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .join(" ")
+    .replace(/[^A-Za-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
 
-  return parts || "VIN-REPORT";
+  return parts || "VIN_REPORT";
 }
 
 function buildRecallSeverityLabel(item) {
@@ -1275,17 +1289,14 @@ async function buildReportFromVin(vin) {
     negotiationLeverage,
     ownershipRoadmap,
     purchaseChecklist,
-
     buyerVerdict: {
       headline: "",
       summary: ""
     },
-
     investigations: {
       items: investigationData.investigations,
       summary: investigationData.investigationSummary
     },
-
     signals: {
       coverageScore: 0,
       confidenceLevel: "",
@@ -1293,21 +1304,17 @@ async function buildReportFromVin(vin) {
       attentionFlags: [],
       allowPurchase: false
     },
-
     frontEndSummary: {
       headline: "",
       subheadline: ""
     },
-
     freeSignals: {},
-
     upsellTriggers: {
       historyAudit: true,
       titleCheck: true,
       damageCheck: true,
       ownershipCheck: true
     },
-
     locked: {
       historyAuditAvailable: true,
       damageRiskHidden: true,
@@ -1343,8 +1350,15 @@ async function buildReportFromVin(vin) {
   return report;
 }
 
+app.get("/", (req, res) => {
+  res.json({
+    ok: true,
+    message: "VIN intelligence backend is running"
+  });
+});
+
 app.get("/api/health", (req, res) => {
-  res.json({ status: "server running" });
+  res.json({ status: "server.js confirmed" });
 });
 
 app.get("/api/decode/:vin", async (req, res) => {
@@ -1366,6 +1380,7 @@ app.get("/api/decode/:vin", async (req, res) => {
       report
     });
   } catch (error) {
+    console.error("Decode error:", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong while decoding the VIN",
@@ -1374,13 +1389,22 @@ app.get("/api/decode/:vin", async (req, res) => {
   }
 });
 
-app.listen(3002, () => {
-  console.log("Backend intelligence server running on port 3002");
+app.get("/api/checkout-test", (req, res) => {
+  res.json({
+    ok: true,
+    message: "checkout test route is alive"
+  });
 });
 
 app.post("/create-checkout-session", async (req, res) => {
+  console.log("HIT CHECKOUT ROUTE");
+
   try {
-    const { vin } = req.body;
+    const vin = sanitizeVin(req.body?.vin);
+
+    console.log("Incoming checkout request for VIN:", vin);
+    console.log("Checkout route using price id:", JSON.stringify(process.env.STRIPE_VIN_REPORT_PRICE_ID));
+    console.log("Checkout route using BASE_URL:", JSON.stringify(process.env.BASE_URL));
 
     if (!vin || vin.length !== 17) {
       return res.status(400).json({ error: "Invalid VIN" });
@@ -1394,18 +1418,29 @@ app.post("/create-checkout-session", async (req, res) => {
           quantity: 1
         }
       ],
-      success_url: `${process.env.BASE_URL}/success?vin=${vin}`,
-      cancel_url: `${process.env.BASE_URL}/cancel`,
+      success_url: `${process.env.BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}&vin=${encodeURIComponent(vin)}`,
+      cancel_url: `${process.env.BASE_URL}/cancel?vin=${encodeURIComponent(vin)}`,
       metadata: {
-        vin: vin,
+        vin,
         type: "vin_report"
       }
     });
 
-    res.json({ url: session.url });
+    console.log("Stripe session created:", session.id);
 
+    return res.json({ url: session.url });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Stripe failed" });
+    console.error("Stripe checkout error full object:", err);
+
+    return res.status(500).json({
+      error: "Stripe failed",
+      details: err && err.message ? err.message : String(err),
+      priceIdUsed: process.env.STRIPE_VIN_REPORT_PRICE_ID,
+      baseUrlUsed: process.env.BASE_URL
+    });
   }
+});
+
+app.listen(PORT, () => {
+  console.log(`Backend intelligence server running on port ${PORT}`);
 });
