@@ -5,7 +5,7 @@ const cors = require("cors");
 const Stripe = require("stripe");
 
 const app = express();
-const PORT = 3002;
+const PORT = process.env.PORT || 3002;
 
 console.log("THIS IS THE BACKEND 3002 FILE");
 console.log("RUNNING SERVER.JS FILE CUSTOMER REPORT VERSION");
@@ -1402,13 +1402,17 @@ app.get("/api/checkout-test", (req, res) => {
   });
 });
 
-app.post("/create-checkout-session", async (req, res) => {
+async function handleCheckoutSession(req, res) {
   console.log("HIT CHECKOUT ROUTE");
 
   try {
     const vin = sanitizeVin(req.body?.vin);
+    const sourcePage = req.body?.sourcePage || "";
+    const pageTitle = req.body?.pageTitle || "";
 
     console.log("Incoming checkout request for VIN:", vin);
+    console.log("Source page:", sourcePage);
+    console.log("Page title:", pageTitle);
     console.log("Checkout route using price id:", JSON.stringify(process.env.STRIPE_VIN_REPORT_PRICE_ID));
     console.log("Checkout route using BASE_URL:", JSON.stringify(process.env.BASE_URL));
     console.log("Checkout route using API_BASE:", JSON.stringify(process.env.API_BASE));
@@ -1429,7 +1433,9 @@ app.post("/create-checkout-session", async (req, res) => {
       cancel_url: `${process.env.BASE_URL}/cancel?vin=${encodeURIComponent(vin)}`,
       metadata: {
         vin,
-        type: "vin_report"
+        type: "vin_report",
+        source_page: sourcePage,
+        page_title: pageTitle
       }
     });
 
@@ -1447,8 +1453,7 @@ app.post("/create-checkout-session", async (req, res) => {
       apiBaseUsed: process.env.API_BASE
     });
   }
-});
+}
 
-app.listen(PORT, () => {
-  console.log(`Backend intelligence server running on port ${PORT}`);
-});
+app.post("/create-checkout-session", handleCheckoutSession);
+app.post("/api/create-checkout-session", handleCheckoutSession);
