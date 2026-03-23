@@ -1660,9 +1660,18 @@ app.get("/debug-internal-decode/:vin", async (req, res) => {
 
     res.status(response.status).send(text);
   } catch (error) {
-    console.error("DEBUG internal decode failed:", error);
-    res.status(500).send(String(error.message || error));
-  }
+  console.error("DEBUG internal decode failed full object:", error);
+  console.error("DEBUG internal decode failed message:", error?.message);
+  console.error("DEBUG internal decode failed cause:", error?.cause);
+
+  res.status(500).send(`
+    <pre>
+message: ${String(error?.message || error)}
+cause: ${String(error?.cause || "none")}
+stack: ${String(error?.stack || "no stack")}
+    </pre>
+  `);
+}
 });
 app.listen(PORT, () => {
   console.log("Customer visual report server running on port " + PORT)
