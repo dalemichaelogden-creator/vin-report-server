@@ -300,20 +300,23 @@ function renderInvestigations(items) {
 }
 
 async function getReport(vin) {
-  const url = `${API_BASE}/api/decode/${encodeURIComponent(vin)}`
-  const response = await fetch(url)
+  const url = `${process.env.BASE_URL}/api/decode/${encodeURIComponent(vin)}`;
+  console.log("Fetching report from:", url);
+
+  const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error("Could not retrieve backend intelligence report")
+    const body = await response.text();
+    throw new Error(`Could not retrieve backend intelligence report. Status: ${response.status}. Body: ${body}`);
   }
 
-  const data = await response.json()
+  const data = await response.json();
 
   if (!data.success || !data.report) {
-    throw new Error("Backend returned an invalid report")
+    throw new Error("Backend returned an invalid report");
   }
 
-  return data.report
+  return data.report;
 }
 
 async function createCheckoutSession(vin) {
