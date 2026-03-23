@@ -949,6 +949,8 @@ app.get("/customer-report/:vin", async (req, res) => {
     const vin = sanitizeVin(req.params.vin)
     const sessionId = String(req.query.session_id || "")
 
+console.log("Customer report requested for VIN:", vin);
+console.log("Customer report session_id:", sessionId);
     if (vin.length !== 17) {
       return res.status(400).send("<h1>Invalid VIN</h1><p>Please provide a valid 17 character VIN.</p>")
     }
@@ -956,14 +958,19 @@ app.get("/customer-report/:vin", async (req, res) => {
     const BYPASS_PAYMENT_FOR_TESTING = false
 
     if (!BYPASS_PAYMENT_FOR_TESTING) {
-      const paidCheck = await verifyPaidSession(sessionId, vin)
+  console.log("About to verify Stripe session");
+  const paidCheck = await verifyPaidSession(sessionId, vin);
+  console.log("Paid check result:", paidCheck);
 
-      if (!paidCheck.ok) {
-        return res.redirect("/scan/" + encodeURIComponent(vin))
-      }
-    }
+  if (!paidCheck.ok) {
+    console.log("Paid check failed, redirecting back to scan page");
+    return res.redirect("/scan/" + encodeURIComponent(vin));
+  }
+}
 
-    const report = await getReport(vin)
+    console.log("About to fetch full report");
+const report = await getReport(vin);
+console.log("Full report fetched successfully");
 
     const riskColors = getRiskColor(report.signals.riskLevel)
     const confidenceColors = getConfidenceColor(report.signals.confidenceLevel)
@@ -1645,8 +1652,12 @@ app.get("/customer-report/:vin", async (req, res) => {
 </html>
     `)
   } catch (error) {
-    res.status(500).send(`<h1>Error generating customer report</h1><p>${escapeHtml(String(error.message || error))}</p>`)
-  }
+  console.error("Customer report route failed full object:", error);
+  console.error("Customer report route failed message:", error?.message);
+  console.error("Customer report route failed cause:", error?.cause);
+
+  res.status(500).send(`<h1>Error generating customer report</h1><p>${escapeHtml(String(error.message || error))}</p>`)
+}
 })
 app.get("/debug-internal-decode/:vin", async (req, res) => {
   try {
