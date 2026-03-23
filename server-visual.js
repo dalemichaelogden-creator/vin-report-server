@@ -1401,11 +1401,59 @@ console.log("Full report fetched successfully");
         padding: 18px 12px 36px;
       }
     }
+      @media print {
+  .pdf-download-wrap {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  .wrap {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  .card,
+  .hero,
+  .premium-box,
+  .item,
+  .stack-card,
+  .detail-card,
+  .forecast-card,
+  .roadmap-card {
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="hero">
+
+  <div class="pdf-download-wrap" style="margin: 0 0 18px; display: flex; justify-content: flex-end;">
+    <button onclick="window.print()" style="
+      background: #0074d4;
+      color: #ffffff;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    ">
+      Download PDF Report
+    </button>
+  </div>
+
+  <div class="hero">
       <div class="hero-top">
         <div>
           <div class="eyebrow">${escapeHtml(safeValue(report.reportMeta.headline, "PRE PURCHASE INTELLIGENCE REPORT"))}</div>
