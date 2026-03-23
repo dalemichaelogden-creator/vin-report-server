@@ -324,12 +324,14 @@ async function getReport(vin) {
   }
 }
 
-async function createCheckoutSession(vin) {
+async function createCheckoutSession(vin, sourcePage = "") {
   const cleanVin = sanitizeVin(vin)
 
   if (cleanVin.length !== 17) {
     throw new Error("Valid 17 character VIN required")
   }
+
+  const cleanSourcePage = String(sourcePage || "").trim()
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
@@ -348,7 +350,8 @@ async function createCheckoutSession(vin) {
       }
     ],
     metadata: {
-      vin: cleanVin
+      vin: cleanVin,
+      source_page: cleanSourcePage
     },
     client_reference_id: cleanVin,
     success_url: `${BASE_URL}/processing/${encodeURIComponent(cleanVin)}?session_id={CHECKOUT_SESSION_ID}`,
@@ -405,12 +408,13 @@ app.get("/start-checkout/:vin", async (req, res) => {
 app.post("/api/create-checkout-session", async (req, res) => {
   try {
     const vin = sanitizeVin(req.body && req.body.vin)
+    const sourcePage = String((req.body && req.body.sourcePage) || "").trim()
 
     if (vin.length !== 17) {
       return res.status(400).json({ error: "Valid 17 character VIN required" })
     }
 
-    const session = await createCheckoutSession(vin)
+    const session = await createCheckoutSession(vin, sourcePage)
 
     return res.json({
       success: true,
