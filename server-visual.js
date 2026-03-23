@@ -1648,7 +1648,22 @@ app.get("/customer-report/:vin", async (req, res) => {
     res.status(500).send(`<h1>Error generating customer report</h1><p>${escapeHtml(String(error.message || error))}</p>`)
   }
 })
+app.get("/debug-internal-decode/:vin", async (req, res) => {
+  try {
+    const vin = sanitizeVin(req.params.vin);
+    const url = `${API_BASE}/api/decode/${encodeURIComponent(vin)}`;
 
+    console.log("DEBUG internal decode URL:", url);
+
+    const response = await fetch(url);
+    const text = await response.text();
+
+    res.status(response.status).send(text);
+  } catch (error) {
+    console.error("DEBUG internal decode failed:", error);
+    res.status(500).send(String(error.message || error));
+  }
+});
 app.listen(PORT, () => {
   console.log("Customer visual report server running on port " + PORT)
 })
