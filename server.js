@@ -1458,6 +1458,57 @@ async function handleCheckoutSession(req, res) {
 app.post("/create-checkout-session", handleCheckoutSession);
 app.post("/api/create-checkout-session", handleCheckoutSession);
 
+app.post("/api/decode-vin", async (req, res) => {
+  try {
+    let { vin } = req.body || {};
+
+    // Clean VIN
+    vin = (vin || "")
+      .toString()
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, "");
+
+    console.log("VIN received:", vin);
+
+    // Validation
+    if (!vin) {
+      return res.status(400).json({
+        ok: false,
+        error: "VIN is required"
+      });
+    }
+
+    if (vin.length !== 17) {
+      return res.status(400).json({
+        ok: false,
+        error: "VIN must be 17 characters"
+      });
+    }
+
+    if (/[IOQ]/.test(vin)) {
+      return res.status(400).json({
+        ok: false,
+        error: "VIN cannot contain I, O, or Q"
+      });
+    }
+
+    // Success response (for now)
+    res.json({
+      ok: true,
+      cleaned_vin: vin,
+      message: "VIN passed validation"
+    });
+
+  } catch (error) {
+    console.error("decode-vin error:", error);
+    res.status(500).json({
+      ok: false,
+      error: "Server error"
+    });
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Backend intelligence server running on port " + PORT);
 });
