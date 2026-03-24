@@ -5,7 +5,7 @@ const cors = require("cors");
 const Stripe = require("stripe");
 
 const app = express();
-const PORT = 3002;
+const PORT = process.env.PORT || 3002;
 
 console.log("THIS IS THE BACKEND 3002 FILE");
 console.log("RUNNING SERVER.JS FILE CUSTOMER REPORT VERSION");
