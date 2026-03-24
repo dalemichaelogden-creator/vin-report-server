@@ -1282,13 +1282,7 @@ async function buildReportFromVin(vin) {
     wmi: safeValue(row.WMI),
     plantCountry: safeValue(row.PlantCountry),
     manufacturer: safeValue(row.Manufacturer),
-    series: safeValue(row.Series),
-    
-debugYearSource: JSON.stringify({
-  vinYearCode: vin.charAt(9),
-  nhtsaYear: safeValue(row.ModelYear),
-  finalYear: String(getCorrectedYear(vin, row))
-})
+    series: safeValue(row.Series)
 
   };
 

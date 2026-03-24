@@ -1552,7 +1552,6 @@ console.log("Full report fetched successfully");
       <h2>VIN Identity and Factory Spec</h2>
       <div class="grid">
         <div class="item"><div class="label">Year</div><div class="value">${escapeHtml(safeValue(report.vehicle.year))}</div></div>
-        <div class="item wide"><div class="label">Debug Year Source</div><div class="value">${escapeHtml(report.vehicle.debugYearSource || "N/A")}</div></div>
         <div class="item"><div class="label">Make</div><div class="value">${escapeHtml(safeValue(report.vehicle.make))}</div></div>
         <div class="item"><div class="label">Model</div><div class="value">${escapeHtml(safeValue(report.vehicle.model))}</div></div>
         <div class="item"><div class="label">Trim</div><div class="value">${escapeHtml(safeValue(report.vehicle.trim))}</div></div>
