@@ -24,6 +24,113 @@ function getCorrectedYear(vin, row){
     6: 2006, 7: 2007, 8: 2008, 9: 2009
   };
 
+  function normalizeVehicleText(value) {
+  return String(value || "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+}
+
+function matchesEngineRule(vehicle, match) {
+  const model = normalizeVehicleText(vehicle.model);
+  const trim = normalizeVehicleText(vehicle.trim);
+  const engine = normalizeVehicleText(vehicle.engine);
+  const make = normalizeVehicleText(vehicle.make);
+  const year = Number(vehicle.year || 0);
+
+  if (match.make && normalizeVehicleText(match.make) !== make) {
+    return false;
+  }
+
+  if (match.yearMin && year < match.yearMin) {
+    return false;
+  }
+
+  if (match.yearMax && year > match.yearMax) {
+    return false;
+  }
+
+  if (match.modelIncludes && !match.modelIncludes.some(item => model.includes(normalizeVehicleText(item)))) {
+    return false;
+  }
+
+  if (match.trimIncludes && !match.trimIncludes.some(item => trim.includes(normalizeVehicleText(item)))) {
+    return false;
+  }
+
+  if (match.engineIncludes && !match.engineIncludes.some(item => engine.includes(normalizeVehicleText(item)))) {
+    return false;
+  }
+
+  return true;
+}
+
+const ENGINE_RULES = [
+  {
+    match: {
+      make: "BMW",
+      modelIncludes: ["330I"],
+      yearMin: 2019
+    },
+    result: {
+      enginePlatform: "B48",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to the B48 engine platform."
+    }
+  },
+  {
+    match: {
+      make: "BMW",
+      modelIncludes: ["340I"]
+    },
+    result: {
+      enginePlatform: "B58",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to the B58 engine platform."
+    }
+  },
+  {
+    match: {
+      make: "BMW",
+      modelIncludes: ["M340I"]
+    },
+    result: {
+      enginePlatform: "B58",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to the B58 engine platform."
+    }
+  },
+  {
+    match: {
+      make: "BMW",
+      modelIncludes: ["320I"],
+      yearMax: 2016
+    },
+    result: {
+      enginePlatform: "N20 or B48",
+      engineConfidence: "Moderate",
+      engineSummary: "This model year can sit near a transition point, so exact engine confirmation is sensible."
+    }
+  }
+];
+
+function getDefaultEngineIntelligence(vehicle) {
+  return {
+    enginePlatform: vehicle.engine || "Unknown",
+    engineConfidence: "Basic",
+    engineSummary: "A deeper engine family match was not confidently identified for this vehicle yet."
+  };
+}
+
+function getEngineIntelligence(vehicle) {
+  for (const rule of ENGINE_RULES) {
+    if (matchesEngineRule(vehicle, rule.match)) {
+      return rule.result;
+    }
+  }
+
+  return getDefaultEngineIntelligence(vehicle);
+}
+
   const vinYearCode = vin.charAt(9);
   const decodedYear = yearMap[vinYearCode];
 
@@ -1298,6 +1405,11 @@ async function buildReportFromVin(vin) {
     ...safetyRecalls,
     ...safetyComplaints
   };
+
+  const engineIntel = getEngineIntelligence(vehicle);
+vehicle.enginePlatform = engineIntel.enginePlatform;
+vehicle.engineConfidence = engineIntel.engineConfidence;
+vehicle.engineSummary = engineIntel.engineSummary;
 
   const ownership = buildOwnershipIntelligence(vehicle, safety);
   const optionProfile = buildOptionProfile(vehicle);
