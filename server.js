@@ -201,6 +201,32 @@ function getEngineRiskProfile(enginePlatform) {
   };
 }
 
+function applyEngineRiskToVerdict(baseVerdict, vehicle) {
+  const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
+
+  if (!engineRisk) {
+    return baseVerdict;
+  }
+
+  if (engineRisk === "HIGHER") {
+    return {
+      ...baseVerdict,
+      headline: "Proceed carefully with engine related risk",
+      summary: "This vehicle may still be worth considering, but the engine profile increases ownership risk and should be reflected in price, inspection depth, and maintenance review."
+    };
+  }
+
+  if (engineRisk === "MODERATE") {
+    return {
+      ...baseVerdict,
+      headline: "Worth viewing, but inspect carefully",
+      summary: "This vehicle may still be worth considering, but the engine platform and maintenance history deserve careful review before agreeing on price."
+    };
+  }
+
+  return baseVerdict;
+}
+
 if (!process.env.STRIPE_SECRET_KEY) {
   console.error("Missing STRIPE_SECRET_KEY in environment variables");
   process.exit(1);
@@ -1542,7 +1568,8 @@ vehicle.engineRiskNote = engineRisk.engineRiskNote;
   report.frontEndSummary.subheadline = frontSignals.subheadline;
   report.freeSignals = frontSignals;
 
-  report.buyerVerdict = buildBuyerVerdict(report);
+const baseBuyerVerdict = buildBuyerVerdict(report);
+report.buyerVerdict = applyEngineRiskToVerdict(baseBuyerVerdict, report.vehicle);
 
   if (!report.vehicle.engine) {
     report.vehicle.engine = report.specs.engineDisplay;
