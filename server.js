@@ -1458,6 +1458,13 @@ async function handleCheckoutSession(req, res) {
 app.post("/create-checkout-session", handleCheckoutSession);
 app.post("/api/create-checkout-session", handleCheckoutSession);
 
+app.get("/api/test", (req, res) => {
+  res.json({
+    ok: true,
+    message: "Backend is working"
+  });
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Backend intelligence server running on port " + PORT);
 });
