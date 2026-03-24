@@ -1100,6 +1100,7 @@ function buildEngineAdvisory(vehicle) {
 }
 
 function buildRiskForecast(vehicle, ownership, safety) {
+    const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
   const drive = getDriveTypeGroup(vehicle);
   const body = getBodyType(vehicle);
   const fuel = getFuelGroup(vehicle);
@@ -1124,6 +1125,24 @@ function buildRiskForecast(vehicle, ownership, safety) {
       estimatedCost: "$400 to $1,200"
     }
   ];
+
+  if (engineRisk === "HIGHER") {
+    items.unshift({
+      area: "Engine Platform Related Risk",
+      risk: "High",
+      note: "This engine family carries a higher ownership risk profile, so engine inspection, service records, and leak or timing related checks should carry more weight in the next 24 months.",
+      estimatedCost: "$800 to $3,500"
+    });
+  }
+
+  if (engineRisk === "MODERATE") {
+    items.unshift({
+      area: "Engine Platform Related Risk",
+      risk: "Medium",
+      note: "This engine family is not automatically a problem, but engine platform and maintenance history should still influence inspection depth and ownership expectations.",
+      estimatedCost: "$400 to $1,800"
+    });
+  }
 
   if (drive === "awd") {
     items.push({
@@ -1152,9 +1171,19 @@ function buildRiskForecast(vehicle, ownership, safety) {
     });
   }
 
-  return {
+  let summary = `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} should be viewed as a vehicle where wear items, platform complexity, and past servicing all influence the next 24 months of ownership cost.`;
+
+  if (engineRisk === "HIGHER") {
+    summary = `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} should be viewed as a vehicle where engine related ownership risk, wear items, platform complexity, and past servicing all influence the next 24 months of ownership cost.`;
+  }
+
+  if (engineRisk === "MODERATE") {
+    summary = `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} should be viewed as a vehicle where engine platform, wear items, platform complexity, and past servicing all influence the next 24 months of ownership cost.`;
+  }
+
+    return {
     title: "24 Month Risk Forecast",
-    summary: `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} should be viewed as a vehicle where wear items, platform complexity, and past servicing all influence the next 24 months of ownership cost.`,
+    summary,
     items
   };
 }
