@@ -9,6 +9,7 @@ const PORT = 3002;
 
 console.log("THIS IS THE BACKEND 3002 FILE");
 console.log("RUNNING SERVER.JS FILE CUSTOMER REPORT VERSION");
+console.log("SERVER_JS_BOOTED");
 
 if (!process.env.STRIPE_SECRET_KEY) {
   console.error("Missing STRIPE_SECRET_KEY in environment variables");
@@ -1462,6 +1463,13 @@ app.get("/api/test", (req, res) => {
   res.json({
     ok: true,
     message: "Backend is working"
+  });
+});
+
+app.get("/which-backend", (req, res) => {
+  res.json({
+    ok: true,
+    backend: "server.js"
   });
 });
 

@@ -13,6 +13,7 @@ const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "REPLACE_WITH_YOUR_ST
 const stripe = new Stripe(STRIPE_SECRET_KEY)
 
 console.log("THIS IS THE VISUAL CUSTOMER REPORT FILE")
+console.log("SERVER_VISUAL_JS_BOOTED");
 
 app.use(express.static("public"))
 app.use(express.json())
@@ -1736,6 +1737,14 @@ stack: ${String(error?.stack || "no stack")}
   `);
 }
 });
+
+app.get("/which-backend", (req, res) => {
+  res.json({
+    ok: true,
+    backend: "server-visual.js"
+  });
+});
+
 app.listen(PORT, () => {
   console.log("Customer visual report server running on port " + PORT)
 })
