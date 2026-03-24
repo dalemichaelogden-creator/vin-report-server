@@ -24,7 +24,19 @@ function getCorrectedYear(vin, row){
     6: 2006, 7: 2007, 8: 2008, 9: 2009
   };
 
-  function normalizeVehicleText(value) {
+  const vinYearCode = vin.charAt(9);
+  const decodedYear = yearMap[vinYearCode];
+
+  if (!year && decodedYear) return decodedYear;
+
+  if (decodedYear && year && Math.abs(decodedYear - year) > 1){
+    return decodedYear;
+  }
+
+  return year;
+}
+
+function normalizeVehicleText(value) {
   return String(value || "")
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "");
@@ -129,18 +141,6 @@ function getEngineIntelligence(vehicle) {
   }
 
   return getDefaultEngineIntelligence(vehicle);
-}
-
-  const vinYearCode = vin.charAt(9);
-  const decodedYear = yearMap[vinYearCode];
-
-  if (!year && decodedYear) return decodedYear;
-
-  if (decodedYear && year && Math.abs(decodedYear - year) > 1){
-    return decodedYear;
-  }
-
-  return year;
 }
 
 if (!process.env.STRIPE_SECRET_KEY) {
