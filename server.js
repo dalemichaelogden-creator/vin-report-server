@@ -1462,7 +1462,6 @@ app.post("/api/decode-vin", async (req, res) => {
   try {
     let { vin } = req.body || {};
 
-    // Clean VIN
     vin = (vin || "")
       .toString()
       .trim()
@@ -1471,7 +1470,6 @@ app.post("/api/decode-vin", async (req, res) => {
 
     console.log("VIN received:", vin);
 
-    // Validation
     if (!vin) {
       return res.status(400).json({
         ok: false,
@@ -1493,16 +1491,43 @@ app.post("/api/decode-vin", async (req, res) => {
       });
     }
 
-    // Success response (for now)
-    res.json({
+    const nhtsaUrl = "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/" + encodeURIComponent(vin) + "?format=json";
+
+    const nhtsaRes = await fetch(nhtsaUrl, {
+      headers: {
+        Accept: "application/json"
+      }
+    });
+
+    const nhtsaData = await nhtsaRes.json();
+    const row = nhtsaData && nhtsaData.Results && nhtsaData.Results[0]
+      ? nhtsaData.Results[0]
+      : null;
+
+    if (!row || (!row.Make && !row.Model)) {
+      return res.status(400).json({
+        ok: false,
+        error: "We could not decode that VIN"
+      });
+    }
+
+    const year = row.ModelYear || "";
+    const make = row.Make || "";
+    const model = row.Model || "";
+
+    return res.json({
       ok: true,
       cleaned_vin: vin,
-      message: "VIN passed validation"
+      identity: {
+        year,
+        make,
+        model
+      }
     });
 
   } catch (error) {
     console.error("decode-vin error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       error: "Server error"
     });
