@@ -1559,6 +1559,9 @@ console.log("Full report fetched successfully");
         <div class="item"><div class="label">Drive Type</div><div class="value">${escapeHtml(safeValue(report.vehicle.drive))}</div></div>
         <div class="item"><div class="label">Body Class</div><div class="value">${escapeHtml(safeValue(report.vehicle.body))}</div></div>
         <div class="item"><div class="label">Engine Model</div><div class="value">${escapeHtml(displaySpec(report.vehicle.engine, engineFallback))}</div></div>
+        <div class="item"><div class="label">Engine Platform</div><div class="value">${escapeHtml(report.vehicle.enginePlatform || "N/A")}</div></div>
+<div class="item"><div class="label">Engine Confidence</div><div class="value">${escapeHtml(report.vehicle.engineConfidence || "N/A")}</div></div>
+<div class="item wide"><div class="label">Engine Summary</div><div class="summary">${escapeHtml(report.vehicle.engineSummary || "N/A")}</div></div>
         <div class="item"><div class="label">WMI</div><div class="value">${escapeHtml(safeValue(report.vehicle.wmi))}</div></div>
         <div class="item"><div class="label">Plant Country</div><div class="value">${escapeHtml(safeValue(report.vehicle.plantCountry))}</div></div>
         <div class="item"><div class="label">Series</div><div class="value">${escapeHtml(safeValue(report.vehicle.series))}</div></div>
