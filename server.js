@@ -1189,6 +1189,7 @@ function buildRiskForecast(vehicle, ownership, safety) {
 }
 
 function buildNegotiationLeverage(vehicle, ownership, safety) {
+    const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
   const items = [
     {
       title: "Maintenance History Credit",
@@ -1214,16 +1215,36 @@ function buildNegotiationLeverage(vehicle, ownership, safety) {
     });
   }
 
-  if (ownership.enginePlatform && ownership.enginePlatform !== "Manufacturer specific platform") {
+    if (ownership.enginePlatform && ownership.enginePlatform !== "Manufacturer specific platform") {
+    let engineScript = `This vehicle sits on the ${ownership.enginePlatform} platform, so I have to price in the known maintenance profile and the possibility of age related engine bay repairs.`;
+
+    if (engineRisk === "HIGHER") {
+      engineScript = `This vehicle sits on the ${ownership.enginePlatform} platform, and that engine profile carries higher ownership risk, so I need stronger room in the price for inspection findings, preventive work, and possible engine related repairs.`;
+    }
+
+    if (engineRisk === "MODERATE") {
+      engineScript = `This vehicle sits on the ${ownership.enginePlatform} platform, so I still need room in the price for maintenance exposure, inspection findings, and possible age related engine bay repairs.`;
+    }
+
     items.push({
       title: "Engine Platform Credit",
-      script: `This vehicle sits on the ${ownership.enginePlatform} platform, so I have to price in the known maintenance profile and the possibility of age related engine bay repairs.`
+      script: engineScript
     });
+  }
+
+    let summary = "Use these talking points to frame the vehicle as one that may still be worth buying, but only at a price that respects upcoming ownership cost.";
+
+  if (engineRisk === "HIGHER") {
+    summary = "Use these talking points to frame the vehicle as one that may still be worth buying, but only at a price that reflects higher engine related ownership risk and possible catch up maintenance.";
+  }
+
+  if (engineRisk === "MODERATE") {
+    summary = "Use these talking points to frame the vehicle as one that may still be worth buying, but only at a price that reflects engine platform exposure, age related maintenance, and inspection risk.";
   }
 
   return {
     title: "Negotiation Leverage",
-    summary: "Use these talking points to frame the vehicle as one that may still be worth buying, but only at a price that respects upcoming ownership cost.",
+    summary,
     items
   };
 }
