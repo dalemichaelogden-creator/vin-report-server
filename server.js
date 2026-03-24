@@ -1561,6 +1561,13 @@ app.post("/api/decode-vin", async (req, res) => {
   }
 });
 
+app.get("/api/ping", (req, res) => {
+  res.json({
+    ok: true,
+    message: "ping route live"
+  });
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Backend intelligence server running on port " + PORT);
 });
