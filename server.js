@@ -143,6 +143,64 @@ function getEngineIntelligence(vehicle) {
   return getDefaultEngineIntelligence(vehicle);
 }
 
+function getEngineRiskProfile(enginePlatform) {
+  const value = String(enginePlatform || "").toUpperCase();
+
+  if (!value) {
+    return {
+      engineRiskLevel: "Unknown",
+      engineRiskNote: "No engine risk profile was confidently identified."
+    };
+  }
+
+  if (value.includes("N20")) {
+    return {
+      engineRiskLevel: "Higher",
+      engineRiskNote: "This engine profile carries a higher ownership risk due to known timing chain and oil leak related concern patterns."
+    };
+  }
+
+  if (value.includes("N55")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This engine profile is generally known, but age, maintenance history, and leak related issues still matter."
+    };
+  }
+
+  if (value.includes("B48")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This engine profile is generally viewed as stronger than earlier alternatives, though cooling system and gasket related maintenance still matter."
+    };
+  }
+
+  if (value.includes("B58")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This engine profile is generally well regarded, but ownership cost can still rise quickly with neglected maintenance."
+    };
+  }
+
+  if (value.includes("S55") || value.includes("S58")) {
+    return {
+      engineRiskLevel: "Higher",
+      engineRiskNote: "High performance engine platforms can carry significantly higher ownership and repair exposure."
+    };
+  }
+
+  if (value.includes("N20 OR B48")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This vehicle sits in an engine transition window, so exact engine confirmation matters before assigning a firmer ownership risk profile."
+    };
+  }
+
+  return {
+    engineRiskLevel: "Unknown",
+    engineRiskNote: "A deeper engine risk profile was not confidently identified for this vehicle yet."
+  };
+}
+
 if (!process.env.STRIPE_SECRET_KEY) {
   console.error("Missing STRIPE_SECRET_KEY in environment variables");
   process.exit(1);
@@ -1410,6 +1468,10 @@ async function buildReportFromVin(vin) {
 vehicle.enginePlatform = engineIntel.enginePlatform;
 vehicle.engineConfidence = engineIntel.engineConfidence;
 vehicle.engineSummary = engineIntel.engineSummary;
+
+const engineRisk = getEngineRiskProfile(vehicle.enginePlatform);
+vehicle.engineRiskLevel = engineRisk.engineRiskLevel;
+vehicle.engineRiskNote = engineRisk.engineRiskNote;
 
   const ownership = buildOwnershipIntelligence(vehicle, safety);
   const optionProfile = buildOptionProfile(vehicle);
