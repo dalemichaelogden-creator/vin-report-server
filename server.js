@@ -1310,6 +1310,13 @@ async function buildReportFromVin(vin) {
   const report = {
     reportMeta: buildReportMeta(vehicle),
     vehicle,
+
+    debugYearCheck: {
+  vinYearCode: vin.charAt(9),
+  nhtsaYear: safeValue(row.ModelYear),
+  finalYear: String(getCorrectedYear(vin, row))
+},
+
     safety,
     efficiency,
     specs,
