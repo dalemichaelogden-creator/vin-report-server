@@ -1282,7 +1282,14 @@ async function buildReportFromVin(vin) {
     wmi: safeValue(row.WMI),
     plantCountry: safeValue(row.PlantCountry),
     manufacturer: safeValue(row.Manufacturer),
-    series: safeValue(row.Series)
+    series: safeValue(row.Series),
+    
+debugYearSource: JSON.stringify({
+  vinYearCode: vin.charAt(9),
+  nhtsaYear: safeValue(row.ModelYear),
+  finalYear: String(getCorrectedYear(vin, row))
+})
+
   };
 
   vehicle.title = buildVehicleTitle(vehicle);
@@ -1310,13 +1317,6 @@ async function buildReportFromVin(vin) {
   const report = {
     reportMeta: buildReportMeta(vehicle),
     vehicle,
-
-    debugYearSource: JSON.stringify({
-  vinYearCode: vin.charAt(9),
-  nhtsaYear: safeValue(row.ModelYear),
-  finalYear: String(getCorrectedYear(vin, row))
-}),
-
     safety,
     efficiency,
     specs,
