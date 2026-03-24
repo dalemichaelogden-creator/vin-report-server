@@ -1745,6 +1745,26 @@ app.get("/which-backend", (req, res) => {
   });
 });
 
+app.get("/api/decode-test/:vin", async (req, res) => {
+  try {
+    const vin = String(req.params.vin || "").trim().toUpperCase();
+    const url = `${API_BASE}/api/decode/${encodeURIComponent(vin)}`;
+
+    const response = await fetch(url);
+    const text = await response.text();
+
+    res.status(response.status);
+    res.setHeader("Content-Type", "application/json");
+    res.send(text);
+  } catch (err) {
+    console.error("decode-test proxy failed:", err);
+    res.status(500).json({
+      ok: false,
+      error: "Proxy failed"
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log("Customer visual report server running on port " + PORT)
 })
