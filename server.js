@@ -1,3 +1,5 @@
+Before moving intelligence to server
+
 require("dotenv").config();
 
 const express = require("express");
@@ -5,37 +7,10 @@ const cors = require("cors");
 const Stripe = require("stripe");
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = 3002;
 
 console.log("THIS IS THE BACKEND 3002 FILE");
 console.log("RUNNING SERVER.JS FILE CUSTOMER REPORT VERSION");
-
-function getCorrectedYear(vin, row){
-  let year = row.ModelYear || "";
-
-  const yearMap = {
-    A: 2010, B: 2011, C: 2012, D: 2013, E: 2014,
-    F: 2015, G: 2016, H: 2017, J: 2018, K: 2019,
-    L: 2020, M: 2021, N: 2022, P: 2023, R: 2024,
-    S: 2025, T: 2026, V: 2027, W: 2028, X: 2029,
-    Y: 2030,
-    1: 2001, 2: 2002, 3: 2003, 4: 2004, 5: 2005,
-    6: 2006, 7: 2007, 8: 2008, 9: 2009
-  };
-
-  const vinYearCode = vin.charAt(9);
-  const decodedYear = yearMap[vinYearCode];
-
-  if (!year && decodedYear) {
-    return decodedYear;
-  }
-
-  if (decodedYear && year && Math.abs(decodedYear - year) > 1) {
-    return decodedYear;
-  }
-
-  return year;
-}
 
 if (!process.env.STRIPE_SECRET_KEY) {
   console.error("Missing STRIPE_SECRET_KEY in environment variables");
@@ -1484,89 +1459,6 @@ async function handleCheckoutSession(req, res) {
 
 app.post("/create-checkout-session", handleCheckoutSession);
 app.post("/api/create-checkout-session", handleCheckoutSession);
-
-app.post("/api/decode-vin", async (req, res) => {
-  try {
-    let { vin } = req.body || {};
-
-    vin = (vin || "")
-      .toString()
-      .trim()
-      .toUpperCase()
-      .replace(/\s+/g, "");
-
-    console.log("VIN received:", vin);
-
-    if (!vin) {
-      return res.status(400).json({
-        ok: false,
-        error: "VIN is required"
-      });
-    }
-
-    if (vin.length !== 17) {
-      return res.status(400).json({
-        ok: false,
-        error: "VIN must be 17 characters"
-      });
-    }
-
-    if (/[IOQ]/.test(vin)) {
-      return res.status(400).json({
-        ok: false,
-        error: "VIN cannot contain I, O, or Q"
-      });
-    }
-
-    const nhtsaUrl = "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/" + encodeURIComponent(vin) + "?format=json";
-
-    const nhtsaRes = await fetch(nhtsaUrl, {
-      headers: {
-        Accept: "application/json"
-      }
-    });
-
-    const nhtsaData = await nhtsaRes.json();
-    const row = nhtsaData && nhtsaData.Results && nhtsaData.Results[0]
-      ? nhtsaData.Results[0]
-      : null;
-
-    if (!row || (!row.Make && !row.Model)) {
-      return res.status(400).json({
-        ok: false,
-        error: "We could not decode that VIN"
-      });
-    }
-
-    const year = getCorrectedYear(vin, row);
-    const make = row.Make || "";
-    const model = row.Model || "";
-
-    return res.json({
-      ok: true,
-      cleaned_vin: vin,
-      identity: {
-        year,
-        make,
-        model
-      }
-    });
-
-  } catch (error) {
-    console.error("decode-vin error:", error);
-    return res.status(500).json({
-      ok: false,
-      error: "Server error"
-    });
-  }
-});
-
-app.get("/api/ping", (req, res) => {
-  res.json({
-    ok: true,
-    message: "ping route live"
-  });
-});
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Backend intelligence server running on port " + PORT);
