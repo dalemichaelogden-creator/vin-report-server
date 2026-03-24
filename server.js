@@ -1311,11 +1311,11 @@ async function buildReportFromVin(vin) {
     reportMeta: buildReportMeta(vehicle),
     vehicle,
 
-    debugYearCheck: {
+    debugYearSource: JSON.stringify({
   vinYearCode: vin.charAt(9),
   nhtsaYear: safeValue(row.ModelYear),
   finalYear: String(getCorrectedYear(vin, row))
-},
+}),
 
     safety,
     efficiency,
