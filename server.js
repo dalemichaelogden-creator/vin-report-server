@@ -1473,6 +1473,79 @@ app.get("/which-backend", (req, res) => {
   });
 });
 
+app.get("/api/decode-test/:vin", async (req, res) => {
+  try {
+    let vin = (req.params.vin || "")
+      .toString()
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, "");
+
+    if (!vin) {
+      return res.status(400).json({
+        ok: false,
+        error: "VIN is required"
+      });
+    }
+
+    if (vin.length !== 17) {
+      return res.status(400).json({
+        ok: false,
+        error: "VIN must be 17 characters"
+      });
+    }
+
+    if (/[IOQ]/.test(vin)) {
+      return res.status(400).json({
+        ok: false,
+        error: "VIN cannot contain I, O, or Q"
+      });
+    }
+
+    const nhtsaUrl =
+      "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/" +
+      encodeURIComponent(vin) +
+      "?format=json";
+
+    const nhtsaRes = await fetch(nhtsaUrl, {
+      headers: {
+        Accept: "application/json"
+      }
+    });
+
+    const nhtsaData = await nhtsaRes.json();
+    const row =
+      nhtsaData &&
+      nhtsaData.Results &&
+      nhtsaData.Results[0]
+        ? nhtsaData.Results[0]
+        : null;
+
+    if (!row || (!row.Make && !row.Model)) {
+      return res.status(400).json({
+        ok: false,
+        error: "We could not decode that VIN"
+      });
+    }
+
+    return res.json({
+      ok: true,
+      vin,
+      identity: {
+        year: row.ModelYear || "",
+        make: row.Make || "",
+        model: row.Model || ""
+      }
+    });
+  } catch (error) {
+    console.error("decode-test error:", error);
+    return res.status(500).json({
+      ok: false,
+      error: "Server error"
+    });
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Backend intelligence server running on port " + PORT);
 });
