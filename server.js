@@ -92,6 +92,18 @@ const ENGINE_RULES = [
   {
     match: {
       make: "BMW",
+      modelIncludes: ["320I"],
+      yearMax: 2016
+    },
+    result: {
+      enginePlatform: "N20 or B48",
+      engineConfidence: "Moderate",
+      engineSummary: "This model year can sit near a transition point, so exact engine confirmation is sensible."
+    }
+  },
+  {
+    match: {
+      make: "BMW",
       modelIncludes: ["340I"]
     },
     result: {
@@ -114,13 +126,478 @@ const ENGINE_RULES = [
   {
     match: {
       make: "BMW",
-      modelIncludes: ["320I"],
-      yearMax: 2016
+      modelIncludes: ["M3"],
+      yearMax: 2020
     },
     result: {
-      enginePlatform: "N20 or B48",
+      enginePlatform: "S55",
       engineConfidence: "Moderate",
-      engineSummary: "This model year can sit near a transition point, so exact engine confirmation is sensible."
+      engineSummary: "This M3 profile commonly aligns with the S55 platform, though exact year and market should still be confirmed."
+    }
+  },
+  {
+    match: {
+      make: "BMW",
+      modelIncludes: ["M3"],
+      yearMin: 2021
+    },
+    result: {
+      enginePlatform: "S58",
+      engineConfidence: "Moderate",
+      engineSummary: "This M3 profile commonly aligns with the S58 platform, though exact year and market should still be confirmed."
+    }
+  },
+  {
+    match: {
+      make: "AUDI",
+      modelIncludes: ["A3", "A4", "A5", "Q3", "Q5"],
+      engineIncludes: ["2.0"]
+    },
+    result: {
+      enginePlatform: "EA888",
+      engineConfidence: "High",
+      engineSummary: "This Audi profile strongly points to the EA888 turbocharged four cylinder platform."
+    }
+  },
+  {
+    match: {
+      make: "AUDI",
+      modelIncludes: ["S3", "TTS"],
+      engineIncludes: ["2.0"]
+    },
+    result: {
+      enginePlatform: "EA888 High Output",
+      engineConfidence: "Moderate",
+      engineSummary: "This Audi performance four cylinder profile commonly aligns with a higher output EA888 variant."
+    }
+  },
+  {
+    match: {
+      make: "AUDI",
+      modelIncludes: ["S4", "S5", "SQ5"]
+    },
+    result: {
+      enginePlatform: "3.0T V6",
+      engineConfidence: "Moderate",
+      engineSummary: "This Audi profile commonly aligns with a turbocharged 3.0 liter V6 performance platform."
+    }
+  },
+  {
+    match: {
+      make: "VOLKSWAGEN",
+      modelIncludes: ["GTI", "GLI", "GOLF R", "ARTEON"],
+      engineIncludes: ["2.0"]
+    },
+    result: {
+      enginePlatform: "EA888",
+      engineConfidence: "High",
+      engineSummary: "This Volkswagen profile strongly points to the EA888 turbocharged four cylinder platform."
+    }
+  },
+  {
+    match: {
+      make: "VOLKSWAGEN",
+      modelIncludes: ["JETTA", "PASSAT", "TIGUAN"],
+      engineIncludes: ["1.8", "2.0"]
+    },
+    result: {
+      enginePlatform: "EA888 or EA211",
+      engineConfidence: "Moderate",
+      engineSummary: "This Volkswagen profile commonly aligns with modern VW turbocharged gasoline engine families, but exact displacement and year should still be confirmed."
+    }
+  },
+  {
+    match: {
+      make: "FORD",
+      modelIncludes: ["F-150", "F150"],
+      engineIncludes: ["2.7"]
+    },
+    result: {
+      enginePlatform: "2.7 EcoBoost",
+      engineConfidence: "High",
+      engineSummary: "This Ford truck profile strongly points to the 2.7 EcoBoost platform."
+    }
+  },
+  {
+    match: {
+      make: "FORD",
+      modelIncludes: ["F-150", "F150"],
+      engineIncludes: ["3.5"]
+    },
+    result: {
+      enginePlatform: "3.5 EcoBoost or 3.5 V6",
+      engineConfidence: "Moderate",
+      engineSummary: "This Ford truck profile commonly aligns with the 3.5 EcoBoost family, though exact configuration should still be confirmed."
+    }
+  },
+  {
+    match: {
+      make: "FORD",
+      modelIncludes: ["ESCAPE", "EDGE", "EXPLORER", "MUSTANG"],
+      engineIncludes: ["2.0", "2.3"]
+    },
+    result: {
+      enginePlatform: "EcoBoost",
+      engineConfidence: "Moderate",
+      engineSummary: "This Ford profile commonly aligns with the EcoBoost engine family."
+    }
+  },
+  {
+    match: {
+      make: "CHEVROLET",
+      modelIncludes: ["SILVERADO", "TAHOE", "SUBURBAN", "CAMARO", "CORVETTE"],
+      engineIncludes: ["5.3", "6.2"]
+    },
+    result: {
+      enginePlatform: "GM Gen V V8",
+      engineConfidence: "Moderate",
+      engineSummary: "This Chevrolet profile commonly aligns with a direct injected GM Gen V V8 platform."
+    }
+  },
+  {
+    match: {
+      make: "CHEVROLET",
+      modelIncludes: ["MALIBU", "EQUINOX", "TRAVERSE", "BLAZER"],
+      engineIncludes: ["1.5", "2.0"]
+    },
+    result: {
+      enginePlatform: "GM Turbo Gasoline",
+      engineConfidence: "Moderate",
+      engineSummary: "This Chevrolet profile commonly aligns with a modern GM turbocharged gasoline engine family."
+    }
+  },
+  {
+    match: {
+      make: "GMC",
+      modelIncludes: ["SIERRA", "YUKON"],
+      engineIncludes: ["5.3", "6.2"]
+    },
+    result: {
+      enginePlatform: "GM Gen V V8",
+      engineConfidence: "Moderate",
+      engineSummary: "This GMC profile commonly aligns with a direct injected GM Gen V V8 platform."
+    }
+  },
+  {
+    match: {
+      make: "TOYOTA",
+      modelIncludes: ["CAMRY", "RAV4", "HIGHLANDER", "COROLLA"],
+      trimIncludes: ["HYBRID"]
+    },
+    result: {
+      enginePlatform: "Toyota Hybrid Synergy Drive",
+      engineConfidence: "High",
+      engineSummary: "This Toyota hybrid profile strongly points to Toyota Hybrid Synergy Drive architecture."
+    }
+  },
+  {
+    match: {
+      make: "TOYOTA",
+      modelIncludes: ["PRIUS"]
+    },
+    result: {
+      enginePlatform: "Toyota Hybrid Synergy Drive",
+      engineConfidence: "High",
+      engineSummary: "This Prius profile strongly points to Toyota Hybrid Synergy Drive architecture."
+    }
+  },
+  {
+    match: {
+      make: "TOYOTA",
+      modelIncludes: ["TUNDRA", "SEQUOIA", "4RUNNER", "TACOMA"],
+      engineIncludes: ["3.4", "4.0", "4.6", "5.7"]
+    },
+    result: {
+      enginePlatform: "Toyota Truck and SUV Gasoline",
+      engineConfidence: "Moderate",
+      engineSummary: "This Toyota truck or SUV profile commonly aligns with a body on frame Toyota gasoline engine family."
+    }
+  },
+  {
+    match: {
+      make: "HONDA",
+      modelIncludes: ["CIVIC", "ACCORD", "CR-V", "HR-V"],
+      engineIncludes: ["1.5", "2.0"]
+    },
+    result: {
+      enginePlatform: "Honda Earth Dreams",
+      engineConfidence: "Moderate",
+      engineSummary: "This Honda profile commonly aligns with the Earth Dreams engine family."
+    }
+  },
+  {
+    match: {
+      make: "HONDA",
+      modelIncludes: ["ACCORD", "CR-V"],
+      trimIncludes: ["HYBRID"]
+    },
+    result: {
+      enginePlatform: "Honda Hybrid",
+      engineConfidence: "Moderate",
+      engineSummary: "This Honda hybrid profile commonly aligns with Honda's modern hybrid system architecture."
+    }
+  },
+  {
+    match: {
+      make: "ACURA",
+      modelIncludes: ["TLX", "RDX", "MDX", "INTEGRA"],
+      engineIncludes: ["2.0", "2.4", "3.0", "3.5"]
+    },
+    result: {
+      enginePlatform: "Honda Acura Modern Gasoline",
+      engineConfidence: "Moderate",
+      engineSummary: "This Acura profile commonly aligns with a modern Honda Acura gasoline engine family."
+    }
+  },
+  {
+    match: {
+      make: "NISSAN",
+      modelIncludes: ["ALTIMA", "ROGUE", "SENTRA", "MURANO", "PATHFINDER"],
+      engineIncludes: ["2.5", "2.0", "3.5"]
+    },
+    result: {
+      enginePlatform: "Nissan Modern Gasoline",
+      engineConfidence: "Moderate",
+      engineSummary: "This Nissan profile commonly aligns with a modern Nissan gasoline engine family."
+    }
+  },
+  {
+    match: {
+      make: "INFINITI",
+      modelIncludes: ["Q50", "Q60", "QX50", "QX60"],
+      engineIncludes: ["2.0", "3.0", "3.5"]
+    },
+    result: {
+      enginePlatform: "Infiniti Nissan Modern Gasoline",
+      engineConfidence: "Moderate",
+      engineSummary: "This Infiniti profile commonly aligns with a modern Nissan Infiniti gasoline engine family."
+    }
+  },
+  {
+    match: {
+      make: "MERCEDESBENZ",
+      modelIncludes: ["C300", "E300", "GLC300", "GLA250", "CLA250"],
+      engineIncludes: ["2.0"]
+    },
+    result: {
+      enginePlatform: "M274 or M264",
+      engineConfidence: "Moderate",
+      engineSummary: "This Mercedes profile commonly aligns with a modern turbocharged four cylinder Mercedes platform, though exact family should still be confirmed by year."
+    }
+  },
+  {
+    match: {
+      make: "MERCEDESBENZ",
+      modelIncludes: ["C43", "E43", "E450", "GLE450", "S450"],
+      engineIncludes: ["3.0"]
+    },
+    result: {
+      enginePlatform: "Mercedes Turbocharged Six Cylinder",
+      engineConfidence: "Moderate",
+      engineSummary: "This Mercedes profile commonly aligns with a modern turbocharged six cylinder platform."
+    }
+  },
+  {
+    match: {
+      make: "LEXUS",
+      modelIncludes: ["RX", "NX", "ES", "IS", "GS"],
+      trimIncludes: ["HYBRID"]
+    },
+    result: {
+      enginePlatform: "Toyota Lexus Hybrid",
+      engineConfidence: "High",
+      engineSummary: "This Lexus hybrid profile strongly points to Toyota Lexus hybrid system architecture."
+    }
+  },
+  {
+    match: {
+      make: "LEXUS",
+      modelIncludes: ["IS", "GS", "RC", "RX", "GX", "LX"],
+      engineIncludes: ["2.0", "2.5", "3.5", "4.6", "5.0", "5.7"]
+    },
+    result: {
+      enginePlatform: "Toyota Lexus Gasoline",
+      engineConfidence: "Moderate",
+      engineSummary: "This Lexus profile commonly aligns with a Toyota Lexus gasoline engine family."
+    }
+  },
+  {
+    match: {
+      make: "VOLVO",
+      modelIncludes: ["S60", "S90", "XC60", "XC90", "V60"],
+      engineIncludes: ["2.0"]
+    },
+    result: {
+      enginePlatform: "Volvo Drive E",
+      engineConfidence: "High",
+      engineSummary: "This Volvo profile strongly points to the Volvo Drive E four cylinder platform."
+    }
+  },
+  {
+    match: {
+      make: "VOLVO",
+      modelIncludes: ["XC90", "XC60", "S90"],
+      trimIncludes: ["T8", "RECHARGE", "PLUGIN", "PHEV"]
+    },
+    result: {
+      enginePlatform: "Volvo Drive E Hybrid",
+      engineConfidence: "High",
+      engineSummary: "This Volvo profile strongly points to a hybridized Drive E platform."
+    }
+  },
+  {
+    match: {
+      make: "KIA",
+      modelIncludes: ["OPTIMA", "K5", "SPORTAGE", "SORENTO", "SOUL", "FORTE"],
+      engineIncludes: ["1.6", "2.0", "2.4", "2.5"]
+    },
+    result: {
+      enginePlatform: "Kia Modern Gasoline",
+      engineConfidence: "Moderate",
+      engineSummary: "This Kia profile commonly aligns with a modern Kia gasoline engine family."
+    }
+  },
+  {
+    match: {
+      make: "KIA",
+      modelIncludes: ["NIRO", "SORENTO", "SPORTAGE"],
+      trimIncludes: ["HYBRID", "PHEV", "PLUGIN"]
+    },
+    result: {
+      enginePlatform: "Kia Hybrid",
+      engineConfidence: "Moderate",
+      engineSummary: "This Kia profile commonly aligns with a Kia hybrid system architecture."
+    }
+  },
+  {
+    match: {
+      make: "HYUNDAI",
+      modelIncludes: ["SONATA", "ELANTRA", "TUCSON", "SANTA FE", "KONA"],
+      engineIncludes: ["1.6", "2.0", "2.4", "2.5"]
+    },
+    result: {
+      enginePlatform: "Hyundai Modern Gasoline",
+      engineConfidence: "Moderate",
+      engineSummary: "This Hyundai profile commonly aligns with a modern Hyundai gasoline engine family."
+    }
+  },
+  {
+    match: {
+      make: "HYUNDAI",
+      modelIncludes: ["SONATA", "TUCSON", "SANTA FE", "KONA"],
+      trimIncludes: ["HYBRID", "PHEV", "PLUGIN"]
+    },
+    result: {
+      enginePlatform: "Hyundai Hybrid",
+      engineConfidence: "Moderate",
+      engineSummary: "This Hyundai profile commonly aligns with a Hyundai hybrid system architecture."
+    }
+  },
+  {
+    match: {
+      make: "JEEP",
+      modelIncludes: ["WRANGLER", "GRAND CHEROKEE", "CHEROKEE", "COMPASS"],
+      engineIncludes: ["2.0", "3.2", "3.6", "5.7"]
+    },
+    result: {
+      enginePlatform: "Jeep Chrysler Modern Gasoline",
+      engineConfidence: "Moderate",
+      engineSummary: "This Jeep profile commonly aligns with a Chrysler Jeep gasoline engine family."
+    }
+  },
+  {
+    match: {
+      make: "RAM",
+      modelIncludes: ["1500", "2500", "3500"],
+      engineIncludes: ["3.6", "5.7", "6.4", "6.7"]
+    },
+    result: {
+      enginePlatform: "Ram Chrysler Truck Powertrain",
+      engineConfidence: "Moderate",
+      engineSummary: "This Ram profile commonly aligns with a modern Chrysler truck gasoline or diesel powertrain family."
+    }
+  },
+  {
+    match: {
+      make: "DODGE",
+      modelIncludes: ["CHARGER", "CHALLENGER", "DURANGO"],
+      engineIncludes: ["3.6", "5.7", "6.2", "6.4"]
+    },
+    result: {
+      enginePlatform: "Pentastar or HEMI",
+      engineConfidence: "Moderate",
+      engineSummary: "This Dodge profile commonly aligns with either the Pentastar V6 family or a HEMI V8 platform depending on engine size."
+    }
+  },
+  {
+    match: {
+      make: "SUBARU",
+      modelIncludes: ["OUTBACK", "FORESTER", "CROSSTREK", "IMPREZA", "LEGACY", "WRX"],
+      engineIncludes: ["2.0", "2.4", "2.5", "3.6"]
+    },
+    result: {
+      enginePlatform: "Subaru Boxer",
+      engineConfidence: "High",
+      engineSummary: "This Subaru profile strongly points to a horizontally opposed Subaru boxer engine platform."
+    }
+  },
+  {
+    match: {
+      make: "MAZDA",
+      modelIncludes: ["MAZDA3", "MAZDA6", "CX-5", "CX-30", "CX-50", "CX-9", "CX-90"],
+      engineIncludes: ["2.0", "2.5", "3.3"]
+    },
+    result: {
+      enginePlatform: "Skyactiv",
+      engineConfidence: "High",
+      engineSummary: "This Mazda profile strongly points to Mazda's Skyactiv engine family."
+    }
+  },
+  {
+    match: {
+      make: "PORSCHE",
+      modelIncludes: ["MACAN", "CAYENNE", "PANAMERA", "911", "BOXSTER", "CAYMAN"],
+      engineIncludes: ["2.0", "2.9", "3.0", "3.6", "4.0"]
+    },
+    result: {
+      enginePlatform: "Porsche Modern Gasoline",
+      engineConfidence: "Moderate",
+      engineSummary: "This Porsche profile commonly aligns with a modern Porsche performance engine platform."
+    }
+  },
+  {
+    match: {
+      make: "LANDROVER",
+      modelIncludes: ["RANGE ROVER", "DISCOVERY", "DEFENDER", "EVOQUE", "VELAR"],
+      engineIncludes: ["2.0", "3.0", "5.0"]
+    },
+    result: {
+      enginePlatform: "Jaguar Land Rover Modern Gasoline",
+      engineConfidence: "Moderate",
+      engineSummary: "This Land Rover profile commonly aligns with a modern Jaguar Land Rover gasoline engine family."
+    }
+  },
+  {
+    match: {
+      make: "JAGUAR",
+      modelIncludes: ["XF", "XE", "F-PACE", "E-PACE", "F-TYPE"],
+      engineIncludes: ["2.0", "3.0", "5.0"]
+    },
+    result: {
+      enginePlatform: "Jaguar Land Rover Modern Gasoline",
+      engineConfidence: "Moderate",
+      engineSummary: "This Jaguar profile commonly aligns with a modern Jaguar Land Rover gasoline engine family."
+    }
+  },
+  {
+    match: {
+      make: "TESLA",
+      modelIncludes: ["MODEL 3", "MODEL Y", "MODEL S", "MODEL X"]
+    },
+    result: {
+      enginePlatform: "Tesla Electric Drive Unit",
+      engineConfidence: "High",
+      engineSummary: "This Tesla profile strongly points to Tesla electric drive unit architecture rather than a conventional engine platform."
     }
   }
 ];
