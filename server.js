@@ -907,6 +907,7 @@ function buildPlatformSummary(vehicle) {
 }
 
 function buildOwnershipIntelligence(vehicle, safety) {
+    const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
   const engineInfo = inferEnginePlatform(vehicle);
   const complaints = Number(safety.complaints || 0);
   const make = upperText(vehicle.make);
@@ -915,8 +916,14 @@ function buildOwnershipIntelligence(vehicle, safety) {
   const drive = getDriveTypeGroup(vehicle);
 
   let maintenanceComplexity = "Moderate";
-  if (isLuxuryBrand(vehicle.make)) maintenanceComplexity = "Higher";
-  if (fuel === "hybrid" || fuel === "electric") maintenanceComplexity = "Moderate to Higher";
+if (isLuxuryBrand(vehicle.make)) maintenanceComplexity = "Higher";
+if (fuel === "hybrid" || fuel === "electric") maintenanceComplexity = "Moderate to Higher";
+
+if (engineRisk === "HIGHER") maintenanceComplexity = "Higher";
+
+if (engineRisk === "MODERATE" && maintenanceComplexity === "Moderate") {
+  maintenanceComplexity = "Higher";
+}
 
   let complaintLevel = "Low";
   if (complaints >= 50) complaintLevel = "Higher";
@@ -986,11 +993,27 @@ function buildOwnershipIntelligence(vehicle, safety) {
     testDriveChecks.push("Confirm smooth transmission behavior");
   }
 
+  let platformSummary = buildPlatformSummary(vehicle);
+
+  let ownershipAdvice = `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} should be evaluated with attention to service history, warning lights, fluid leaks, drivetrain behavior, and evidence of preventive maintenance.`;
+
+  if (engineRisk === "HIGHER") {
+    platformSummary = `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} sits in a higher maintenance ownership category, and the engine profile increases the importance of service history, leak inspection, and preventive maintenance discipline.`;
+
+    ownershipAdvice = `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} should be evaluated very carefully with attention to engine related risk, service history, warning lights, fluid leaks, and evidence of strong preventive maintenance.`;
+  }
+
+  if (engineRisk === "MODERATE") {
+    platformSummary = `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} sits in a higher maintenance ownership category, and the engine platform means buyers should pay close attention to service history, cooling health, leaks, and driveline smoothness.`;
+
+    ownershipAdvice = `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} should be evaluated with close attention to service history, warning lights, fluid leaks, drivetrain behavior, and evidence of preventive maintenance.`;
+  }
+  
   return {
     brandFocus: safeValue(vehicle.make) || "Generic",
     sectionTitle: "Model Specific Ownership Intelligence",
     platform: safeValue(vehicle.series || vehicle.model || "Vehicle platform"),
-    platformSummary: buildPlatformSummary(vehicle),
+    platformSummary,
     enginePlatform: engineInfo.enginePlatform,
     engineLabel: engineInfo.engineLabel,
     engineConfidence: engineInfo.engineConfidence,
@@ -1000,7 +1023,7 @@ function buildOwnershipIntelligence(vehicle, safety) {
     inspectionChecks: Array.from(new Set(inspectionChecks)),
     expensiveFailureAreas: Array.from(new Set(expensiveFailureAreas)),
     testDriveChecks: Array.from(new Set(testDriveChecks)),
-    ownershipAdvice: `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} should be evaluated with attention to service history, warning lights, fluid leaks, drivetrain behavior, and evidence of preventive maintenance.`
+    ownershipAdvice
   };
 }
 
