@@ -1506,25 +1506,19 @@ console.log("Full report fetched successfully");
       </div>
     </div>
 
-    <div class="card">
+        <div class="card">
       <div class="section-kicker">1. Market Value Analysis</div>
       <h2>Market Value Analysis</h2>
 
-      <p class="market-explainer">
-  Retail values reflect typical advertised dealer level pricing.
-  Trade values reflect lower trade in style market positioning.
-  Recommended buy range reflects what a sensible buyer should aim to pay after allowing for the vehicle’s current risk profile.
-</p>
-      
-                  <div class="meta">${escapeHtml(safeValue(report.marketAnalysis.method))} • ${escapeHtml(safeValue(report.marketAnalysis.valuationDate))}</div>
-
-      <div class="summary" style="margin-top:10px;">
-        Retail values reflect typical advertised dealer level pricing.
-        Trade values reflect lower trade in style market positioning.
-        Recommended buy range reflects what a sensible buyer should aim to pay after allowing for the vehicle’s current risk profile.
+      <div class="summary" style="margin-bottom:12px;">
+        Retail values reflect typical advertised dealer level pricing. Trade values reflect lower trade in style market positioning. Recommended buy range reflects what a sensible buyer should aim to pay after allowing for the vehicle’s current risk profile.
       </div>
 
-      <div class="summary" style="margin-top:16px;">
+      <div class="meta" style="margin-bottom:16px;">
+        ${escapeHtml(safeValue(report.marketAnalysis.method))} • ${escapeHtml(safeValue(report.marketAnalysis.valuationDate))}
+      </div>
+
+      <div class="summary" style="margin:0 0 16px;">
         <strong>Recommended Buy Range:</strong>
         ${money(report.marketAnalysis.buyerTargetValues.low)} to ${money(report.marketAnalysis.buyerTargetValues.high)}
       </div>
@@ -1561,6 +1555,7 @@ console.log("Full report fetched successfully");
       <div class="summary" style="margin-top:14px;">
         <strong>Analyst Note:</strong> ${escapeHtml(safeValue(report.marketAnalysis.analystNote))}
       </div>
+    </div>
 
     <div class="card">
       <div class="section-kicker">2. Platform and Engine Advisory</div>
