@@ -2495,7 +2495,7 @@ function buildReportMeta(vehicle) {
   };
 }
 
-async function buildReportFromVin(vin) {
+async function buildReportFromVin(vin, listingPrice = 0) {
   const decodeUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${vin}?format=json`;
   const decodeResponse = await fetch(decodeUrl);
 
@@ -2568,6 +2568,33 @@ vehicle.buyerGuidance = buyerProfile.guidance;
 const ownership = buildOwnershipIntelligence(vehicle, safety);
 const optionProfile = buildOptionProfile(vehicle);
 const marketAnalysis = buildMarketAnalysis(vehicle);
+const buyerLow = marketAnalysis.buyerTargetValues.low;
+const buyerHigh = marketAnalysis.buyerTargetValues.high;
+
+let dealDelta = 0;
+let dealRating = "neutral";
+let dealInsight = "No pricing comparison available.";
+
+if (listingPrice > 0) {
+  dealDelta = listingPrice - buyerHigh;
+
+  if (listingPrice > buyerHigh + 2000) {
+    dealRating = "overpriced";
+    dealInsight = "Vehicle is priced significantly above risk adjusted market expectations. Strong negotiation required or consider walking away.";
+  } else if (listingPrice > buyerHigh) {
+    dealRating = "slightly_overpriced";
+    dealInsight = "Vehicle is priced above target range. Negotiation recommended.";
+  } else if (listingPrice >= buyerLow && listingPrice <= buyerHigh) {
+    dealRating = "fair";
+    dealInsight = "Vehicle is within the expected risk adjusted range. Pricing is broadly fair.";
+  } else if (listingPrice < buyerLow - 2000) {
+    dealRating = "strong_buy";
+    dealInsight = "Vehicle is priced well below risk adjusted market expectations. Strong buy signal if condition checks out.";
+  } else if (listingPrice < buyerLow) {
+    dealRating = "good_buy";
+    dealInsight = "Vehicle is priced below expected range. Positive buying opportunity.";
+  }
+}
 const engineAdvisory = buildEngineAdvisory(vehicle);
 const riskForecast = buildRiskForecast(vehicle, ownership, safety);
 const negotiationLeverage = buildNegotiationLeverage(vehicle, ownership, safety);
@@ -2583,7 +2610,17 @@ const purchaseChecklist = buildPurchaseChecklist(vehicle, ownership);
     ownership,
     optionProfile,
     marketAnalysis,
-    engineAdvisory,
+
+dealAnalysis: {
+  listingPrice,
+  buyerLow,
+  buyerHigh,
+  dealDelta,
+  dealRating,
+  dealInsight
+},
+
+engineAdvisory,
     riskForecast,
     negotiationLeverage,
     ownershipRoadmap,
@@ -2676,13 +2713,15 @@ app.get("/api/decode/:vin", async (req, res) => {
       });
     }
 
-    const report = await buildReportFromVin(vin);
+    const listingPrice = Number(req.body.price || 0);
 
-    res.json({
-      success: true,
-      vin,
-      report
-    });
+const report = await buildReportFromVin(vin, listingPrice);
+
+res.json({
+  success: true,
+  vin,
+  report
+});
   } catch (error) {
     console.error("Decode error:", error);
     res.status(500).json({
