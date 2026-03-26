@@ -895,6 +895,44 @@ function getMechanicalRisk(vehicle) {
   };
 }
 
+function getBuyerProfile(vehicle) {
+  const risk = String(vehicle.mechanicalRiskLevel || "").toUpperCase();
+
+  if (risk === "LOW") {
+    return {
+      buyerType: "Low Risk Buyer Friendly",
+      buyerSummary: "Suitable for buyers looking for predictable ownership with fewer surprises.",
+      explanation: "Low means this vehicle does not show strong public risk signals across engine, transmission, or complaint data. That does not mean risk is zero, but it suggests a more predictable ownership profile where standard inspection and maintenance checks are usually sufficient.",
+      guidance: "Focus on condition, mileage, and service history, but overall ownership risk is lower than average."
+    };
+  }
+
+  if (risk === "MODERATE") {
+    return {
+      buyerType: "Balanced Buyer",
+      buyerSummary: "Suitable for buyers comfortable managing some risk in exchange for value or spec.",
+      explanation: "Moderate means this vehicle shows some risk signals either in engine platform, transmission type, or ownership patterns. This does not automatically make it a bad buy, but it does mean service history, inspection quality, and price become more important to get right.",
+      guidance: "Prioritize inspection quality, confirm maintenance history, and ensure the price reflects the risk profile."
+    };
+  }
+
+  if (risk === "HIGHER") {
+    return {
+      buyerType: "Risk Tolerant Buyer",
+      buyerSummary: "Better suited to experienced buyers or those prepared for higher ownership costs.",
+      explanation: "Higher means this vehicle shows stronger risk signals in key areas such as engine platform, transmission profile, or complaint history. This does not automatically mean you should avoid it, but it does mean inspection depth, mechanical condition, and price negotiation should carry significantly more weight before making a decision.",
+      guidance: "Only proceed with strong inspection results, clear service history, and a price that reflects potential repair exposure."
+    };
+  }
+
+  return {
+    buyerType: "General Buyer",
+    buyerSummary: "Risk profile could not be clearly defined.",
+    explanation: "This vehicle does not have a clearly defined risk profile based on available data.",
+    guidance: "Proceed with a standard inspection and ensure service history is reviewed."
+  };
+}
+
 if (!process.env.STRIPE_SECRET_KEY) {
   console.error("Missing STRIPE_SECRET_KEY in environment variables");
   process.exit(1);
@@ -2227,17 +2265,16 @@ async function buildReportFromVin(vin) {
   const specs = buildSpecsFromDecode(row, vehicle);
 
   const safety = {
-    ...safetyRecalls,
-    ...safetyComplaints
-  };
+  ...safetyRecalls,
+  ...safetyComplaints
+};
 
-  const engineIntel = getEngineIntelligence(vehicle);
+const engineIntel = getEngineIntelligence(vehicle);
 vehicle.enginePlatform = engineIntel.enginePlatform;
 vehicle.engineConfidence = engineIntel.engineConfidence;
 vehicle.engineSummary = engineIntel.engineSummary;
 
 const transIntel = getTransmissionIntelligence(vehicle);
-
 vehicle.transmissionType = transIntel.transmissionType;
 vehicle.transmissionRisk = transIntel.transmissionRisk;
 vehicle.transmissionSummary = transIntel.transmissionSummary;
@@ -2246,19 +2283,24 @@ const engineRisk = getEngineRiskProfile(vehicle.enginePlatform);
 vehicle.engineRiskLevel = engineRisk.engineRiskLevel;
 vehicle.engineRiskNote = engineRisk.engineRiskNote;
 
-const mechRisk = getMechanicalRisk(vehicle);
+const mechanicalRisk = getMechanicalRisk(vehicle);
+vehicle.mechanicalRiskLevel = mechanicalRisk.overallRisk;
+vehicle.mechanicalRiskSummary = mechanicalRisk.summary;
 
-vehicle.mechanicalRiskLevel = mechRisk.overallRisk;
-vehicle.mechanicalRiskSummary = mechRisk.summary;
+const buyerProfile = getBuyerProfile(vehicle);
+vehicle.buyerType = buyerProfile.buyerType;
+vehicle.buyerSummary = buyerProfile.buyerSummary;
+vehicle.buyerRiskExplanation = buyerProfile.explanation;
+vehicle.buyerGuidance = buyerProfile.guidance;
 
-  const ownership = buildOwnershipIntelligence(vehicle, safety);
-  const optionProfile = buildOptionProfile(vehicle);
-  const marketAnalysis = buildMarketAnalysis(vehicle);
-  const engineAdvisory = buildEngineAdvisory(vehicle);
-  const riskForecast = buildRiskForecast(vehicle, ownership, safety);
-  const negotiationLeverage = buildNegotiationLeverage(vehicle, ownership, safety);
-  const ownershipRoadmap = buildOwnershipRoadmap(vehicle);
-  const purchaseChecklist = buildPurchaseChecklist(vehicle, ownership);
+const ownership = buildOwnershipIntelligence(vehicle, safety);
+const optionProfile = buildOptionProfile(vehicle);
+const marketAnalysis = buildMarketAnalysis(vehicle);
+const engineAdvisory = buildEngineAdvisory(vehicle);
+const riskForecast = buildRiskForecast(vehicle, ownership, safety);
+const negotiationLeverage = buildNegotiationLeverage(vehicle, ownership, safety);
+const ownershipRoadmap = buildOwnershipRoadmap(vehicle);
+const purchaseChecklist = buildPurchaseChecklist(vehicle, ownership);
 
   const report = {
     reportMeta: buildReportMeta(vehicle),
