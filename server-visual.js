@@ -1485,9 +1485,6 @@ console.log("Full report fetched successfully");
             <div class="score-number">${escapeHtml(report.signals.riskLevel)}</div>
             <div class="score-label">Buyer Risk Level ${escapeHtml(report.signals.riskLevel)}</div>
             <div class="score-mini">
-  <span style="display:block;font-weight:700;">
-    ${escapeHtml(report.vehicle.buyerType || "General Buyer")}
-  </span>
 
   <span style="display:block;margin-top:6px;line-height:1.6;">
     ${escapeHtml(report.vehicle.buyerRiskExplanation || "Risk explanation unavailable.")}
