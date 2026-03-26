@@ -1960,8 +1960,6 @@ function buildMarketAnalysis(vehicle) {
 
   const riskLabel = String(vehicle.mechanicalRiskLevel || "").trim().toUpperCase();
 
-const riskLabel = String(vehicle.mechanicalRiskLevel || "").trim().toUpperCase();
-
 let flatAdjustment = 0;
 
 if (riskLabel === "HIGHER") {
@@ -1970,37 +1968,36 @@ if (riskLabel === "HIGHER") {
   flatAdjustment = -1500;
 }
 
+const weightedRiskScore = Math.round(
+  (engineRiskScore * 0.4) +
+  (transmissionRiskScore * 0.35) +
+  (mechanicalRiskScore * 0.25)
+);
+
+let overallRiskBand = "moderate";
+if (weightedRiskScore <= 15) overallRiskBand = "very_low";
+else if (weightedRiskScore <= 35) overallRiskBand = "low";
+else if (weightedRiskScore <= 55) overallRiskBand = "moderate";
+else if (weightedRiskScore <= 75) overallRiskBand = "high";
+else overallRiskBand = "severe";
+
+const riskMultiplier = BASE_MARKET_RULES.riskAdjustments[overallRiskBand] || 0.93;
+const riskAdjustedCenter = preRiskMarketCenter * riskMultiplier;
+const riskDelta = Math.round(riskAdjustedCenter - preRiskMarketCenter);
 const totalAdjustment = riskDelta + flatAdjustment;
 
-  const weightedRiskScore = Math.round(
-    (engineRiskScore * 0.4) +
-    (transmissionRiskScore * 0.35) +
-    (mechanicalRiskScore * 0.25)
-  );
+const retailLow = roundToNearestHundred(preRiskMarketCenter * 0.92);
+const retailHigh = roundToNearestHundred(preRiskMarketCenter * 1.08);
 
-  let overallRiskBand = "moderate";
-  if (weightedRiskScore <= 15) overallRiskBand = "very_low";
-  else if (weightedRiskScore <= 35) overallRiskBand = "low";
-  else if (weightedRiskScore <= 55) overallRiskBand = "moderate";
-  else if (weightedRiskScore <= 75) overallRiskBand = "high";
-  else overallRiskBand = "severe";
+const tradeLow = roundToNearestHundred(preRiskMarketCenter * 0.80);
+const tradeHigh = roundToNearestHundred(preRiskMarketCenter * 0.91);
 
-  const riskMultiplier = BASE_MARKET_RULES.riskAdjustments[overallRiskBand] || 0.93;
-  const riskAdjustedCenter = preRiskMarketCenter * riskMultiplier;
-  const riskDelta = Math.round(riskAdjustedCenter - preRiskMarketCenter);
-
-  const retailLow = roundToNearestHundred(preRiskMarketCenter * 0.92);
-  const retailHigh = roundToNearestHundred(preRiskMarketCenter * 1.08);
-
-  const tradeLow = roundToNearestHundred(preRiskMarketCenter * 0.80);
-  const tradeHigh = roundToNearestHundred(preRiskMarketCenter * 0.91);
-
-  const buyerLow = roundToNearestHundred((preRiskMarketCenter * 0.84) + totalAdjustment);
+const buyerLow = roundToNearestHundred((preRiskMarketCenter * 0.84) + totalAdjustment);
 const buyerHigh = roundToNearestHundred((preRiskMarketCenter * 0.95) + totalAdjustment);
 
-  const retailExcellent = roundToNearestHundred(retailHigh);
-  const retailGood = roundToNearestHundred(preRiskMarketCenter);
-  const retailFair = roundToNearestHundred((preRiskMarketCenter * 0.92) + priceAdjustment);
+const retailExcellent = roundToNearestHundred(retailHigh);
+const retailGood = roundToNearestHundred(preRiskMarketCenter);
+const retailFair = roundToNearestHundred((preRiskMarketCenter * 0.92) + totalAdjustment);
 
   const tradeExcellent = roundToNearestHundred(tradeHigh);
   const tradeGood = roundToNearestHundred((tradeLow + tradeHigh) / 2);
