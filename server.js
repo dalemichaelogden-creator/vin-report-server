@@ -2568,16 +2568,20 @@ function buildExecutiveSummary(report) {
   }
 
   if (buyerLow && buyerHigh) {
-    let marketSentence = `The risk adjusted buyer target range sits around $${numberWithCommas(buyerLow)} to $${numberWithCommas(buyerHigh)}.`;
+  const rangeText = `$${numberWithCommas(buyerLow)} to $${numberWithCommas(buyerHigh)}`;
 
-    if (totalAdjustment < 0) {
-      marketSentence += ` Current risk signals pull the buying target down by about $${numberWithCommas(Math.abs(totalAdjustment))} versus a cleaner vehicle profile.`;
-    } else if (totalAdjustment > 0) {
-      marketSentence += ` Current signals support pricing that is about $${numberWithCommas(totalAdjustment)} stronger than the baseline profile.`;
-    }
+  let pricingLine = `You should be aiming to buy this vehicle between ${rangeText} for a typical used example in fair to good condition.`;
 
-    lines.push(marketSentence);
+  if (totalAdjustment < -1000) {
+    pricingLine += ` Based on the detected risk profile, this vehicle carries roughly $${numberWithCommas(Math.abs(totalAdjustment))} less value than a cleaner, lower risk example, so the asking price should reflect that difference.`;
+  } else if (totalAdjustment < 0) {
+    pricingLine += ` Some risk signals are present, so you should be aiming toward the lower end of that range.`;
+  } else if (totalAdjustment > 1000) {
+    pricingLine += ` Current signals support stronger than average pricing if condition, mileage, and service history are all solid.`;
   }
+
+  lines.push(pricingLine);
+}
 
   if (listingPrice > 0 && dealRating) {
     lines.push(
@@ -2592,10 +2596,20 @@ function buildExecutiveSummary(report) {
   }
 
   if (buyerType || buyerExplanation) {
-    lines.push(
-      `${buyerType ? `${buyerType}. ` : ""}${buyerExplanation || ""}`.trim()
-    );
+  let buyerLine = "";
+
+  if (buyerType) {
+    buyerLine += `${buyerType} profile: `;
   }
+
+  if (buyerExplanation) {
+    buyerLine += buyerExplanation;
+  }
+
+  if (buyerLine) {
+    lines.push(buyerLine);
+  }
+}
 
   if (buyerGuidance) {
     lines.push(`Bottom line: ${buyerGuidance}`);

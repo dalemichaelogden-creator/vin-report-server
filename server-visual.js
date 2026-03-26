@@ -1509,30 +1509,48 @@ console.log("Full report fetched successfully");
     <div class="card">
       <div class="section-kicker">1. Market Value Analysis</div>
       <h2>Market Value Analysis</h2>
-      <div class="meta">${escapeHtml(safeValue(report.marketAnalysis.method))} • ${escapeHtml(safeValue(report.marketAnalysis.valuationDate))}</div>
+
+      <p class="market-explainer">
+  Retail values reflect typical advertised dealer level pricing.
+  Trade values reflect lower trade in style market positioning.
+  Recommended buy range reflects what a sensible buyer should aim to pay after allowing for the vehicle’s current risk profile.
+</p>
+      
+                  <div class="meta">${escapeHtml(safeValue(report.marketAnalysis.method))} • ${escapeHtml(safeValue(report.marketAnalysis.valuationDate))}</div>
+
+      <div class="summary" style="margin-top:10px;">
+        Retail values reflect typical advertised dealer level pricing.
+        Trade values reflect lower trade in style market positioning.
+        Recommended buy range reflects what a sensible buyer should aim to pay after allowing for the vehicle’s current risk profile.
+      </div>
+
+      <div class="summary" style="margin-top:16px;">
+        <strong>Recommended Buy Range:</strong>
+        ${money(report.marketAnalysis.buyerTargetValues.low)} to ${money(report.marketAnalysis.buyerTargetValues.high)}
+      </div>
 
       <div class="table-wrap">
         <table class="table">
           <thead>
             <tr>
               <th>Condition</th>
-              <th>Est. Retail Value</th>
-              <th>Est. Trade In</th>
+              <th>Typical Dealer Asking Range</th>
+              <th>Estimated Trade In Range</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>Excellent</td>
+              <td>Excellent Condition</td>
               <td>${money(report.marketAnalysis.retailValues.excellent)}</td>
               <td>${money(report.marketAnalysis.tradeValues.excellent)}</td>
             </tr>
             <tr>
-              <td>Good or Clean</td>
+              <td>Good or Clean Condition</td>
               <td>${money(report.marketAnalysis.retailValues.good)}</td>
               <td>${money(report.marketAnalysis.tradeValues.good)}</td>
             </tr>
             <tr>
-              <td>Fair or Average</td>
+              <td>Fair or Average Condition</td>
               <td>${money(report.marketAnalysis.retailValues.fair)}</td>
               <td>${money(report.marketAnalysis.tradeValues.fair)}</td>
             </tr>
@@ -1540,8 +1558,9 @@ console.log("Full report fetched successfully");
         </table>
       </div>
 
-      <div class="summary" style="margin-top:14px;"><strong>Analyst Note:</strong> ${escapeHtml(safeValue(report.marketAnalysis.analystNote))}</div>
-    </div>
+      <div class="summary" style="margin-top:14px;">
+        <strong>Analyst Note:</strong> ${escapeHtml(safeValue(report.marketAnalysis.analystNote))}
+      </div>
 
     <div class="card">
       <div class="section-kicker">2. Platform and Engine Advisory</div>
