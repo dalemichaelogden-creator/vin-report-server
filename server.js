@@ -2713,7 +2713,7 @@ app.get("/api/decode/:vin", async (req, res) => {
       });
     }
 
-    const listingPrice = Number(req.body.price || 0);
+    const listingPrice = Number((req.body && req.body.price) || 0);
 
 const report = await buildReportFromVin(vin, listingPrice);
 
