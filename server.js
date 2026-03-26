@@ -2646,7 +2646,10 @@ function buildEngineAdvisory(vehicle) {
   const make = upperText(vehicle.make);
   const model = safeValue(vehicle.model);
   const year = intValue(vehicle.year);
-  const engineInfo = inferEnginePlatform(vehicle);
+  const engineInfo = getEngineIntelligence(vehicle);
+  const enginePlatform = upperText(engineInfo.enginePlatform);
+  const engineRisk = upperText(vehicle.engineRiskLevel);
+  const transmissionRisk = upperText(vehicle.transmissionRisk);
 
   if (make === "BMW" && year === 2016 && upperText(model).includes("320")) {
     return {
@@ -2654,32 +2657,351 @@ function buildEngineAdvisory(vehicle) {
       summary: "2016 was a transition year for some BMW four cylinder models. Engine architecture can meaningfully change long term ownership risk, buyer confidence, and maintenance exposure.",
       advisoryItems: [
         {
-          heading: "Early Production Notes",
-          body: "Earlier production examples may use the N20 architecture. Buyers often watch carefully for timing chain concern history, oil leak evidence, and proof of regular oil service."
+          heading: "Confirm exact engine family",
+          body: "A 2016 320 profile may sit near the N20 to B48 transition window. Exact engine confirmation is important before treating the car as lower risk."
         },
         {
-          heading: "Later Production Notes",
-          body: "Later production examples may use the newer B48 architecture, which is generally viewed as the stronger long term design, though cooling and gasket related maintenance still matters."
+          heading: "Service history matters more than usual",
+          body: "Cooling system work, oil change discipline, and evidence of leak related repairs matter heavily on four cylinder BMW ownership."
         },
         {
-          heading: "Practical Check",
-          body: "Use service records, build timing, and a physical inspection of the engine bay to confirm the exact engine architecture when this distinction matters to value or purchase confidence."
+          heading: "Use uncertainty as negotiation leverage",
+          body: "If the seller cannot clearly confirm engine family and maintenance history, pricing should reflect that uncertainty."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("EA888")) {
+    return {
+      title: "Turbo Four Cylinder Ownership Advisory",
+      summary: "This vehicle likely uses a VW Audi Group EA888 turbocharged engine family. It is common and capable, but cooling system, water pump, carbon buildup, and oil servicing history matter.",
+      advisoryItems: [
+        {
+          heading: "Check water pump and cooling history",
+          body: "Cooling related repairs and water pump history are meaningful ownership indicators on this engine family."
+        },
+        {
+          heading: "Carbon buildup matters with age",
+          body: "As mileage rises, intake and combustion efficiency related issues can become more relevant, especially on direct injected turbo engines."
+        },
+        {
+          heading: "Do not buy on performance feel alone",
+          body: "A smooth test drive is useful, but service history and previous maintenance quality matter more than how strong the car feels on a short drive."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("ECOBOOST")) {
+    return {
+      title: "Turbocharged Ford Engine Advisory",
+      summary: "This vehicle likely uses a Ford EcoBoost engine family. These engines can offer strong performance, but maintenance discipline, cooling system condition, and turbo related wear matter more than on simpler naturally aspirated alternatives.",
+      advisoryItems: [
+        {
+          heading: "Review oil change history carefully",
+          body: "Turbocharged engines are less forgiving of inconsistent oil servicing, especially on higher mileage vehicles."
+        },
+        {
+          heading: "Watch for cooling and timing related costs",
+          body: "Cooling system neglect and timing related wear can materially change long term ownership cost."
+        },
+        {
+          heading: "Truck and towing use matters",
+          body: "If this platform has been used for towing or heavy load work, buyer caution should increase and pricing should reflect that."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("GM GEN V V8")) {
+    return {
+      title: "GM V8 Ownership Advisory",
+      summary: "This vehicle likely uses a modern GM direct injected V8 profile. These engines are widely used and familiar, but lifter behavior, active fuel management concerns, and maintenance quality matter.",
+      advisoryItems: [
+        {
+          heading: "Listen for valvetrain noise",
+          body: "Abnormal startup noise, ticking, or inconsistent idle behavior should be taken seriously on this engine family."
+        },
+        {
+          heading: "Ask about oil servicing and repair history",
+          body: "The maintenance record matters heavily when assessing long term reliability risk and future ownership exposure."
+        },
+        {
+          heading: "Do not pay clean-example money for uncertainty",
+          body: "If there is weak history or signs of unresolved engine concerns, negotiation should be aggressive."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("TOYOTA HYBRID SYNERGY DRIVE") || enginePlatform.includes("TOYOTA LEXUS HYBRID") || enginePlatform.includes("HONDA HYBRID") || enginePlatform.includes("KIA HYBRID") || enginePlatform.includes("HYUNDAI HYBRID") || enginePlatform.includes("VOLVO DRIVE E HYBRID")) {
+    return {
+      title: "Hybrid System Advisory",
+      summary: "This vehicle uses a hybrid powertrain profile. Hybrids can be very strong ownership propositions, but battery age, cooling behavior, software health, and proper servicing still matter.",
+      advisoryItems: [
+        {
+          heading: "Battery age still matters",
+          body: "Even lower risk hybrid systems should be judged with battery age, warning lights, and real world operating smoothness in mind."
+        },
+        {
+          heading: "Look for system related warning lights",
+          body: "Hybrid and charging related faults can be costly to diagnose if ignored."
+        },
+        {
+          heading: "Efficiency does not cancel inspection needs",
+          body: "A hybrid can still be a poor buy if general condition, service history, or cooling system health is weak."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("TOYOTA TRUCK AND SUV GASOLINE") || enginePlatform.includes("TOYOTA LEXUS GASOLINE")) {
+    return {
+      title: "Toyota Lexus Gasoline Advisory",
+      summary: "This vehicle likely uses a Toyota or Lexus gasoline engine profile. These are generally favorable ownership setups, but maintenance history, leak checks, and mileage still matter with age.",
+      advisoryItems: [
+        {
+          heading: "Do not assume low risk means no risk",
+          body: "Even stronger engine families should still be judged on service history, fluid condition, and evidence of steady maintenance."
+        },
+        {
+          heading: "Truck and SUV use history matters",
+          body: "Towing, off road use, and heavier duty operation can change wear patterns significantly."
+        },
+        {
+          heading: "Condition should still drive price",
+          body: "A stronger engine profile supports buyer confidence, but poor condition should still lower what you are willing to pay."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("HONDA EARTH DREAMS") || enginePlatform.includes("HONDA ACURA MODERN GASOLINE")) {
+    return {
+      title: "Honda Acura Engine Advisory",
+      summary: "This vehicle likely uses a modern Honda or Acura gasoline engine family. These engines are often workable long term, but exact variant, oil servicing, and any turbocharged complexity should still be considered.",
+      advisoryItems: [
+        {
+          heading: "Check maintenance consistency",
+          body: "Regular oil service and clean ownership history are still central to a good buying decision."
+        },
+        {
+          heading: "Turbocharged variants deserve more scrutiny",
+          body: "Smaller turbocharged gasoline engines often place more value on careful servicing than older naturally aspirated setups."
+        },
+        {
+          heading: "Do not overpay for badge confidence",
+          body: "Even stronger brand reputations do not remove the need for inspection and sensible negotiation."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("NISSAN MODERN GASOLINE") || enginePlatform.includes("INFINITI NISSAN MODERN GASOLINE")) {
+    return {
+      title: "Nissan Infiniti Powertrain Advisory",
+      summary: "This vehicle likely uses a Nissan or Infiniti gasoline engine profile. Engine side ownership risk may be manageable, but the full buying decision should also weigh transmission exposure, service history, and overall condition.",
+      advisoryItems: [
+        {
+          heading: "Judge engine and transmission together",
+          body: "A usable engine profile does not offset a weaker transmission story, so the full powertrain should be evaluated as one decision."
+        },
+        {
+          heading: "Cooling and fluid history matter",
+          body: "Routine maintenance still has a major effect on how confidently you can buy."
+        },
+        {
+          heading: "Negotiate if history is weak",
+          body: "If the service record is thin or warning signs are present, pricing should reflect that risk."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("M274") || enginePlatform.includes("M264") || enginePlatform.includes("MERCEDES TURBOCHARGED SIX CYLINDER")) {
+    return {
+      title: "Mercedes Engine Advisory",
+      summary: "This vehicle likely uses a modern Mercedes turbocharged engine family. These can be refined and capable, but maintenance discipline, electronics exposure, and repair cost are more important than on simpler mainstream vehicles.",
+      advisoryItems: [
+        {
+          heading: "Maintenance quality matters more than mileage alone",
+          body: "A lower mileage car with weak servicing can be a worse buy than a higher mileage car with strong records."
+        },
+        {
+          heading: "Premium ownership costs should be assumed",
+          body: "Parts pricing, diagnostics, and repair pathways are often more expensive than average."
+        },
+        {
+          heading: "Do not buy without strong records",
+          body: "A weak paper trail should directly affect what you are willing to pay."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("VOLVO DRIVE E")) {
+    return {
+      title: "Volvo Drive E Advisory",
+      summary: "This vehicle likely uses a Volvo Drive E engine family. It is modern and efficient, but turbocharged complexity, software behavior, and cooling condition still matter.",
+      advisoryItems: [
+        {
+          heading: "Software and servicing both matter",
+          body: "Modern powertrains rely on both mechanical health and electronic system health, so incomplete history should not be ignored."
+        },
+        {
+          heading: "Cooling and warning lights deserve close attention",
+          body: "Any evidence of overheating history or repeated warning lights should be treated as meaningful."
+        },
+        {
+          heading: "Buy on condition, not badge alone",
+          body: "A premium family SUV or sedan still needs pricing discipline if ownership records are incomplete."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("KIA MODERN GASOLINE") || enginePlatform.includes("HYUNDAI MODERN GASOLINE")) {
+    return {
+      title: "Hyundai Kia Engine Advisory",
+      summary: "This vehicle likely uses a modern Hyundai or Kia gasoline engine family. These can be usable mainstream ownership choices, but exact engine generation, campaign history, and oil servicing matter more than many buyers assume.",
+      advisoryItems: [
+        {
+          heading: "Check campaign and recall history closely",
+          body: "Known engine related campaigns make a proper record review especially important."
+        },
+        {
+          heading: "Oil service discipline matters",
+          body: "A weak service history should reduce buyer confidence and price tolerance."
+        },
+        {
+          heading: "Do not rely on low sticker price alone",
+          body: "A cheap purchase price is not good value if the mechanical history is uncertain."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("SUBARU BOXER")) {
+    return {
+      title: "Subaru Boxer Advisory",
+      summary: "This vehicle likely uses a Subaru boxer engine profile. The layout is distinctive and common in the brand, but oil consumption patterns, gasket history, and paired transmission behavior should still be reviewed carefully.",
+      advisoryItems: [
+        {
+          heading: "Look beyond all wheel drive appeal",
+          body: "Subaru ownership can still become expensive if fluid service, oil checks, and driveline condition have been neglected."
+        },
+        {
+          heading: "Engine and transmission should be judged together",
+          body: "A boxer engine profile should not be considered in isolation from the transmission setup and maintenance history."
+        },
+        {
+          heading: "Use inspection to separate good examples from average ones",
+          body: "Condition matters more than generic brand reputation when pricing a used Subaru."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("SKYACTIV")) {
+    return {
+      title: "Mazda Skyactiv Advisory",
+      summary: "This vehicle likely uses a Mazda Skyactiv engine family. These are generally viewed favorably, but routine maintenance, fluid condition, and overall care still matter as the vehicle ages.",
+      advisoryItems: [
+        {
+          heading: "Lower risk still needs proof",
+          body: "A stronger engine reputation should support confidence, but not replace inspection and history review."
+        },
+        {
+          heading: "Condition should lead pricing",
+          body: "A clean record and strong service history can justify confidence, while weak upkeep should still lower your offer."
+        },
+        {
+          heading: "Look for signs of normal wear being ignored",
+          body: "Tires, brakes, fluids, and cosmetic neglect often reveal how carefully the vehicle has really been owned."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("PORSCHE MODERN GASOLINE")) {
+    return {
+      title: "Porsche Performance Advisory",
+      summary: "This vehicle likely uses a modern Porsche performance engine profile. These can be desirable to own, but parts cost, specialist servicing, and performance use history make disciplined buying essential.",
+      advisoryItems: [
+        {
+          heading: "Specialist history matters",
+          body: "A strong service file is far more important here than on an average mainstream vehicle."
+        },
+        {
+          heading: "Performance appeal can hide ownership cost",
+          body: "Buyers should assume higher than average maintenance and repair exposure."
+        },
+        {
+          heading: "Negotiate hard if records are incomplete",
+          body: "Uncertainty on a premium performance platform should reduce what you are willing to pay."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("JAGUAR LAND ROVER MODERN GASOLINE")) {
+    return {
+      title: "Jaguar Land Rover Advisory",
+      summary: "This vehicle likely uses a modern Jaguar Land Rover gasoline engine family. These vehicles can feel premium and desirable, but ownership exposure can be meaningfully higher due to complexity, electronics, and expensive repair pathways.",
+      advisoryItems: [
+        {
+          heading: "Condition and records matter heavily",
+          body: "You should be much more skeptical of incomplete service history on this type of platform."
+        },
+        {
+          heading: "Do not stretch to buy the badge",
+          body: "A cheaper purchase price can still turn into expensive ownership if underlying condition is weak."
+        },
+        {
+          heading: "Use risk as direct negotiation leverage",
+          body: "If servicing, warning lights, or history are unclear, your offer should move materially lower."
+        }
+      ]
+    };
+  }
+
+  if (enginePlatform.includes("TESLA ELECTRIC DRIVE UNIT")) {
+    return {
+      title: "Electric Drive Advisory",
+      summary: "This vehicle likely uses an electric drive unit rather than a conventional engine. That removes many traditional engine failure points, but battery health, charging performance, software behavior, and warranty position matter more.",
+      advisoryItems: [
+        {
+          heading: "Battery and charging behavior matter most",
+          body: "Traditional engine concerns are reduced, but battery confidence and charging reliability become central to the buying decision."
+        },
+        {
+          heading: "Software and warning history still matter",
+          body: "An EV should still be judged on alerts, updates, and evidence of stable operating behavior."
+        },
+        {
+          heading: "Range confidence affects value",
+          body: "Buyer confidence is tied closely to battery condition and how the car has aged in real use."
         }
       ]
     };
   }
 
   return {
-    title: "Engine and Platform Advisory",
-    summary: `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} uses a ${engineInfo.enginePlatform} profile in this report. Buyers should focus on service history, known wear areas, and how the platform behaves on a cold start and test drive.`,
+    title: "General Engine Advisory",
+    summary: "This vehicle does not yet have a deeply specialized engine advisory profile, so buying confidence should rely more heavily on service history, mechanical inspection, warning lights, and price discipline.",
     advisoryItems: [
       {
-        heading: "Known Ownership Theme",
-        body: "This vehicle should be evaluated based on the engine family, maintenance history, and any signs of repeated deferred servicing."
+        heading: "Use inspection to fill data gaps",
+        body: "Where the platform is not deeply profiled, the inspection becomes more important in separating a good example from a risky one."
       },
       {
-        heading: "Later Life Note",
-        body: "As vehicles age, cooling systems, seals, electronics, and suspension wear become more important than brochure specification alone."
+        heading: "Service history should guide confidence",
+        body: "A complete maintenance record increases buyer confidence more than a clean test drive alone."
+      },
+      {
+        heading: "Do not pay clean-example money for uncertainty",
+        body: "If records are weak or questions remain, price should move lower to reflect that."
       }
     ]
   };
