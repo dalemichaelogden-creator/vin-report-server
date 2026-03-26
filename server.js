@@ -3394,119 +3394,125 @@ function buildBuyerVerdict(report) {
   };
 }
 
+function numberWithCommas(value) {
+  return Number(value || 0).toLocaleString("en-US");
+}
+
 function buildExecutiveSummary(report) {
-  const vehicle = report.vehicle || {};
-  const market = report.marketAnalysis || {};
-  const risks = report.marketAnalysis?.risks || {};
-  const adjustments = report.marketAnalysis?.adjustments || {};
-  const deal = report.dealAnalysis || {};
+  const riskLevel = String(report.signals.riskLevel || "Moderate");
+  const recalls = Number(report.safety.recalls || 0);
+  const complaints = Number(report.safety.complaints || 0);
+  const topComponent = safeValue(report.safety.topComponent);
+  const complexity = safeValue(report.ownership.maintenanceComplexity) || "Moderate";
 
-  const make = safeValue(vehicle.make);
-  const model = safeValue(vehicle.model);
-  const year = intValue(vehicle.year);
+  const engineRisk = String(report.vehicle.engineRiskLevel || "").toUpperCase();
+  const transmissionRisk = String(report.vehicle.transmissionRisk || "").toUpperCase();
+  const mechanicalRisk = String(report.vehicle.mechanicalRiskLevel || "").toUpperCase();
 
-  const engineRisk = upperText(vehicle.engineRiskLevel);
-  const transmissionRisk = upperText(vehicle.transmissionRisk);
-  const mechanicalRisk = upperText(vehicle.mechanicalRiskLevel);
+  const enginePlatform = safeValue(report.ownership.enginePlatform);
+  const buyerType = safeValue(report.vehicle.buyerType);
+  const buyerGuidance = safeValue(report.vehicle.buyerGuidance);
+  const buyerExplanation = safeValue(report.vehicle.buyerRiskExplanation);
 
-  const buyerLow = market?.buyerTargetValues?.low;
-  const buyerHigh = market?.buyerTargetValues?.high;
+  const attentionFlags = Array.isArray(report.signals.attentionFlags)
+    ? report.signals.attentionFlags
+    : [];
 
-  const retailGood = market?.retailValues?.good;
+  const buyerLow = Number(report.marketAnalysis?.buyerTargetValues?.low || 0);
+  const buyerHigh = Number(report.marketAnalysis?.buyerTargetValues?.high || 0);
+  const totalAdjustment = Number(report.marketAnalysis?.adjustments?.totalAdjustment || 0);
+  const dealRating = safeValue(report.dealAnalysis?.dealRating);
+  const dealInsight = safeValue(report.dealAnalysis?.dealInsight);
+  const listingPrice = Number(report.dealAnalysis?.listingPrice || 0);
 
-  const totalAdjustment = adjustments.totalAdjustment || 0;
+  let headline = "Lower risk profile, still inspect before buying";
 
-  let headline = "";
-  let summaryParts = [];
-
-  // HEADLINE LOGIC
-  if (mechanicalRisk === "HIGHER") {
-    headline = "Higher Risk Purchase. Price Discipline Required.";
-  } else if (mechanicalRisk === "MODERATE") {
-    headline = "Moderate Risk Purchase. Buy Position Matters.";
-  } else {
-    headline = "Lower Risk Profile. Condition Still Matters.";
+  if (mechanicalRisk === "HIGHER" || riskLevel === "High") {
+    headline = "Proceed with caution and only buy at the right price";
+  } else if (mechanicalRisk === "MODERATE" || riskLevel === "Moderate") {
+    headline = "Worth considering, but inspection and price discipline matter";
+  } else if (mechanicalRisk === "LOW" && riskLevel !== "High") {
+    headline = "Generally favorable profile with standard used car checks";
   }
 
-  // OPENING LINE
-  summaryParts.push(
-    `This ${year} ${make} ${model} sits in a ${mechanicalRisk.toLowerCase()} risk ownership category based on engine, transmission, and mechanical profile.`
+  const lines = [];
+
+  lines.push(
+    `This ${safeValue(report.vehicle.year)} ${safeValue(report.vehicle.make)} ${safeValue(report.vehicle.model)} shows a ${mechanicalRisk ? mechanicalRisk.toLowerCase() : "moderate"} mechanical risk profile with ${engineRisk ? engineRisk.toLowerCase() : "moderate"} engine risk and ${transmissionRisk ? transmissionRisk.toLowerCase() : "moderate"} transmission risk.`
   );
 
-  // MARKET CONTEXT
-  if (retailGood && buyerLow && buyerHigh) {
-    summaryParts.push(
-      `Comparable vehicles in good condition typically sit around ${money(retailGood)}, while a sensible buyer should be aiming to purchase this vehicle between ${money(buyerLow)} and ${money(buyerHigh)}.`
-    );
-  }
-
-  // RISK ADJUSTMENT
-  if (totalAdjustment < 0) {
-    summaryParts.push(
-      `Current risk signals reduce the buyer target by approximately ${money(Math.abs(totalAdjustment))} compared to a cleaner vehicle profile.`
-    );
-  } else if (totalAdjustment > 0) {
-    summaryParts.push(
-      `Current configuration slightly supports value, adding approximately ${money(totalAdjustment)} compared to a base vehicle profile.`
-    );
-  }
-
-  // PRIMARY RISK CALL OUT
-  let riskFocus = [];
-
-  if (engineRisk === "HIGHER" || engineRisk === "MODERATE") {
-    riskFocus.push("engine");
-  }
-
-  if (transmissionRisk === "HIGHER" || transmissionRisk === "MODERATE") {
-    riskFocus.push("transmission");
-  }
-
-  if (mechanicalRisk === "HIGHER") {
-    riskFocus.push("overall mechanical condition");
-  }
-
-  if (riskFocus.length) {
-    summaryParts.push(
-      `Primary ownership risk sits in the ${riskFocus.join(" and ")}, where maintenance history and inspection quality are critical.`
-    );
-  }
-
-  // DEAL ANALYSIS
-  if (deal.listingPrice && deal.dealRating) {
-    if (deal.dealRating === "Good Deal") {
-      summaryParts.push(
-        `At the current listing price of ${money(deal.listingPrice)}, this represents a strong buying position relative to risk adjusted market value.`
-      );
-    } else if (deal.dealRating === "Fair Deal") {
-      summaryParts.push(
-        `At the current listing price of ${money(deal.listingPrice)}, this sits within a reasonable range, but negotiation is still recommended.`
-      );
-    } else if (deal.dealRating === "Overpriced") {
-      summaryParts.push(
-        `At the current listing price of ${money(deal.listingPrice)}, this vehicle is overpriced relative to its risk adjusted value and should be negotiated down.`
-      );
+  if (recalls || complaints) {
+    let safetySentence = `${recalls} recall record${recalls === 1 ? "" : "s"} and ${complaints} complaint record${complaints === 1 ? "" : "s"} were found`;
+    if (topComponent) {
+      safetySentence += `, with ${topComponent} appearing as a notable complaint area`;
     }
+    safetySentence += ".";
+    lines.push(safetySentence);
   }
 
-  // FINAL LINE
-  if (mechanicalRisk === "HIGHER") {
-    summaryParts.push(
-      `This is a higher risk purchase and should only be considered with strong inspection results and disciplined pricing.`
+  if (complexity) {
+    lines.push(
+      `Ownership complexity is ${complexity.toLowerCase()}, so condition, service history, and inspection quality matter more than headline mileage or appearance alone.`
     );
-  } else if (mechanicalRisk === "MODERATE") {
-    summaryParts.push(
-      `This can be a viable purchase if bought correctly, with strong emphasis on service history and inspection.`
+  }
+
+  if (enginePlatform && enginePlatform !== "Manufacturer specific platform") {
+    lines.push(
+      `The vehicle sits on the ${enginePlatform} platform, which should be considered when judging future maintenance exposure and how aggressively you negotiate.`
     );
-  } else {
-    summaryParts.push(
-      `This represents a generally stable ownership profile, but inspection and service history should still guide the final decision.`
+  }
+
+  if (buyerLow && buyerHigh) {
+  const rangeText = `$${numberWithCommas(buyerLow)} to $${numberWithCommas(buyerHigh)}`;
+
+  let pricingLine = `You should be aiming to buy this vehicle between ${rangeText} for a typical used example in fair to good condition.`;
+
+  if (totalAdjustment < -1000) {
+    pricingLine += ` Based on the detected risk profile, this vehicle carries roughly $${numberWithCommas(Math.abs(totalAdjustment))} less value than a cleaner, lower risk example, so the asking price should reflect that difference.`;
+  } else if (totalAdjustment < 0) {
+    pricingLine += ` Some risk signals are present, so you should be aiming toward the lower end of that range.`;
+  } else if (totalAdjustment > 1000) {
+    pricingLine += ` Current signals support stronger than average pricing if condition, mileage, and service history are all solid.`;
+  }
+
+  lines.push(pricingLine);
+}
+
+  if (listingPrice > 0 && dealRating) {
+    lines.push(
+      `Against the entered asking price of $${numberWithCommas(listingPrice)}, the current pricing view is ${dealRating.replace(/_/g, " ")}. ${dealInsight}`
     );
+  }
+
+  if (attentionFlags.length) {
+    lines.push(
+      `Key watch areas: ${attentionFlags.slice(0, 3).join(", ")}.`
+    );
+  }
+
+  if (buyerType || buyerExplanation) {
+  let buyerLine = "";
+
+  if (buyerType) {
+    buyerLine += `${buyerType} profile: `;
+  }
+
+  if (buyerExplanation) {
+    buyerLine += buyerExplanation;
+  }
+
+  if (buyerLine) {
+    lines.push(buyerLine);
+  }
+}
+
+  if (buyerGuidance) {
+    lines.push(`Bottom line: ${buyerGuidance}`);
   }
 
   return {
     headline,
-    summary: summaryParts.join(" ")
+    summary: lines.filter(Boolean).join(" ")
   };
 }
 
@@ -3646,19 +3652,19 @@ dealAnalysis: {
 },
 
 engineAdvisory,
-riskForecast,
-negotiationLeverage,
-ownershipRoadmap,
-purchaseChecklist,
-buyerVerdict: {
-  headline: "",
-  summary: ""
-},
-investigations: {
-  items: investigationData.investigations,
-  summary: investigationData.investigationSummary
-},
-signals: {
+    riskForecast,
+    negotiationLeverage,
+    ownershipRoadmap,
+    purchaseChecklist,
+    buyerVerdict: {
+      headline: "",
+      summary: ""
+    },
+    investigations: {
+      items: investigationData.investigations,
+      summary: investigationData.investigationSummary
+    },
+    signals: {
       coverageScore: 0,
       confidenceLevel: "",
       riskLevel: "",
@@ -3685,7 +3691,6 @@ signals: {
     }
   };
 
-  report.buyerVerdict = buildExecutiveSummary(report);
   report.signals.coverageScore = calculateCoverageScore(report);
   report.signals.confidenceLevel = buildConfidenceLevel(report.signals.coverageScore);
   report.signals.riskLevel = buildRiskLevel(report);
