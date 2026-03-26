@@ -826,6 +826,41 @@ function applyEngineRiskToVerdict(baseVerdict, vehicle) {
   return baseVerdict;
 }
 
+function getMechanicalRisk(vehicle) {
+  const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
+  const transRisk = String(vehicle.transmissionRisk || "").toUpperCase();
+
+  const riskMap = {
+    LOW: 1,
+    MODERATE: 2,
+    HIGHER: 3
+  };
+
+  const engineScore = riskMap[engineRisk] || 2;
+  const transScore = riskMap[transRisk] || 2;
+
+  const combinedScore = Math.max(engineScore, transScore);
+
+  let overallRisk = "Moderate";
+  if (combinedScore === 3) overallRisk = "Higher";
+  if (combinedScore === 1) overallRisk = "Low";
+
+  let summary = "This vehicle sits in a moderate mechanical risk category based on engine and transmission characteristics.";
+
+  if (overallRisk === "Higher") {
+    summary = "This vehicle sits in a higher mechanical risk category driven by engine and or transmission profile. Inspection quality and purchase price become more critical.";
+  }
+
+  if (overallRisk === "Low") {
+    summary = "This vehicle sits in a lower mechanical risk category with generally favorable engine and transmission characteristics.";
+  }
+
+  return {
+    overallRisk,
+    summary
+  };
+}
+
 if (!process.env.STRIPE_SECRET_KEY) {
   console.error("Missing STRIPE_SECRET_KEY in environment variables");
   process.exit(1);
@@ -2176,6 +2211,11 @@ vehicle.transmissionSummary = transIntel.transmissionSummary;
 const engineRisk = getEngineRiskProfile(vehicle.enginePlatform);
 vehicle.engineRiskLevel = engineRisk.engineRiskLevel;
 vehicle.engineRiskNote = engineRisk.engineRiskNote;
+
+const mechRisk = getMechanicalRisk(vehicle);
+
+vehicle.mechanicalRiskLevel = mechRisk.overallRisk;
+vehicle.mechanicalRiskSummary = mechRisk.summary;
 
   const ownership = buildOwnershipIntelligence(vehicle, safety);
   const optionProfile = buildOptionProfile(vehicle);
