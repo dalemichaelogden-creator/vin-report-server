@@ -1434,72 +1434,405 @@ function buildSpecsFromDecode(row, vehicle) {
   };
 }
 
+function clampProbability(value) {
+  return Math.max(12, Math.min(95, Math.round(value)));
+}
+
+function getOptionLabelSet(make) {
+  const brand = upperText(make);
+
+  const labelSets = {
+    BMW: {
+      sport: "M Sport Package Signal",
+      comfort: "Premium Package Signal",
+      tech: "Technology Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow or Utility Package Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    AUDI: {
+      sport: "S line / Black Optics Signal",
+      comfort: "Premium Interior Signal",
+      tech: "Technology Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow or Utility Package Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    "MERCEDES-BENZ": {
+      sport: "AMG Line / Night Package Signal",
+      comfort: "Premium Package Signal",
+      tech: "Driver Assistance Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow or Utility Package Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    MERCEDES: {
+      sport: "AMG Line / Night Package Signal",
+      comfort: "Premium Package Signal",
+      tech: "Driver Assistance Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow or Utility Package Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    LEXUS: {
+      sport: "F Sport Package Signal",
+      comfort: "Luxury Package Signal",
+      tech: "Navigation / Safety Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow or Utility Package Signal",
+      efficiency: "Hybrid Efficiency Signal"
+    },
+    ACURA: {
+      sport: "A Spec Signal",
+      comfort: "Advance / Luxury Signal",
+      tech: "Technology Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Utility Package Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    INFINITI: {
+      sport: "Sport Appearance Signal",
+      comfort: "Luxury Package Signal",
+      tech: "Technology Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Utility Package Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    CADILLAC: {
+      sport: "Sport / Performance Signal",
+      comfort: "Luxury Package Signal",
+      tech: "Driver Assistance Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Package Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    GENESIS: {
+      sport: "Sport Prestige Signal",
+      comfort: "Prestige / Luxury Signal",
+      tech: "Technology Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Utility Package Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    PORSCHE: {
+      sport: "Sport Chrono / Performance Signal",
+      comfort: "Premium Comfort Signal",
+      tech: "Technology Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Package Signal",
+      efficiency: "Hybrid Efficiency Signal"
+    },
+    VOLVO: {
+      sport: "R Design / Black Edition Signal",
+      comfort: "Luxury / Lounge Signal",
+      tech: "Advanced Safety Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Package Signal",
+      efficiency: "Recharge / Efficiency Signal"
+    },
+    TOYOTA: {
+      sport: "Sport Appearance Signal",
+      comfort: "Premium / Convenience Signal",
+      tech: "Technology / Safety Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Package Signal",
+      efficiency: "Hybrid Efficiency Signal"
+    },
+    HONDA: {
+      sport: "Sport Appearance Signal",
+      comfort: "EX-L / Touring Comfort Signal",
+      tech: "Technology Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Utility Package Signal",
+      efficiency: "Hybrid Efficiency Signal"
+    },
+    NISSAN: {
+      sport: "Sport Appearance Signal",
+      comfort: "Premium Package Signal",
+      tech: "Technology Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Package Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    HYUNDAI: {
+      sport: "N Line / Sport Appearance Signal",
+      comfort: "Limited / Luxury Signal",
+      tech: "Technology Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Package Signal",
+      efficiency: "Hybrid / EV Efficiency Signal"
+    },
+    KIA: {
+      sport: "GT Line / Sport Appearance Signal",
+      comfort: "Premium / Luxury Signal",
+      tech: "Technology Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Package Signal",
+      efficiency: "Hybrid / EV Efficiency Signal"
+    },
+    FORD: {
+      sport: "Sport Appearance / FX Signal",
+      comfort: "Luxury / Comfort Signal",
+      tech: "Technology / Co Pilot Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Package Signal",
+      efficiency: "Hybrid / EV Efficiency Signal"
+    },
+    CHEVROLET: {
+      sport: "RS / Sport Appearance Signal",
+      comfort: "Premium / Convenience Signal",
+      tech: "Technology / Driver Assist Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Package Signal",
+      efficiency: "EV / Efficiency Signal"
+    },
+    GMC: {
+      sport: "Sport / AT4 Appearance Signal",
+      comfort: "Premium / Luxury Signal",
+      tech: "Technology / Driver Assist Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Package Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    JEEP: {
+      sport: "Sport / Appearance Signal",
+      comfort: "Luxury Group Signal",
+      tech: "Technology Group Signal",
+      weather: "Cold Weather Group Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Off Road Group Signal",
+      efficiency: "4xe Efficiency Signal"
+    },
+    RAM: {
+      sport: "Sport Appearance Signal",
+      comfort: "Luxury / Laramie Signal",
+      tech: "Technology / Safety Signal",
+      weather: "Cold Weather Group Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow Package Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    DODGE: {
+      sport: "Performance / Appearance Signal",
+      comfort: "Premium Interior Signal",
+      tech: "Technology Group Signal",
+      weather: "Cold Weather Group Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    SUBARU: {
+      sport: "Sport / Wilderness Signal",
+      comfort: "Limited / Touring Signal",
+      tech: "Technology / EyeSight Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    MAZDA: {
+      sport: "Sport Appearance Signal",
+      comfort: "Premium / Signature Signal",
+      tech: "Technology Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    VOLKSWAGEN: {
+      sport: "R Line / Sport Signal",
+      comfort: "Premium Comfort Signal",
+      tech: "Technology Package Signal",
+      weather: "Cold Weather Package Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow / Utility Signal",
+      efficiency: "Efficiency Package Signal"
+    },
+    TESLA: {
+      sport: "Performance Upgrade Signal",
+      comfort: "Premium Interior Signal",
+      tech: "Autopilot / Tech Signal",
+      weather: "Cold Weather Signal",
+      audio: "Premium Audio Signal",
+      utility: "Tow Package Signal",
+      efficiency: "Range / Efficiency Signal"
+    }
+  };
+
+  return labelSets[brand] || {
+    sport: "Sport / Appearance Package Signal",
+    comfort: "Comfort / Luxury Package Signal",
+    tech: "Technology / Driver Assist Signal",
+    weather: "Cold Weather Package Signal",
+    audio: "Premium Audio Signal",
+    utility: "Tow / Utility Package Signal",
+    efficiency: "Efficiency Package Signal"
+  };
+}
+
 function buildOptionProfile(vehicle) {
   const make = upperText(vehicle.make);
+  const model = upperText(vehicle.model);
   const trim = upperText(vehicle.trim);
-  const year = intValue(vehicle.year) || 0;
   const body = getBodyType(vehicle);
   const drive = getDriveTypeGroup(vehicle);
   const fuel = getFuelGroup(vehicle);
+  const year = intValue(vehicle.year) || 0;
+  const engine = upperText(vehicle.engine);
+  const labels = getOptionLabelSet(make);
 
-  let sportScore = 34;
-  let comfortScore = 42;
-  let techScore = 38;
+  let sportScore = 26;
+  let comfortScore = 34;
+  let techScore = 36;
+  let weatherScore = 22;
+  let audioScore = 24;
+  let utilityScore = 18;
+  let efficiencyScore = 14;
 
-  let sportLabel = "Sport Package";
-  let comfortLabel = "Comfort Package";
-  let techLabel = year >= 2019 ? "Driver Assistance Package" : "Technology Package";
-
-  if (make === "BMW") {
-    sportLabel = "M Sport Package";
-    comfortLabel = "Premium Package";
-    techLabel = year >= 2019 ? "Driver Assistance or Live Cockpit Package" : "Technology Package";
-  }
-
-  if (make === "AUDI") {
-    sportLabel = "S line Package";
-    comfortLabel = "Premium Package";
-    techLabel = "Technology Package";
-  }
-
-  if (make.includes("MERCEDES")) {
-    sportLabel = "AMG Line or Sport Package";
-    comfortLabel = "Premium Package";
-    techLabel = "Driver Assistance Package";
-  }
-
-  if (make === "LEXUS") {
-    sportLabel = "F Sport Package";
-    comfortLabel = "Premium Package";
-    techLabel = "Navigation or Safety Package";
-  }
-
-  if (body === "coupe" || body === "convertible") sportScore += 18;
-  if (body === "suv") comfortScore += 12;
-  if (drive === "awd") comfortScore += 6;
-  if (fuel === "hybrid" || fuel === "electric") techScore += 16;
   if (year >= 2019) techScore += 14;
+  if (year >= 2021) techScore += 6;
+  if (year >= 2018) comfortScore += 4;
 
-  if (trim.includes("M SPORT") || trim.includes("SPORT") || trim.includes("S LINE") || trim.includes("AMG")) sportScore += 18;
-  if (trim.includes("PREMIUM") || trim.includes("LUXURY") || trim.includes("LIMITED") || trim.includes("PLATINUM")) comfortScore += 18;
-  if (trim.includes("TECH") || trim.includes("ADVANCE") || trim.includes("PRESTIGE") || trim.includes("ELITE")) techScore += 18;
+  if (body === "coupe" || body === "convertible") {
+    sportScore += 18;
+    comfortScore += 2;
+  }
 
-  const clamp = (n) => Math.max(18, Math.min(99, Math.round(n)));
+  if (body === "suv") {
+    comfortScore += 10;
+    utilityScore += 10;
+  }
+
+  if (body === "truck") {
+    utilityScore += 20;
+    comfortScore += 4;
+  }
+
+  if (body === "wagon" || body === "hatchback") {
+    utilityScore += 8;
+  }
+
+  if (drive === "awd") {
+    comfortScore += 4;
+    weatherScore += 10;
+    utilityScore += 6;
+  }
+
+  if (fuel === "hybrid") {
+    techScore += 8;
+    efficiencyScore += 26;
+  }
+
+  if (fuel === "electric") {
+    techScore += 16;
+    efficiencyScore += 34;
+  }
+
+  if (fuel === "diesel") {
+    utilityScore += 10;
+  }
+
+  if (trim.includes("SPORT") || trim.includes("S LINE") || trim.includes("R LINE") || trim.includes("AMG") || trim.includes("M SPORT") || trim.includes("F SPORT") || trim.includes("A-SPEC") || trim.includes("N LINE") || trim.includes("GT LINE") || trim.includes("RS")) {
+    sportScore += 24;
+  }
+
+  if (trim.includes("BLACK") || trim.includes("OPTICS") || trim.includes("NIGHT")) {
+    sportScore += 14;
+  }
+
+  if (trim.includes("LIMITED") || trim.includes("PREMIUM") || trim.includes("LUXURY") || trim.includes("PLATINUM") || trim.includes("SIGNATURE") || trim.includes("TOURING") || trim.includes("PRESTIGE") || trim.includes("ADVANCE")) {
+    comfortScore += 22;
+  }
+
+  if (trim.includes("TECH") || trim.includes("TECHNOLOGY") || trim.includes("ELITE") || trim.includes("PRESTIGE") || trim.includes("ADVANCED") || trim.includes("NAV")) {
+    techScore += 20;
+  }
+
+  if (trim.includes("COLD WEATHER") || trim.includes("WINTER")) {
+    weatherScore += 24;
+  }
+
+  if (trim.includes("BOSE") || trim.includes("BANG") || trim.includes("HARMAN") || trim.includes("MARK LEVINSON") || trim.includes("BURMESTER") || trim.includes("BOWERS") || trim.includes("REVEL")) {
+    audioScore += 24;
+  }
+
+  if (trim.includes("TOW") || trim.includes("TRAILER") || trim.includes("OFF ROAD") || trim.includes("WILDERNESS") || trim.includes("AT4") || trim.includes("TRD") || trim.includes("4X4")) {
+    utilityScore += 26;
+  }
+
+  if (trim.includes("HYBRID") || trim.includes("PHEV") || trim.includes("PLUGIN") || trim.includes("ELECTRIC") || trim.includes("EV") || trim.includes("RECHARGE") || trim.includes("4XE")) {
+    efficiencyScore += 24;
+  }
+
+  if (model.includes("M") || model.includes("S") || model.includes("RS") || model.includes("ST") || model.includes("TYPE R") || model.includes("GTI") || model.includes("GOLF R") || model.includes("WRX") || model.includes("HELLCAT") || model.includes("SCAT")) {
+    sportScore += 8;
+  }
+
+  if (engine.includes("3.0") || engine.includes("3.5") || engine.includes("4.0") || engine.includes("V6") || engine.includes("V8")) {
+    sportScore += 4;
+    utilityScore += 4;
+  }
 
   return {
     sport: {
-      label: sportLabel,
-      probability: clamp(sportScore)
+      label: labels.sport,
+      probability: clampProbability(sportScore)
     },
     comfort: {
-      label: comfortLabel,
-      probability: clamp(comfortScore)
+      label: labels.comfort,
+      probability: clampProbability(comfortScore)
     },
     tech: {
-      label: techLabel,
-      probability: clamp(techScore)
+      label: labels.tech,
+      probability: clampProbability(techScore)
+    },
+    weather: {
+      label: labels.weather,
+      probability: clampProbability(weatherScore)
+    },
+    audio: {
+      label: labels.audio,
+      probability: clampProbability(audioScore)
+    },
+    utility: {
+      label: labels.utility,
+      probability: clampProbability(utilityScore)
+    },
+    efficiency: {
+      label: labels.efficiency,
+      probability: clampProbability(efficiencyScore)
     }
   };
+}
+
+function getTopOptionProfileItems(optionProfile, limit = 3) {
+  return Object.entries(optionProfile)
+    .map(([key, value]) => ({
+      key,
+      label: value.label,
+      probability: value.probability
+    }))
+    .sort((a, b) => b.probability - a.probability)
+    .slice(0, limit);
 }
 
 function inferEnginePlatform(vehicle) {
@@ -2701,6 +3034,7 @@ vehicle.buyerGuidance = buyerProfile.guidance;
 
 const ownership = buildOwnershipIntelligence(vehicle, safety);
 const optionProfile = buildOptionProfile(vehicle);
+const topOptionSignals = getTopOptionProfileItems(optionProfile);
 const marketAnalysis = buildMarketAnalysis(vehicle);
 const buyerLow = marketAnalysis.buyerTargetValues.low;
 const buyerHigh = marketAnalysis.buyerTargetValues.high;
@@ -2743,6 +3077,7 @@ const purchaseChecklist = buildPurchaseChecklist(vehicle, ownership);
     specs,
     ownership,
     optionProfile,
+    topOptionSignals,
     marketAnalysis,
 
 dealAnalysis: {
