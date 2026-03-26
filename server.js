@@ -1960,15 +1960,17 @@ function buildMarketAnalysis(vehicle) {
 
   const riskLabel = String(vehicle.mechanicalRiskLevel || "").trim().toUpperCase();
 
-let priceAdjustment = 0;
+const riskLabel = String(vehicle.mechanicalRiskLevel || "").trim().toUpperCase();
+
+let flatAdjustment = 0;
 
 if (riskLabel === "HIGHER") {
-  priceAdjustment = -3000;
+  flatAdjustment = -3000;
+} else if (riskLabel === "MODERATE") {
+  flatAdjustment = -1500;
 }
 
-if (riskLabel === "MODERATE") {
-  priceAdjustment = -1500;
-}
+const totalAdjustment = riskDelta + flatAdjustment;
 
   const weightedRiskScore = Math.round(
     (engineRiskScore * 0.4) +
@@ -1985,6 +1987,8 @@ if (riskLabel === "MODERATE") {
 
   const riskMultiplier = BASE_MARKET_RULES.riskAdjustments[overallRiskBand] || 0.93;
   const riskAdjustedCenter = preRiskMarketCenter * riskMultiplier;
+  const riskDelta = Math.round(riskAdjustedCenter - preRiskMarketCenter);
+  const totalAdjustment = riskDelta + flatAdjustment;
 
   const retailLow = roundToNearestHundred(preRiskMarketCenter * 0.92);
   const retailHigh = roundToNearestHundred(preRiskMarketCenter * 1.08);
@@ -1992,8 +1996,8 @@ if (riskLabel === "MODERATE") {
   const tradeLow = roundToNearestHundred(preRiskMarketCenter * 0.80);
   const tradeHigh = roundToNearestHundred(preRiskMarketCenter * 0.91);
 
-  const buyerLow = roundToNearestHundred((riskAdjustedCenter * 0.84) + priceAdjustment);
-const buyerHigh = roundToNearestHundred((riskAdjustedCenter * 0.95) + priceAdjustment);
+  const buyerLow = roundToNearestHundred((preRiskMarketCenter * 0.84) + totalAdjustment);
+const buyerHigh = roundToNearestHundred((preRiskMarketCenter * 0.95) + totalAdjustment);
 
   const retailExcellent = roundToNearestHundred(retailHigh);
   const retailGood = roundToNearestHundred(preRiskMarketCenter);
@@ -2038,23 +2042,29 @@ const buyerHigh = roundToNearestHundred((riskAdjustedCenter * 0.95) + priceAdjus
       ageBucket
     },
     pricingLogic: {
-      segmentBase: roundToNearestHundred(segmentBase),
-      brandTierMultiplier,
-      drivetrainMultiplier,
-      fuelTypeMultiplier,
-      ageDepreciationMultiplier,
-      preRiskMarketCenter: roundToNearestHundred(preRiskMarketCenter)
-    },
-    risks: {
-      engineRiskScore,
-      transmissionRiskScore,
-      mechanicalRiskScore,
-      weightedRiskScore,
-      overallRiskBand,
-      riskMultiplier
-    },
-    analystNote
-  };
+  segmentBase: roundToNearestHundred(segmentBase),
+  brandTierMultiplier,
+  drivetrainMultiplier,
+  fuelTypeMultiplier,
+  ageDepreciationMultiplier,
+  preRiskMarketCenter: roundToNearestHundred(preRiskMarketCenter)
+},
+risks: {
+  engineRiskScore,
+  transmissionRiskScore,
+  mechanicalRiskScore,
+  weightedRiskScore,
+  overallRiskBand,
+  riskMultiplier
+},
+adjustments: {
+  percentageDelta: riskDelta,
+  flatAdjustment,
+  totalAdjustment,
+  direction: totalAdjustment > 0 ? "up" : totalAdjustment < 0 ? "down" : "neutral"
+},
+analystNote
+};
 }
 
 function buildEngineAdvisory(vehicle) {
