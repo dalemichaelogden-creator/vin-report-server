@@ -3394,10 +3394,6 @@ function buildBuyerVerdict(report) {
   };
 }
 
-function numberWithCommas(value) {
-  return Number(value || 0).toLocaleString("en-US");
-}
-
 function buildExecutiveSummary(report) {
   const vehicle = report.vehicle || {};
   const market = report.marketAnalysis || {};
