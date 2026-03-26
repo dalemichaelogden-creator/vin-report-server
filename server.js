@@ -3703,12 +3703,12 @@ engineAdvisory,
   report.signals.attentionFlags = buildAttentionFlags(report);
   report.signals.allowPurchase = report.signals.coverageScore >= 60;
 
-  const frontSignals = buildFrontEndSignals(report);
+    const frontSignals = buildFrontEndSignals(report);
   report.frontEndSummary.headline = frontSignals.headline;
   report.frontEndSummary.subheadline = frontSignals.subheadline;
   report.freeSignals = frontSignals;
 
-report.buyerVerdict = buildExecutiveSummary(report);
+  report.buyerVerdict = buildExecutiveSummary(report);
 
   if (!report.vehicle.engine) {
     report.vehicle.engine = report.specs.engineDisplay;
