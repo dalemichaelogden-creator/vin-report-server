@@ -1443,249 +1443,249 @@ function getOptionLabelSet(make) {
 
   const labelSets = {
     BMW: {
-      sport: "M Sport Package Signal",
-      comfort: "Premium Package Signal",
-      tech: "Technology Package Signal",
-      weather: "Cold Weather Package Signal",
+      sport: "M Sport Package",
+      comfort: "Premium Package",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
       audio: "Premium Audio Signal",
-      utility: "Tow or Utility Package Signal",
-      efficiency: "Efficiency Package Signal"
+      utility: "Tow or Utility Package",
+      efficiency: "Efficiency Package"
     },
     AUDI: {
-      sport: "S line / Black Optics Signal",
-      comfort: "Premium Interior Signal",
-      tech: "Technology Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow or Utility Package Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "S line / Black Optics",
+      comfort: "Premium Interior",
+      tech: "Technology Package",
+      weather: "Cold Weather Package ",
+      audio: "Premium Audio",
+      utility: "Tow or Utility Package",
+      efficiency: "Efficiency Package"
     },
     "MERCEDES-BENZ": {
-      sport: "AMG Line / Night Package Signal",
-      comfort: "Premium Package Signal",
-      tech: "Driver Assistance Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow or Utility Package Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "AMG Line / Night Package",
+      comfort: "Premium Package",
+      tech: "Driver Assistance Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow or Utility Package ",
+      efficiency: "Efficiency Package"
     },
     MERCEDES: {
-      sport: "AMG Line / Night Package Signal",
-      comfort: "Premium Package Signal",
-      tech: "Driver Assistance Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow or Utility Package Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "AMG Line / Night Package",
+      comfort: "Premium Package",
+      tech: "Driver Assistance Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow or Utility Package",
+      efficiency: "Efficiency Package"
     },
     LEXUS: {
-      sport: "F Sport Package Signal",
-      comfort: "Luxury Package Signal",
-      tech: "Navigation / Safety Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow or Utility Package Signal",
-      efficiency: "Hybrid Efficiency Signal"
+      sport: "F Sport Package",
+      comfort: "Luxury Package",
+      tech: "Navigation / Safety Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow or Utility Package",
+      efficiency: "Hybrid Efficiency"
     },
     ACURA: {
-      sport: "A Spec Signal",
-      comfort: "Advance / Luxury Signal",
-      tech: "Technology Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Utility Package Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "A Spec",
+      comfort: "Advance / Luxury",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Utility Package",
+      efficiency: "Efficiency Package"
     },
     INFINITI: {
-      sport: "Sport Appearance Signal",
-      comfort: "Luxury Package Signal",
-      tech: "Technology Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Utility Package Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "Sport Appearance",
+      comfort: "Luxury Package",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Utility Package",
+      efficiency: "Efficiency Package"
     },
     CADILLAC: {
-      sport: "Sport / Performance Signal",
-      comfort: "Luxury Package Signal",
-      tech: "Driver Assistance Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Package Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "Sport / Performance",
+      comfort: "Luxury Package",
+      tech: "Driver Assistance Package",
+      weather: "Cold Weather Package ",
+      audio: "Premium Audio",
+      utility: "Tow / Utility Package",
+      efficiency: "Efficiency Package"
     },
     GENESIS: {
-      sport: "Sport Prestige Signal",
-      comfort: "Prestige / Luxury Signal",
-      tech: "Technology Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Utility Package Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "Sport Prestige",
+      comfort: "Prestige / Luxury",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Utility Package",
+      efficiency: "Efficiency Package"
     },
     PORSCHE: {
-      sport: "Sport Chrono / Performance Signal",
-      comfort: "Premium Comfort Signal",
-      tech: "Technology Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Package Signal",
-      efficiency: "Hybrid Efficiency Signal"
+      sport: "Sport Chrono / Performance",
+      comfort: "Premium Comfort",
+      tech: "Technology Package",
+      weather: "Cold Weather Package ",
+      audio: "Premium Audio",
+      utility: "Tow / Utility Package ",
+      efficiency: "Hybrid Efficiency"
     },
     VOLVO: {
-      sport: "R Design / Black Edition Signal",
-      comfort: "Luxury / Lounge Signal",
-      tech: "Advanced Safety Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Package Signal",
-      efficiency: "Recharge / Efficiency Signal"
+      sport: "R Design / Black Edition",
+      comfort: "Luxury / Lounge",
+      tech: "Advanced Safety Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow / Utility Package",
+      efficiency: "Recharge / Efficiency"
     },
     TOYOTA: {
-      sport: "Sport Appearance Signal",
-      comfort: "Premium / Convenience Signal",
-      tech: "Technology / Safety Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Package Signal",
-      efficiency: "Hybrid Efficiency Signal"
+      sport: "Sport Appearance",
+      comfort: "Premium / Convenience",
+      tech: "Technology / Safety",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow / Utility Package",
+      efficiency: "Hybrid Efficiency"
     },
     HONDA: {
-      sport: "Sport Appearance Signal",
-      comfort: "EX-L / Touring Comfort Signal",
-      tech: "Technology Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Utility Package Signal",
-      efficiency: "Hybrid Efficiency Signal"
+      sport: "Sport Appearance",
+      comfort: "EX-L / Touring Comfort",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Utility Package",
+      efficiency: "Hybrid Efficiency"
     },
     NISSAN: {
-      sport: "Sport Appearance Signal",
-      comfort: "Premium Package Signal",
-      tech: "Technology Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Package Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "Sport Appearance",
+      comfort: "Premium Package",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow / Utility Package",
+      efficiency: "Efficiency Package"
     },
     HYUNDAI: {
-      sport: "N Line / Sport Appearance Signal",
-      comfort: "Limited / Luxury Signal",
-      tech: "Technology Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Package Signal",
-      efficiency: "Hybrid / EV Efficiency Signal"
+      sport: "N Line / Sport Appearance",
+      comfort: "Limited / Luxury",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow / Utility Package",
+      efficiency: "Hybrid / EV Efficiency"
     },
     KIA: {
-      sport: "GT Line / Sport Appearance Signal",
-      comfort: "Premium / Luxury Signal",
-      tech: "Technology Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Package Signal",
-      efficiency: "Hybrid / EV Efficiency Signal"
+      sport: "GT Line / Sport Appearance",
+      comfort: "Premium / Luxury",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow / Utility Package",
+      efficiency: "Hybrid / EV Efficiency"
     },
     FORD: {
-      sport: "Sport Appearance / FX Signal",
-      comfort: "Luxury / Comfort Signal",
-      tech: "Technology / Co Pilot Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Package Signal",
-      efficiency: "Hybrid / EV Efficiency Signal"
+      sport: "Sport Appearance / FX",
+      comfort: "Luxury / Comfort",
+      tech: "Technology / Co Pilot",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow / Utility Package",
+      efficiency: "Hybrid / EV Efficiency"
     },
     CHEVROLET: {
-      sport: "RS / Sport Appearance Signal",
-      comfort: "Premium / Convenience Signal",
-      tech: "Technology / Driver Assist Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Package Signal",
-      efficiency: "EV / Efficiency Signal"
+      sport: "RS / Sport Appearance",
+      comfort: "Premium / Convenience",
+      tech: "Technology / Driver Assist",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow / Utility Package",
+      efficiency: "EV / Efficiency"
     },
     GMC: {
-      sport: "Sport / AT4 Appearance Signal",
-      comfort: "Premium / Luxury Signal",
-      tech: "Technology / Driver Assist Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Package Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "Sport / AT4 Appearance",
+      comfort: "Premium / Luxury",
+      tech: "Technology / Driver Assist",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow / Utility Package",
+      efficiency: "Efficiency Package"
     },
     JEEP: {
-      sport: "Sport / Appearance Signal",
-      comfort: "Luxury Group Signal",
-      tech: "Technology Group Signal",
-      weather: "Cold Weather Group Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Off Road Group Signal",
-      efficiency: "4xe Efficiency Signal"
+      sport: "Sport / Appearance",
+      comfort: "Luxury Group",
+      tech: "Technology Group",
+      weather: "Cold Weather Group",
+      audio: "Premium Audio",
+      utility: "Tow / Off Road Group",
+      efficiency: "4xe Efficiency"
     },
     RAM: {
-      sport: "Sport Appearance Signal",
-      comfort: "Luxury / Laramie Signal",
-      tech: "Technology / Safety Signal",
-      weather: "Cold Weather Group Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow Package Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "Sport Appearance",
+      comfort: "Luxury / Laramie",
+      tech: "Technology / Safety",
+      weather: "Cold Weather Group",
+      audio: "Premium Audio",
+      utility: "Tow Package",
+      efficiency: "Efficiency Package"
     },
     DODGE: {
-      sport: "Performance / Appearance Signal",
-      comfort: "Premium Interior Signal",
-      tech: "Technology Group Signal",
-      weather: "Cold Weather Group Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "Performance / Appearance",
+      comfort: "Premium Interior",
+      tech: "Technology Group",
+      weather: "Cold Weather Group",
+      audio: "Premium Audio",
+      utility: "Tow / Utility",
+      efficiency: "Efficiency Package"
     },
     SUBARU: {
-      sport: "Sport / Wilderness Signal",
-      comfort: "Limited / Touring Signal",
-      tech: "Technology / EyeSight Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "Sport / Wilderness",
+      comfort: "Limited / Touring",
+      tech: "Technology / EyeSight",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow / Utility",
+      efficiency: "Efficiency Package"
     },
     MAZDA: {
-      sport: "Sport Appearance Signal",
-      comfort: "Premium / Signature Signal",
-      tech: "Technology Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "Sport Appearance",
+      comfort: "Premium / Signature",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow / Utility",
+      efficiency: "Efficiency Package"
     },
     VOLKSWAGEN: {
-      sport: "R Line / Sport Signal",
-      comfort: "Premium Comfort Signal",
-      tech: "Technology Package Signal",
-      weather: "Cold Weather Package Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow / Utility Signal",
-      efficiency: "Efficiency Package Signal"
+      sport: "R Line / Sport",
+      comfort: "Premium Comfort",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Tow / Utility",
+      efficiency: "Efficiency Package"
     },
     TESLA: {
-      sport: "Performance Upgrade Signal",
-      comfort: "Premium Interior Signal",
-      tech: "Autopilot / Tech Signal",
-      weather: "Cold Weather Signal",
-      audio: "Premium Audio Signal",
-      utility: "Tow Package Signal",
-      efficiency: "Range / Efficiency Signal"
+      sport: "Performance Upgrade",
+      comfort: "Premium Interior",
+      tech: "Autopilot / Tech",
+      weather: "Cold Weather",
+      audio: "Premium Audio",
+      utility: "Tow Package",
+      efficiency: "Range / Efficiency"
     }
   };
 
   return labelSets[brand] || {
-    sport: "Sport / Appearance Package Signal",
-    comfort: "Comfort / Luxury Package Signal",
-    tech: "Technology / Driver Assist Signal",
-    weather: "Cold Weather Package Signal",
-    audio: "Premium Audio Signal",
-    utility: "Tow / Utility Package Signal",
-    efficiency: "Efficiency Package Signal"
+    sport: "Sport / Appearance Package",
+    comfort: "Comfort / Luxury Package",
+    tech: "Technology / Driver Assist",
+    weather: "Cold Weather Package",
+    audio: "Premium Audio",
+    utility: "Tow / Utility Package",
+    efficiency: "Efficiency Package"
   };
 }
 
