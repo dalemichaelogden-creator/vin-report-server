@@ -2778,25 +2778,25 @@ function buildNegotiationLeverage(vehicle, ownership, safety) {
     const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
   const items = [
     {
-      title: "Maintenance History Credit",
+      title: "Maintenance History",
       script: "Without strong service documentation, I have to assume I may be catching up on deferred maintenance, so I need room in the price for that risk."
     },
     {
-      title: "Wear Item Credit",
+      title: "Wear Item",
       script: "Tires, brakes, suspension wear, and age related service items all affect immediate ownership cost, so I need to budget for those on day one."
     }
   ];
 
   if (ownership.maintenanceComplexity === "Higher") {
     items.push({
-      title: "Platform Complexity Credit",
+      title: "Platform Complexity",
       script: "This is not a budget vehicle to own just because the purchase price is lower now. The platform carries higher maintenance exposure than a typical non luxury equivalent."
     });
   }
 
   if (Number(safety.recalls || 0) >= 3) {
     items.push({
-      title: "Recall Follow Up Credit",
+      title: "Recall Follow Up",
       script: "Since this vehicle profile shows multiple recall records, I need to verify remedy completion and leave room for any unresolved campaign related inconvenience."
     });
   }
@@ -2813,7 +2813,7 @@ function buildNegotiationLeverage(vehicle, ownership, safety) {
     }
 
     items.push({
-      title: "Engine Platform Credit",
+      title: "Engine Platform",
       script: engineScript
     });
   }
