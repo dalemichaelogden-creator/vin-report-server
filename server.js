@@ -3405,120 +3405,98 @@ function money(value) {
 }
 
 function buildExecutiveSummary(report) {
-  const riskLevel = String(report.signals.riskLevel || "Moderate");
-  const recalls = Number(report.safety.recalls || 0);
-  const complaints = Number(report.safety.complaints || 0);
-  const topComponent = safeValue(report.safety.topComponent);
-  const complexity = safeValue(report.ownership.maintenanceComplexity) || "Moderate";
+  const vehicle = report.vehicle || {};
+  const market = report.marketAnalysis || {};
+  const adjustments = report.marketAnalysis?.adjustments || {};
+  const deal = report.dealAnalysis || {};
 
-  const engineRisk = String(report.vehicle.engineRiskLevel || "").toUpperCase();
-  const transmissionRisk = String(report.vehicle.transmissionRisk || "").toUpperCase();
-  const mechanicalRisk = String(report.vehicle.mechanicalRiskLevel || "").toUpperCase();
+  const make = safeValue(vehicle.make);
+  const model = safeValue(vehicle.model);
+  const year = intValue(vehicle.year);
 
-  const enginePlatform = safeValue(report.ownership.enginePlatform);
-  const buyerType = safeValue(report.vehicle.buyerType);
-  const buyerGuidance = safeValue(report.vehicle.buyerGuidance);
-  const buyerExplanation = safeValue(report.vehicle.buyerRiskExplanation);
+  const engineRisk = upperText(vehicle.engineRiskLevel);
+  const transmissionRisk = upperText(vehicle.transmissionRisk);
+  const mechanicalRisk = upperText(vehicle.mechanicalRiskLevel);
 
-  const attentionFlags = Array.isArray(report.signals.attentionFlags)
-    ? report.signals.attentionFlags
-    : [];
+  const buyerLow = Number(market?.buyerTargetValues?.low || 0);
+  const buyerHigh = Number(market?.buyerTargetValues?.high || 0);
+  const retailGood = Number(market?.retailValues?.good || 0);
+  const totalAdjustment = Number(adjustments.totalAdjustment || 0);
 
-  const buyerLow = Number(report.marketAnalysis?.buyerTargetValues?.low || 0);
-  const buyerHigh = Number(report.marketAnalysis?.buyerTargetValues?.high || 0);
-  const totalAdjustment = Number(report.marketAnalysis?.adjustments?.totalAdjustment || 0);
-  const dealRating = safeValue(report.dealAnalysis?.dealRating);
-  const dealInsight = safeValue(report.dealAnalysis?.dealInsight);
-  const listingPrice = Number(report.dealAnalysis?.listingPrice || 0);
+  const listingPrice = Number(deal.listingPrice || 0);
+  const dealRating = safeValue(deal.dealRating);
 
-  let headline = "Lower risk profile, still inspect before buying";
+  let headline = "Fair Vehicle. Price Needs Work.";
 
-  if (mechanicalRisk === "HIGHER" || riskLevel === "High") {
-    headline = "Proceed with caution and only buy at the right price";
-  } else if (mechanicalRisk === "MODERATE" || riskLevel === "Moderate") {
-    headline = "Worth considering, but inspection and price discipline matter";
-  } else if (mechanicalRisk === "LOW" && riskLevel !== "High") {
-    headline = "Generally favorable profile with standard used car checks";
+  if (mechanicalRisk === "HIGHER") {
+    headline = "Higher Risk Car. Price Matters A Lot.";
+  } else if (mechanicalRisk === "MODERATE") {
+    headline = "Decent Car. Price Needs Work.";
+  } else if (mechanicalRisk === "LOW") {
+    headline = "Solid Car. Still Check The Details.";
   }
 
-  const lines = [];
+  let summary = "";
 
-  lines.push(
-    `This ${safeValue(report.vehicle.year)} ${safeValue(report.vehicle.make)} ${safeValue(report.vehicle.model)} shows a ${mechanicalRisk ? mechanicalRisk.toLowerCase() : "moderate"} mechanical risk profile with ${engineRisk ? engineRisk.toLowerCase() : "moderate"} engine risk and ${transmissionRisk ? transmissionRisk.toLowerCase() : "moderate"} transmission risk.`
-  );
+  summary += `On paper, this ${year} ${make} ${model} isn’t a bad car, but it’s not a no brainer either. `;
 
-  if (recalls || complaints) {
-    let safetySentence = `${recalls} recall record${recalls === 1 ? "" : "s"} and ${complaints} complaint record${complaints === 1 ? "" : "s"} were found`;
-    if (topComponent) {
-      safetySentence += `, with ${topComponent} appearing as a notable complaint area`;
+  if (mechanicalRisk === "HIGHER") {
+    if (engineRisk === "HIGHER" && transmissionRisk === "HIGHER") {
+      summary += `This sits in a higher risk bracket, mainly around the engine and transmission, so condition and service history matter heavily here. `;
+    } else if (engineRisk === "HIGHER") {
+      summary += `This sits in a higher risk bracket, mainly around the engine, so condition and service history matter heavily here. `;
+    } else if (transmissionRisk === "HIGHER") {
+      summary += `This sits in a higher risk bracket, mainly around the transmission, so condition and service history matter heavily here. `;
+    } else {
+      summary += `This sits in a higher risk bracket, so condition and service history matter heavily here. `;
     }
-    safetySentence += ".";
-    lines.push(safetySentence);
+  } else if (mechanicalRisk === "MODERATE") {
+    if ((engineRisk === "MODERATE" || engineRisk === "HIGHER") && (transmissionRisk === "MODERATE" || transmissionRisk === "HIGHER")) {
+      summary += `This sits in a moderate risk bracket, mainly around the engine and transmission, so condition and service history matter more than usual. `;
+    } else if (engineRisk === "MODERATE" || engineRisk === "HIGHER") {
+      summary += `This sits in a moderate risk bracket, mainly around the engine, so condition and service history matter more than usual. `;
+    } else if (transmissionRisk === "MODERATE" || transmissionRisk === "HIGHER") {
+      summary += `This sits in a moderate risk bracket, mainly around the transmission, so condition and service history matter more than usual. `;
+    } else {
+      summary += `This sits in a moderate risk bracket, so condition and service history matter more than usual. `;
+    }
+  } else {
+    summary += `This sits in a relatively lower risk bracket, but condition and maintenance history should still guide your decision. `;
   }
 
-  if (complexity) {
-    lines.push(
-      `Ownership complexity is ${complexity.toLowerCase()}, so condition, service history, and inspection quality matter more than headline mileage or appearance alone.`
-    );
+  if (retailGood > 0) {
+    summary += `Similar cars in clean condition are typically advertised around ${money(retailGood)}, `;
   }
 
-  if (enginePlatform && enginePlatform !== "Manufacturer specific platform") {
-    lines.push(
-      `The vehicle sits on the ${enginePlatform} platform, which should be considered when judging future maintenance exposure and how aggressively you negotiate.`
-    );
+  if (buyerLow > 0 && buyerHigh > 0) {
+    summary += `but once you factor in this specific vehicle, you should really be aiming closer to ${money(buyerLow)} to ${money(buyerHigh)}. That’s where this starts to make sense. `;
   }
 
-  if (buyerLow && buyerHigh) {
-  const rangeText = `$${numberWithCommas(buyerLow)} to $${numberWithCommas(buyerHigh)}`;
-
-  let pricingLine = `You should be aiming to buy this vehicle between ${rangeText} for a typical used example in fair to good condition.`;
-
-  if (totalAdjustment < -1000) {
-    pricingLine += ` Based on the detected risk profile, this vehicle carries roughly $${numberWithCommas(Math.abs(totalAdjustment))} less value than a cleaner, lower risk example, so the asking price should reflect that difference.`;
-  } else if (totalAdjustment < 0) {
-    pricingLine += ` Some risk signals are present, so you should be aiming toward the lower end of that range.`;
-  } else if (totalAdjustment > 1000) {
-    pricingLine += ` Current signals support stronger than average pricing if condition, mileage, and service history are all solid.`;
+  if (totalAdjustment < 0) {
+    summary += `That gap reflects roughly ${money(Math.abs(totalAdjustment))} in downward pressure versus a cleaner example. `;
+  } else if (totalAdjustment > 0) {
+    summary += `Current signals support slightly stronger than average pricing versus a base example. `;
   }
 
-  lines.push(pricingLine);
-}
+  if (listingPrice > 0) {
+    summary += `At ${money(listingPrice)}, this is `;
 
-  if (listingPrice > 0 && dealRating) {
-    lines.push(
-      `Against the entered asking price of $${numberWithCommas(listingPrice)}, the current pricing view is ${dealRating.replace(/_/g, " ")}. ${dealInsight}`
-    );
+    if (dealRating === "Good Deal") {
+      summary += `actually positioned well for the level of risk involved. `;
+    } else if (dealRating === "Fair Deal") {
+      summary += `not unreasonable, but there’s still room to improve the deal. `;
+    } else if (dealRating === "Overpriced") {
+      summary += `too close to clean example pricing for the level of risk involved. `;
+    } else {
+      summary += `a deal you should look at carefully before moving forward. `;
+    }
   }
 
-  if (attentionFlags.length) {
-    lines.push(
-      `Key watch areas: ${attentionFlags.slice(0, 3).join(", ")}.`
-    );
-  }
-
-  if (buyerType || buyerExplanation) {
-  let buyerLine = "";
-
-  if (buyerType) {
-    buyerLine += `${buyerType} profile: `;
-  }
-
-  if (buyerExplanation) {
-    buyerLine += buyerExplanation;
-  }
-
-  if (buyerLine) {
-    lines.push(buyerLine);
-  }
-}
-
-  if (buyerGuidance) {
-    lines.push(`Bottom line: ${buyerGuidance}`);
-  }
+  summary += `If the seller can’t clearly back up maintenance and condition, this is either a negotiation play or one to walk away from.`;
 
   return {
     headline,
-    summary: lines.filter(Boolean).join(" ")
+    summary
   };
 }
 
