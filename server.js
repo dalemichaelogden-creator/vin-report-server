@@ -3654,7 +3654,10 @@ riskForecast,
 negotiationLeverage,
 ownershipRoadmap,
 purchaseChecklist,
-buyerVerdict: buildExecutiveSummary(report),
+buyerVerdict: {
+  headline: "",
+  summary: ""
+},
 investigations: {
   items: investigationData.investigations,
   summary: investigationData.investigationSummary
@@ -3686,6 +3689,7 @@ signals: {
     }
   };
 
+  report.buyerVerdict = buildExecutiveSummary(report);
   report.signals.coverageScore = calculateCoverageScore(report);
   report.signals.confidenceLevel = buildConfidenceLevel(report.signals.coverageScore);
   report.signals.riskLevel = buildRiskLevel(report);
