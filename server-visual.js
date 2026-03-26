@@ -1563,7 +1563,10 @@ console.log("Full report fetched successfully");
 <div class="item"><div class="label">Engine Confidence</div><div class="value">${escapeHtml(report.vehicle.engineConfidence || "N/A")}</div></div>
 <div class="item"><div class="label">Engine Risk Level</div><div class="value">${escapeHtml(report.vehicle.engineRiskLevel || "N/A")}</div></div>
 <div class="item wide"><div class="label">Engine Risk Note</div><div class="summary">${escapeHtml(report.vehicle.engineRiskNote || "N/A")}</div></div>
-<div class="item"><div class="label">Engine Summary</div><div class="summary">${escapeHtml(report.vehicle.engineSummary || "N/A")}</div></div>
+<div class="item wide"><div class="label">Engine Summary</div><div class="summary">${escapeHtml(report.vehicle.engineSummary || "N/A")}</div></div>
+<div class="item"><div class="label">Transmission Type</div><div class="value">${escapeHtml(report.vehicle.transmissionType || "N/A")}</div></div>
+<div class="item"><div class="label">Transmission Risk</div><div class="value">${escapeHtml(report.vehicle.transmissionRisk || "N/A")}</div></div>
+<div class="item wide"><div class="label">Transmission Summary</div><div class="summary">${escapeHtml(report.vehicle.transmissionSummary || "N/A")}</div></div>
         <div class="item"><div class="label">WMI</div><div class="value">${escapeHtml(safeValue(report.vehicle.wmi))}</div></div>
         <div class="item"><div class="label">Plant Country</div><div class="value">${escapeHtml(safeValue(report.vehicle.plantCountry))}</div></div>
         <div class="item"><div class="label">Series</div><div class="value">${escapeHtml(safeValue(report.vehicle.series))}</div></div>
