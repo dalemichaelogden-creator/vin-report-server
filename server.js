@@ -1874,6 +1874,10 @@ function roundToNearestHundred(value) {
   return Math.round(Number(value || 0) / 100) * 100;
 }
 
+function numberWithCommas(value) {
+  return Number(value || 0).toLocaleString("en-US");
+}
+
 const BASE_MARKET_RULES = {
   brandTierMultiplier: {
     mainstream: 1.00,
@@ -2045,15 +2049,23 @@ const retailFair = roundToNearestHundred((preRiskMarketCenter * 0.92) + totalAdj
       ageDepreciationMultiplier,
       preRiskMarketCenter: roundToNearestHundred(preRiskMarketCenter)
     },
-    risks: {
-      engineRiskScore,
-      transmissionRiskScore,
-      mechanicalRiskScore,
-      weightedRiskScore,
-      overallRiskBand,
-      riskMultiplier
-    },
-    analystNote
+risks: {
+  engineRiskScore,
+  transmissionRiskScore,
+  mechanicalRiskScore,
+  weightedRiskScore,
+  overallRiskBand,
+  riskMultiplier
+},
+
+adjustments: {
+  percentageDelta: riskDelta,
+  flatAdjustment,
+  totalAdjustment,
+  direction: totalAdjustment > 0 ? "up" : totalAdjustment < 0 ? "down" : "neutral"
+},
+
+analystNote
   };
 }
 
@@ -2487,6 +2499,114 @@ function buildBuyerVerdict(report) {
   };
 }
 
+function numberWithCommas(value) {
+  return Number(value || 0).toLocaleString("en-US");
+}
+
+function buildExecutiveSummary(report) {
+  const riskLevel = String(report.signals.riskLevel || "Moderate");
+  const recalls = Number(report.safety.recalls || 0);
+  const complaints = Number(report.safety.complaints || 0);
+  const topComponent = safeValue(report.safety.topComponent);
+  const complexity = safeValue(report.ownership.maintenanceComplexity) || "Moderate";
+
+  const engineRisk = String(report.vehicle.engineRiskLevel || "").toUpperCase();
+  const transmissionRisk = String(report.vehicle.transmissionRisk || "").toUpperCase();
+  const mechanicalRisk = String(report.vehicle.mechanicalRiskLevel || "").toUpperCase();
+
+  const enginePlatform = safeValue(report.ownership.enginePlatform);
+  const buyerType = safeValue(report.vehicle.buyerType);
+  const buyerGuidance = safeValue(report.vehicle.buyerGuidance);
+  const buyerExplanation = safeValue(report.vehicle.buyerRiskExplanation);
+
+  const attentionFlags = Array.isArray(report.signals.attentionFlags)
+    ? report.signals.attentionFlags
+    : [];
+
+  const buyerLow = Number(report.marketAnalysis?.buyerTargetValues?.low || 0);
+  const buyerHigh = Number(report.marketAnalysis?.buyerTargetValues?.high || 0);
+  const totalAdjustment = Number(report.marketAnalysis?.adjustments?.totalAdjustment || 0);
+  const dealRating = safeValue(report.dealAnalysis?.dealRating);
+  const dealInsight = safeValue(report.dealAnalysis?.dealInsight);
+  const listingPrice = Number(report.dealAnalysis?.listingPrice || 0);
+
+  let headline = "Lower risk profile, still inspect before buying";
+
+  if (mechanicalRisk === "HIGHER" || riskLevel === "High") {
+    headline = "Proceed with caution and only buy at the right price";
+  } else if (mechanicalRisk === "MODERATE" || riskLevel === "Moderate") {
+    headline = "Worth considering, but inspection and price discipline matter";
+  } else if (mechanicalRisk === "LOW" && riskLevel !== "High") {
+    headline = "Generally favorable profile with standard used car checks";
+  }
+
+  const lines = [];
+
+  lines.push(
+    `This ${safeValue(report.vehicle.year)} ${safeValue(report.vehicle.make)} ${safeValue(report.vehicle.model)} shows a ${mechanicalRisk ? mechanicalRisk.toLowerCase() : "moderate"} mechanical risk profile with ${engineRisk ? engineRisk.toLowerCase() : "moderate"} engine risk and ${transmissionRisk ? transmissionRisk.toLowerCase() : "moderate"} transmission risk.`
+  );
+
+  if (recalls || complaints) {
+    let safetySentence = `${recalls} recall record${recalls === 1 ? "" : "s"} and ${complaints} complaint record${complaints === 1 ? "" : "s"} were found`;
+    if (topComponent) {
+      safetySentence += `, with ${topComponent} appearing as a notable complaint area`;
+    }
+    safetySentence += ".";
+    lines.push(safetySentence);
+  }
+
+  if (complexity) {
+    lines.push(
+      `Ownership complexity is ${complexity.toLowerCase()}, so condition, service history, and inspection quality matter more than headline mileage or appearance alone.`
+    );
+  }
+
+  if (enginePlatform && enginePlatform !== "Manufacturer specific platform") {
+    lines.push(
+      `The vehicle sits on the ${enginePlatform} platform, which should be considered when judging future maintenance exposure and how aggressively you negotiate.`
+    );
+  }
+
+  if (buyerLow && buyerHigh) {
+    let marketSentence = `The risk adjusted buyer target range sits around $${numberWithCommas(buyerLow)} to $${numberWithCommas(buyerHigh)}.`;
+
+    if (totalAdjustment < 0) {
+      marketSentence += ` Current risk signals pull the buying target down by about $${numberWithCommas(Math.abs(totalAdjustment))} versus a cleaner vehicle profile.`;
+    } else if (totalAdjustment > 0) {
+      marketSentence += ` Current signals support pricing that is about $${numberWithCommas(totalAdjustment)} stronger than the baseline profile.`;
+    }
+
+    lines.push(marketSentence);
+  }
+
+  if (listingPrice > 0 && dealRating) {
+    lines.push(
+      `Against the entered asking price of $${numberWithCommas(listingPrice)}, the current pricing view is ${dealRating.replace(/_/g, " ")}. ${dealInsight}`
+    );
+  }
+
+  if (attentionFlags.length) {
+    lines.push(
+      `Key watch areas: ${attentionFlags.slice(0, 3).join(", ")}.`
+    );
+  }
+
+  if (buyerType || buyerExplanation) {
+    lines.push(
+      `${buyerType ? `${buyerType}. ` : ""}${buyerExplanation || ""}`.trim()
+    );
+  }
+
+  if (buyerGuidance) {
+    lines.push(`Bottom line: ${buyerGuidance}`);
+  }
+
+  return {
+    headline,
+    summary: lines.filter(Boolean).join(" ")
+  };
+}
+
 function buildReportMeta(vehicle) {
   return {
     headline: "PRE PURCHASE INTELLIGENCE REPORT",
@@ -2671,12 +2791,7 @@ engineAdvisory,
   report.frontEndSummary.subheadline = frontSignals.subheadline;
   report.freeSignals = frontSignals;
 
-let buyerVerdict = buildBuyerVerdict(report);
-
-buyerVerdict = applyEngineRiskToVerdict(buyerVerdict, vehicle);
-buyerVerdict = applyMechanicalRiskToVerdict(buyerVerdict, vehicle);
-
-report.buyerVerdict = buyerVerdict;
+report.buyerVerdict = buildExecutiveSummary(report);
 
   if (!report.vehicle.engine) {
     report.vehicle.engine = report.specs.engineDisplay;
