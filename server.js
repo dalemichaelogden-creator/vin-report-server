@@ -826,6 +826,40 @@ function applyEngineRiskToVerdict(baseVerdict, vehicle) {
   return baseVerdict;
 }
 
+function applyMechanicalRiskToVerdict(baseVerdict, vehicle) {
+  const mechRisk = String(vehicle.mechanicalRiskLevel || "").toUpperCase();
+
+  if (!mechRisk) {
+    return baseVerdict;
+  }
+
+  if (mechRisk === "HIGHER") {
+    return {
+      ...baseVerdict,
+      headline: "Proceed with caution due to overall mechanical risk",
+      summary: "This vehicle presents higher mechanical risk based on engine and transmission profile. A purchase can still make sense, but only with strong inspection results and a price that reflects that risk."
+    };
+  }
+
+  if (mechRisk === "MODERATE") {
+    return {
+      ...baseVerdict,
+      headline: "Worth viewing, but mechanical risk should guide price",
+      summary: "This vehicle sits in a moderate mechanical risk category. It may still be a good buy, but inspection quality, service history, and price alignment are important."
+    };
+  }
+
+  if (mechRisk === "LOW") {
+    return {
+      ...baseVerdict,
+      headline: "Generally favorable mechanical profile",
+      summary: "This vehicle presents a relatively favorable mechanical profile. Standard inspection and maintenance checks still apply, but risk is lower than average."
+    };
+  }
+
+  return baseVerdict;
+}
+
 function getMechanicalRisk(vehicle) {
   const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
   const transRisk = String(vehicle.transmissionRisk || "").toUpperCase();
@@ -2286,8 +2320,12 @@ vehicle.mechanicalRiskSummary = mechRisk.summary;
   report.frontEndSummary.subheadline = frontSignals.subheadline;
   report.freeSignals = frontSignals;
 
-const baseBuyerVerdict = buildBuyerVerdict(report);
-report.buyerVerdict = applyEngineRiskToVerdict(baseBuyerVerdict, report.vehicle);
+let buyerVerdict = buildBuyerVerdict(report);
+
+buyerVerdict = applyEngineRiskToVerdict(buyerVerdict, vehicle);
+buyerVerdict = applyMechanicalRiskToVerdict(buyerVerdict, vehicle);
+
+report.buyerVerdict = buyerVerdict;
 
   if (!report.vehicle.engine) {
     report.vehicle.engine = report.specs.engineDisplay;
