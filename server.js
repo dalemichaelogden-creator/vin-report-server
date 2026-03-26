@@ -1958,6 +1958,18 @@ function buildMarketAnalysis(vehicle) {
   const transmissionRiskScore = riskLabelToScore(vehicle.transmissionRisk);
   const mechanicalRiskScore = riskLabelToScore(vehicle.mechanicalRiskLevel);
 
+  const riskLabel = String(vehicle.mechanicalRiskLevel || "").trim().toUpperCase();
+
+let priceAdjustment = 0;
+
+if (riskLabel === "HIGHER") {
+  priceAdjustment = -3000;
+}
+
+if (riskLabel === "MODERATE") {
+  priceAdjustment = -1500;
+}
+
   const weightedRiskScore = Math.round(
     (engineRiskScore * 0.4) +
     (transmissionRiskScore * 0.35) +
@@ -1980,12 +1992,12 @@ function buildMarketAnalysis(vehicle) {
   const tradeLow = roundToNearestHundred(preRiskMarketCenter * 0.80);
   const tradeHigh = roundToNearestHundred(preRiskMarketCenter * 0.91);
 
-  const buyerLow = roundToNearestHundred(riskAdjustedCenter * 0.84);
-  const buyerHigh = roundToNearestHundred(riskAdjustedCenter * 0.95);
+  const buyerLow = roundToNearestHundred((riskAdjustedCenter * 0.84) + priceAdjustment);
+const buyerHigh = roundToNearestHundred((riskAdjustedCenter * 0.95) + priceAdjustment);
 
   const retailExcellent = roundToNearestHundred(retailHigh);
   const retailGood = roundToNearestHundred(preRiskMarketCenter);
-  const retailFair = roundToNearestHundred(retailLow);
+  const retailFair = roundToNearestHundred((preRiskMarketCenter * 0.92) + priceAdjustment);
 
   const tradeExcellent = roundToNearestHundred(tradeHigh);
   const tradeGood = roundToNearestHundred((tradeLow + tradeHigh) / 2);
