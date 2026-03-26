@@ -1988,7 +1988,6 @@ const totalAdjustment = riskDelta + flatAdjustment;
   const riskMultiplier = BASE_MARKET_RULES.riskAdjustments[overallRiskBand] || 0.93;
   const riskAdjustedCenter = preRiskMarketCenter * riskMultiplier;
   const riskDelta = Math.round(riskAdjustedCenter - preRiskMarketCenter);
-  const totalAdjustment = riskDelta + flatAdjustment;
 
   const retailLow = roundToNearestHundred(preRiskMarketCenter * 0.92);
   const retailHigh = roundToNearestHundred(preRiskMarketCenter * 1.08);
@@ -2042,29 +2041,23 @@ const buyerHigh = roundToNearestHundred((preRiskMarketCenter * 0.95) + totalAdju
       ageBucket
     },
     pricingLogic: {
-  segmentBase: roundToNearestHundred(segmentBase),
-  brandTierMultiplier,
-  drivetrainMultiplier,
-  fuelTypeMultiplier,
-  ageDepreciationMultiplier,
-  preRiskMarketCenter: roundToNearestHundred(preRiskMarketCenter)
-},
-risks: {
-  engineRiskScore,
-  transmissionRiskScore,
-  mechanicalRiskScore,
-  weightedRiskScore,
-  overallRiskBand,
-  riskMultiplier
-},
-adjustments: {
-  percentageDelta: riskDelta,
-  flatAdjustment,
-  totalAdjustment,
-  direction: totalAdjustment > 0 ? "up" : totalAdjustment < 0 ? "down" : "neutral"
-},
-analystNote
-};
+      segmentBase: roundToNearestHundred(segmentBase),
+      brandTierMultiplier,
+      drivetrainMultiplier,
+      fuelTypeMultiplier,
+      ageDepreciationMultiplier,
+      preRiskMarketCenter: roundToNearestHundred(preRiskMarketCenter)
+    },
+    risks: {
+      engineRiskScore,
+      transmissionRiskScore,
+      mechanicalRiskScore,
+      weightedRiskScore,
+      overallRiskBand,
+      riskMultiplier
+    },
+    analystNote
+  };
 }
 
 function buildEngineAdvisory(vehicle) {
