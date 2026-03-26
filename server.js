@@ -602,6 +602,114 @@ const ENGINE_RULES = [
   }
 ];
 
+const TRANSMISSION_RULES = [
+  {
+    match: {
+      make: "BMW",
+      modelIncludes: ["3", "4", "5", "X3", "X5"]
+    },
+    result: {
+      transmissionType: "ZF 8 Speed Automatic",
+      transmissionRisk: "Low",
+      transmissionSummary: "Widely regarded as one of the most reliable modern automatic transmissions when serviced correctly."
+    }
+  },
+  {
+    match: {
+      make: "FORD",
+      modelIncludes: ["F-150", "F150"]
+    },
+    result: {
+      transmissionType: "10 Speed Automatic",
+      transmissionRisk: "Moderate",
+      transmissionSummary: "Modern multi speed transmission offering efficiency and performance, though some model years have reported shift quality concerns."
+    }
+  },
+  {
+    match: {
+      make: "FORD",
+      modelIncludes: ["FOCUS", "FIESTA"]
+    },
+    result: {
+      transmissionType: "Dual Clutch Automatic",
+      transmissionRisk: "Higher",
+      transmissionSummary: "This transmission type has a known history of reliability and drivability complaints in certain model years."
+    }
+  },
+  {
+    match: {
+      make: "VOLKSWAGEN",
+      modelIncludes: ["GTI", "GLI", "GOLF", "JETTA"]
+    },
+    result: {
+      transmissionType: "DSG Dual Clutch",
+      transmissionRisk: "Moderate",
+      transmissionSummary: "Fast shifting dual clutch transmission that requires proper servicing and can be costly if neglected."
+    }
+  },
+  {
+    match: {
+      make: "AUDI",
+      modelIncludes: ["A3", "A4", "A5", "Q5"]
+    },
+    result: {
+      transmissionType: "S Tronic Dual Clutch",
+      transmissionRisk: "Moderate",
+      transmissionSummary: "Performance oriented dual clutch transmission with strong driving characteristics but higher servicing expectations."
+    }
+  },
+  {
+    match: {
+      make: "TOYOTA"
+    },
+    result: {
+      transmissionType: "Automatic or eCVT",
+      transmissionRisk: "Low",
+      transmissionSummary: "Toyota transmissions are generally low risk with strong long term reliability when maintained."
+    }
+  },
+  {
+    match: {
+      make: "HONDA"
+    },
+    result: {
+      transmissionType: "CVT or Automatic",
+      transmissionRisk: "Moderate",
+      transmissionSummary: "Modern Honda CVT systems are generally reliable, though driving feel and long term servicing should be considered."
+    }
+  },
+  {
+    match: {
+      make: "NISSAN"
+    },
+    result: {
+      transmissionType: "CVT",
+      transmissionRisk: "Higher",
+      transmissionSummary: "This transmission type has a known history of reliability concerns in multiple model lines."
+    }
+  },
+  {
+    match: {
+      make: "SUBARU"
+    },
+    result: {
+      transmissionType: "CVT or Manual",
+      transmissionRisk: "Moderate",
+      transmissionSummary: "Subaru CVT systems require proper maintenance and fluid servicing for long term reliability."
+    }
+  },
+  {
+    match: {
+      make: "TESLA"
+    },
+    result: {
+      transmissionType: "Single Speed Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive units eliminate traditional transmission complexity and reduce mechanical failure points."
+    }
+  }
+];
+
 function getDefaultEngineIntelligence(vehicle) {
   return {
     enginePlatform: vehicle.engine || "Unknown",
@@ -618,6 +726,20 @@ function getEngineIntelligence(vehicle) {
   }
 
   return getDefaultEngineIntelligence(vehicle);
+}
+
+function getTransmissionIntelligence(vehicle) {
+  for (const rule of TRANSMISSION_RULES) {
+    if (matchesEngineRule(vehicle, rule.match)) {
+      return rule.result;
+    }
+  }
+
+  return {
+    transmissionType: "Unknown",
+    transmissionRisk: "Unknown",
+    transmissionSummary: "Transmission profile could not be confidently identified."
+  };
 }
 
 function getEngineRiskProfile(enginePlatform) {
@@ -2044,6 +2166,12 @@ async function buildReportFromVin(vin) {
 vehicle.enginePlatform = engineIntel.enginePlatform;
 vehicle.engineConfidence = engineIntel.engineConfidence;
 vehicle.engineSummary = engineIntel.engineSummary;
+
+const transIntel = getTransmissionIntelligence(vehicle);
+
+vehicle.transmissionType = transIntel.transmissionType;
+vehicle.transmissionRisk = transIntel.transmissionRisk;
+vehicle.transmissionSummary = transIntel.transmissionSummary;
 
 const engineRisk = getEngineRiskProfile(vehicle.enginePlatform);
 vehicle.engineRiskLevel = engineRisk.engineRiskLevel;
