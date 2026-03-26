@@ -1482,8 +1482,18 @@ console.log("Full report fetched successfully");
             <div class="score-number">${escapeHtml(report.signals.riskLevel)}</div>
             <div class="score-label">Buyer Risk Level ${escapeHtml(report.signals.riskLevel)}</div>
             <div class="score-mini">
-              Low means fewer public risk signals were found. Moderate means some issues or ownership concerns deserve closer review. High means stronger public risk signals were found and the vehicle should be inspected very carefully.
-            </div>
+  <span style="display:block;font-weight:700;">
+    ${escapeHtml(report.vehicle.buyerType || "General Buyer")}
+  </span>
+
+  <span style="display:block;margin-top:6px;line-height:1.6;">
+    ${escapeHtml(report.vehicle.buyerRiskExplanation || "Risk explanation unavailable.")}
+  </span>
+
+  <span style="display:block;margin-top:8px;line-height:1.6;font-weight:600;">
+    ${escapeHtml(report.vehicle.buyerGuidance || "Proceed with a standard inspection and ensure service history is reviewed.")}
+  </span>
+</div>
           </div>
 
           <div class="confidence-box">
