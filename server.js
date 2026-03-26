@@ -3398,6 +3398,12 @@ function numberWithCommas(value) {
   return Number(value || 0).toLocaleString("en-US");
 }
 
+function money(value) {
+  const num = Number(value);
+  if (Number.isNaN(num) || !num) return "N/A";
+  return `$${num.toLocaleString("en-US")}`;
+}
+
 function buildExecutiveSummary(report) {
   const riskLevel = String(report.signals.riskLevel || "Moderate");
   const recalls = Number(report.safety.recalls || 0);
