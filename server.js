@@ -752,38 +752,39 @@ function getEngineRiskProfile(enginePlatform) {
     };
   }
 
+  // BMW
   if (value.includes("N20")) {
     return {
       engineRiskLevel: "Higher",
-      engineRiskNote: "This engine profile carries a higher ownership risk due to known timing chain and oil leak related concern patterns."
+      engineRiskNote: "This engine profile carries a higher ownership risk due to known timing chain, oil leak, and age related maintenance patterns."
     };
   }
 
   if (value.includes("N55")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This engine profile is generally known, but age, maintenance history, and leak related issues still matter."
+      engineRiskNote: "This engine profile is generally known, but age, maintenance history, cooling system condition, and leak related issues still matter."
     };
   }
 
   if (value.includes("B48")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This engine profile is generally viewed as stronger than earlier alternatives, though cooling system and gasket related maintenance still matter."
+      engineRiskNote: "This engine profile is generally stronger than earlier alternatives, though cooling system, gasket, and service history still matter."
     };
   }
 
   if (value.includes("B58")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This engine profile is generally well regarded, but ownership cost can still rise quickly with neglected maintenance."
+      engineRiskNote: "This engine profile is generally well regarded, but ownership cost can still rise quickly with neglected maintenance or cooling related issues."
     };
   }
 
   if (value.includes("S55") || value.includes("S58")) {
     return {
       engineRiskLevel: "Higher",
-      engineRiskNote: "High performance engine platforms can carry significantly higher ownership and repair exposure."
+      engineRiskNote: "High performance engine platforms can carry significantly higher ownership and repair exposure, especially if servicing has been inconsistent."
     };
   }
 
@@ -791,6 +792,245 @@ function getEngineRiskProfile(enginePlatform) {
     return {
       engineRiskLevel: "Moderate",
       engineRiskNote: "This vehicle sits in an engine transition window, so exact engine confirmation matters before assigning a firmer ownership risk profile."
+    };
+  }
+
+  // VAG
+  if (value.includes("EA888 HIGH OUTPUT")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This higher output EA888 profile is widely used and capable, but carbon buildup, water pump related issues, and strict maintenance history should be taken seriously."
+    };
+  }
+
+  if (value.includes("EA888")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This turbocharged four cylinder profile is common and generally workable, but cooling system issues, oil consumption patterns, and carbon buildup can matter as mileage rises."
+    };
+  }
+
+  if (value.includes("EA211")) {
+    return {
+      engineRiskLevel: "Low",
+      engineRiskNote: "This smaller displacement modern gasoline engine profile is generally lower risk, though regular servicing and cooling system condition still matter."
+    };
+  }
+
+  if (value.includes("3.0T V6")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This turbocharged six cylinder performance profile can be strong, but ownership cost, cooling related wear, and service history become more important than on a simpler four cylinder car."
+    };
+  }
+
+  // Ford
+  if (value.includes("2.7 ECOBOOST")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This EcoBoost profile offers strong performance, but turbocharged truck use, maintenance history, and cooling or oil related servicing should be reviewed carefully."
+    };
+  }
+
+  if (value.includes("3.5 ECOBOOST")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This EcoBoost family is capable and common, but higher repair costs, timing related wear, and service history matter more than on a naturally aspirated alternative."
+    };
+  }
+
+  if (value.includes("ECOBOOST")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This turbocharged Ford engine family can offer good performance and efficiency, but cooling, oil change discipline, and long term maintenance history matter."
+    };
+  }
+
+  // GM
+  if (value.includes("GM GEN V V8")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This GM V8 profile is widely used and generally understood, but lifter related concerns, active fuel management behavior, and maintenance quality should be reviewed closely."
+    };
+  }
+
+  if (value.includes("GM TURBO GASOLINE")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This modern GM turbo gasoline profile can be efficient and usable, but turbo related wear, cooling issues, and service history remain important."
+    };
+  }
+
+  // Toyota / Lexus
+  if (value.includes("TOYOTA HYBRID SYNERGY DRIVE")) {
+    return {
+      engineRiskLevel: "Low",
+      engineRiskNote: "This hybrid system profile is generally viewed as one of the more predictable long term ownership setups, though battery age, cooling, and maintenance history still matter."
+    };
+  }
+
+  if (value.includes("TOYOTA TRUCK AND SUV GASOLINE")) {
+    return {
+      engineRiskLevel: "Low",
+      engineRiskNote: "This body on frame Toyota gasoline profile is generally lower risk by segment standards, though mileage, towing use, and maintenance quality still matter."
+    };
+  }
+
+  if (value.includes("TOYOTA LEXUS HYBRID")) {
+    return {
+      engineRiskLevel: "Low",
+      engineRiskNote: "This Toyota Lexus hybrid profile is generally considered a lower risk ownership setup, though battery age, cooling system condition, and service record still matter."
+    };
+  }
+
+  if (value.includes("TOYOTA LEXUS GASOLINE")) {
+    return {
+      engineRiskLevel: "Low",
+      engineRiskNote: "This Toyota Lexus gasoline profile is generally favorable, though service history, leak checks, and condition still matter with age."
+    };
+  }
+
+  // Honda / Acura
+  if (value.includes("HONDA HYBRID")) {
+    return {
+      engineRiskLevel: "Low",
+      engineRiskNote: "This Honda hybrid profile is generally favorable, though battery age, software updates, and maintenance record should still be checked."
+    };
+  }
+
+  if (value.includes("HONDA EARTH DREAMS")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This engine family is common and usually manageable, but oil dilution concerns in some applications, turbocharged versions, and maintenance history should be considered."
+    };
+  }
+
+  if (value.includes("HONDA ACURA MODERN GASOLINE")) {
+    return {
+      engineRiskLevel: "Low",
+      engineRiskNote: "This Honda Acura gasoline profile is generally solid, though service history, fluid maintenance, and age related wear still matter."
+    };
+  }
+
+  // Nissan / Infiniti
+  if (value.includes("NISSAN MODERN GASOLINE")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This Nissan gasoline profile is usually less concerning than the transmission side, but maintenance history, oil servicing, and cooling condition still matter."
+    };
+  }
+
+  if (value.includes("INFINITI NISSAN MODERN GASOLINE")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This Infiniti Nissan gasoline profile can be perfectly usable, but premium ownership cost and maintenance history should be taken seriously."
+    };
+  }
+
+  // Mercedes
+  if (value.includes("M274") || value.includes("M264")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This modern Mercedes turbo four profile can be workable, but maintenance discipline, cooling system condition, and electronics related ownership costs matter."
+    };
+  }
+
+  if (value.includes("MERCEDES TURBOCHARGED SIX CYLINDER")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This Mercedes six cylinder profile offers strong performance, but repair costs and maintenance exposure can be meaningfully higher than average."
+    };
+  }
+
+  // Volvo
+  if (value.includes("VOLVO DRIVE E HYBRID")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This hybridized Drive E profile can be efficient and advanced, but complexity is higher, so battery system health, software behavior, and service history matter."
+    };
+  }
+
+  if (value.includes("VOLVO DRIVE E")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This Volvo Drive E profile is modern and efficient, but turbocharged four cylinder complexity, cooling health, and maintenance quality still matter."
+    };
+  }
+
+  // Hyundai / Kia
+  if (value.includes("KIA HYBRID") || value.includes("HYUNDAI HYBRID")) {
+    return {
+      engineRiskLevel: "Low",
+      engineRiskNote: "This modern hybrid profile is generally favorable for mainstream ownership, though battery age, software updates, and service history should still be checked."
+    };
+  }
+
+  if (value.includes("KIA MODERN GASOLINE") || value.includes("HYUNDAI MODERN GASOLINE")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This mainstream gasoline engine family can be workable, but exact engine generation, oil service history, and known campaign exposure should be reviewed carefully."
+    };
+  }
+
+  // Stellantis
+  if (value.includes("PENTASTAR OR HEMI")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This Chrysler performance or utility profile can be durable, but ownership cost, fuel use, and maintenance quality matter more heavily as mileage increases."
+    };
+  }
+
+  if (value.includes("JEEP CHRYSLER MODERN GASOLINE")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This Jeep Chrysler gasoline profile is common, but cooling system health, oil leaks, and service history should still guide the buying decision."
+    };
+  }
+
+  if (value.includes("RAM CHRYSLER TRUCK POWERTRAIN")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This truck powertrain family can be capable, but towing history, diesel or heavy duty use, and maintenance discipline should be taken seriously."
+    };
+  }
+
+  // Subaru
+  if (value.includes("SUBARU BOXER")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This Subaru boxer profile is distinctive and widely used, but oil consumption patterns, gasket history, and CVT pairing should still be reviewed carefully."
+    };
+  }
+
+  // Mazda
+  if (value.includes("SKYACTIV")) {
+    return {
+      engineRiskLevel: "Low",
+      engineRiskNote: "This Mazda Skyactiv profile is generally viewed favorably, though routine maintenance and condition still matter like any used vehicle."
+    };
+  }
+
+  // Porsche
+  if (value.includes("PORSCHE MODERN GASOLINE")) {
+    return {
+      engineRiskLevel: "Moderate",
+      engineRiskNote: "This Porsche performance profile may be desirable, but parts cost, service history, and specialist maintenance exposure are higher than average."
+    };
+  }
+
+  // JLR
+  if (value.includes("JAGUAR LAND ROVER MODERN GASOLINE")) {
+    return {
+      engineRiskLevel: "Higher",
+      engineRiskNote: "This Jaguar Land Rover gasoline profile can carry meaningfully higher ownership risk due to complexity, electronics exposure, and expensive repair pathways."
+    };
+  }
+
+  // Tesla
+  if (value.includes("TESLA ELECTRIC DRIVE UNIT")) {
+    return {
+      engineRiskLevel: "Low",
+      engineRiskNote: "This electric drive unit profile removes many conventional engine failure points, though battery, charging hardware, and software condition still matter."
     };
   }
 
@@ -1447,7 +1687,7 @@ function getOptionLabelSet(make) {
       comfort: "Premium Package",
       tech: "Technology Package",
       weather: "Cold Weather Package",
-      audio: "Premium Audio Signal",
+      audio: "Premium Audio",
       utility: "Tow or Utility Package",
       efficiency: "Efficiency Package"
     },
