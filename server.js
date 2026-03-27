@@ -2412,6 +2412,23 @@ function getVehicleAgeBucket(year) {
   return "13_plus";
 }
 
+function getVehicleAgeBucket(year) {
+  // your existing code (leave this untouched)
+}
+
+function getAgeBucketLabel(ageBucket) {
+  const labels = {
+    "0_1": "newer vehicle value window",
+    "2_3": "2 to 3 year value window",
+    "4_5": "4 to 5 year value window",
+    "6_8": "6 to 8 year value window",
+    "9_12": "9 to 12 year value window",
+    "13_plus": "13 year plus value window"
+  };
+
+  return labels[ageBucket] || "used vehicle value window";
+}
+
 function getFuelGroupForMarket(vehicle) {
   const value = String(vehicle.fuel || "").trim().toUpperCase();
 
@@ -2520,6 +2537,91 @@ function getVehicleAgeBucket(year) {
   if (age <= 8) return "6_8";
   if (age <= 12) return "9_12";
   return "13_plus";
+}
+
+function getAgeBucketLabel(ageBucket) {
+  const labels = {
+    "0_1": "newer vehicle value window",
+    "2_3": "2 to 3 year value window",
+    "4_5": "4 to 5 year value window",
+    "6_8": "6 to 8 year value window",
+    "9_12": "9 to 12 year value window",
+    "13_plus": "13 year plus value window"
+  };
+
+  return labels[ageBucket] || "used vehicle value window";
+}
+
+function buildAnalystNote({
+  year,
+  make,
+  model,
+  ageBucket,
+  brandTier,
+  vehicleSegment,
+  fuelType,
+  engineRiskLevel,
+  transmissionRisk,
+  mechanicalRiskLevel
+}) {
+  const ageBucketLabel = getAgeBucketLabel(ageBucket);
+  const vehicleName = `${year} ${make} ${model}`.replace(/\s+/g, " ").trim();
+
+  const engineRisk = String(engineRiskLevel || "").toUpperCase();
+  const transmission = String(transmissionRisk || "").toUpperCase();
+  const mechanical = String(mechanicalRiskLevel || "").toUpperCase();
+
+  let opening = `This ${vehicleName} sits in the ${ageBucketLabel}.`;
+  let middle = `Depreciation has already done much of the heavy lifting, but condition, maintenance history, and platform risk still have a major effect on what it is worth.`;
+  let closing = `Buyer targets should be shaped by engine, transmission, and wider mechanical exposure rather than seller optimism alone.`;
+
+  if (brandTier === "exotic") {
+    middle = `Exotic cars in this age range can still hold strong money, but only when condition, originality, service records, and buyer confidence all line up properly.`;
+    closing = `For a car like this, pricing discipline still matters because even strong halo cars can vary widely based on history and upkeep.`;
+  } else if (brandTier === "ultraLuxury") {
+    middle = `Ultra luxury vehicles in this age range can still command serious money, but repair exposure, electronics complexity, and upkeep standards have a direct effect on market confidence.`;
+    closing = `The right price needs to reflect both prestige and the real cost of keeping a vehicle like this in strong condition.`;
+  } else if (brandTier === "luxury") {
+    middle = `Luxury vehicles in this age range are usually judged less by badge appeal alone and more by service history, mechanical condition, and how expensive the next round of ownership is likely to be.`;
+    closing = `Buyer targets should leave room for maintenance exposure rather than tracking dealer asking prices too closely.`;
+  } else if (brandTier === "premium") {
+    middle = `Premium vehicles in this age range can still make sense, but they need stronger condition and better paperwork than a simpler mainstream alternative to justify stronger money.`;
+    closing = `The right number should reflect maintenance exposure, not just the badge and spec sheet.`;
+  } else if (brandTier === "budget") {
+    middle = `At this point in the age curve, value is usually driven more by present condition and deferred maintenance than by brand positioning.`;
+    closing = `Buyer targets should stay grounded in repair reality and not assume a cheap asking price automatically means good value.`;
+  }
+
+  if (fuelType === "ev") {
+    middle = `For an EV in the ${ageBucketLabel}, battery confidence, charging performance, software stability, and warranty position can move buyer confidence more than a conventional engine profile would.`;
+    closing = `The right price should reflect battery and systems confidence, not just age and mileage.`;
+  } else if (fuelType === "hybrid" || fuelType === "phev") {
+    middle = `Electrified vehicles in this age range are usually judged on battery health, cooling behavior, warning free operation, and service history as much as on normal age based depreciation.`;
+    closing = `Buyer targets should leave room for hybrid system uncertainty where records or inspection results are not strong.`;
+  } else if (vehicleSegment === "truck") {
+    middle = `Truck values in this age range often stay firmer than passenger cars, but use history, towing exposure, suspension wear, and maintenance quality still drive the real number.`;
+    closing = `Buyer targets should reflect how this truck has actually been used, not just its reputation for holding value.`;
+  } else if (vehicleSegment === "suv" || vehicleSegment === "crossover") {
+    middle = `SUV values in this age range often stay relatively supported, but driveline wear, suspension condition, and maintenance history still have a strong effect on what makes sense.`;
+    closing = `Buyer targets should stay tied to condition and ownership exposure, not just segment popularity.`;
+  } else if (vehicleSegment === "sports" || vehicleSegment === "exoticSports" || vehicleSegment === "coupe" || vehicleSegment === "convertible") {
+    middle = `Performance oriented vehicles in this age range can hold value differently from ordinary cars, but service quality, mechanical confidence, and evidence of careful ownership matter heavily.`;
+    closing = `The right number should reflect both desirability and the cost of getting a weak example back into shape.`;
+  }
+
+  if (mechanical === "HIGHER") {
+    closing = `Because the wider mechanical picture sits in a higher risk band, the price should leave real room for inspection findings and follow on repairs.`;
+  } else if (engineRisk === "HIGHER" && transmission === "HIGHER") {
+    closing = `With both engine and transmission risk sitting on the stronger side, buyer targets should stay conservative and heavily inspection led.`;
+  } else if (engineRisk === "HIGHER") {
+    closing = `Because engine side risk is elevated here, buyer targets should be more cautious than the headline market alone might suggest.`;
+  } else if (transmission === "HIGHER") {
+    closing = `Because transmission exposure is elevated here, buyer targets should leave more room than a clean retail comparison alone would imply.`;
+  } else if (mechanical === "LOW" && engineRisk === "LOW" && transmission === "LOW") {
+    closing = `With the core risk picture looking more manageable than average, stronger examples can justify firmer pricing, but inspection and paperwork still matter.`;
+  }
+
+  return `${opening} ${middle} ${closing}`.replace(/\s+/g, " ").trim();
 }
 
 function estimateBaseMSRP(vehicle = {}) {
@@ -2778,15 +2880,20 @@ function buildMarketAnalysis(vehicle) {
   const retailGood = roundToNearestHundred(marketBase * 1.10);
   const retailExcellent = roundToNearestHundred(marketBase * 1.22);
 
-  let analystNote = `This ${year} ${make} ${model} sits in the ${ageBucket} value window. Market positioning reflects brand tier, segment, fuel type, and age based depreciation, then adjusts buyer targets for engine, transmission, and mechanical risk.`;
+  const ageBucketLabel = getAgeBucketLabel(ageBucket);
 
-  if (brandTier === "premium") {
-    analystNote = `This ${year} ${make} ${model} sits in a premium vehicle value band where condition, mileage, service history, and major maintenance exposure matter more heavily than on a mainstream equivalent. Buyer targets are adjusted downward when powertrain and mechanical risk increases.`;
-  }
-
-  if (fuelType === "ev") {
-    analystNote = `This ${year} ${make} ${model} sits in an EV value band where battery confidence, charging hardware, software condition, and warranty position can materially affect buyer target pricing.`;
-  }
+const analystNote = buildAnalystNote({
+  year,
+  make,
+  model,
+  ageBucket,
+  brandTier,
+  vehicleSegment,
+  fuelType,
+  engineRiskLevel: vehicle.engineRiskLevel,
+  transmissionRisk: vehicle.transmissionRisk,
+  mechanicalRiskLevel: vehicle.mechanicalRiskLevel
+});
 
   return {
     valuationDate: "March 2026",
