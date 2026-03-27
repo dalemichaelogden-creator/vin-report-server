@@ -3653,7 +3653,7 @@ if (listingPrice > 0) {
 }
 const engineAdvisory = buildEngineAdvisory(vehicle);
 const riskForecast = buildRiskForecast(vehicle, ownership, safety);
-const negotiationLeverage = buildNegotiationLeverage(vehicle, ownership, safety);
+const negotiationLeverage = buildNegotiationLeverage(vehicle, ownership, safety, marketAnalysis);
 const ownershipRoadmap = buildOwnershipRoadmap(vehicle);
 const purchaseChecklist = buildPurchaseChecklist(vehicle, ownership);
 
