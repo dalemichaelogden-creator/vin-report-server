@@ -3096,6 +3096,14 @@ function buildRiskForecast(vehicle, ownership, safety) {
   };
 }
 
+function getVehicleReference(vehicle) {
+  const year = safeValue(vehicle.year, "").trim();
+  const make = safeValue(vehicle.make, "").trim();
+  const model = safeValue(vehicle.model, "").trim();
+
+  return [year, make, model].filter(Boolean).join(" ").trim() || "vehicle";
+}
+
 function buildNegotiationLeverage(vehicle, ownership, safety, marketAnalysis) {
     const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
   const items = [
