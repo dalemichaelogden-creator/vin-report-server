@@ -3212,25 +3212,39 @@ function buildOwnershipRoadmap(vehicle) {
 }
 
 function buildPurchaseChecklist(vehicle, ownership) {
-  const items = [
-    "Cold start test and listen for unusual noises",
-    "Check for warning lights before and after the drive",
-    "Review service history and ownership paperwork",
-    "Inspect tire condition and tread match",
-    "Check for fluid leaks or signs of poor repairs"
+  const vehicleRef = getVehicleReference(vehicle);
+  const fuel = getFuelGroup(vehicle);
+
+  const checklist = [
+    `Confirm service history on this ${vehicleRef} before agreeing on price`,
+    `Inspect this ${vehicleRef} for fluid leaks, cooling system condition, and general engine bay health`,
+    `Check brake condition, tire wear, and suspension behavior during inspection`,
+    `Make sure no warning lights are active on this ${vehicleRef} before purchase`,
+    `Verify recall work and service campaigns have been completed where applicable`
   ];
 
-  if (getDriveTypeGroup(vehicle) === "awd") {
-    items.push("Perform a tight low speed turn and feel for binding or driveline shudder");
+  if (ownership?.enginePlatform && ownership.enginePlatform !== "Manufacturer specific platform") {
+    checklist.push(
+      `This ${vehicleRef} runs on the ${ownership.enginePlatform} platform, so known maintenance patterns should be considered before buying`
+    );
   }
 
-  if (ownership.maintenanceComplexity === "Higher") {
-    items.push("Confirm oil changes were done regularly rather than stretched too far");
+  if (fuel === "hybrid" || fuel === "electric") {
+    checklist.push(
+      `Check battery condition, charging behavior, and system warnings on this ${vehicleRef} before purchase`
+    );
+  }
+
+  if (ownership?.maintenanceComplexity === "Higher") {
+    checklist.push(
+      `This ${vehicleRef} carries higher ownership complexity, so inspection quality and service records matter more than average`
+    );
   }
 
   return {
     title: "Final Purchase Checklist",
-    items
+    summary: `Before buying this ${vehicleRef}, these checks should be completed to reduce the risk of unexpected ownership costs.`,
+    checklist
   };
 }
 
