@@ -3300,18 +3300,40 @@ function buildEngineAdvisory(vehicle) {
   };
 }
 
+function getCostMultiplier(vehicle) {
+  const make = safeValue(vehicle.make).toLowerCase();
+
+  if (make.includes("ferrari") || make.includes("lamborghini") || make.includes("mclaren")) return 3.0;
+  if (make.includes("porsche")) return 2.2;
+  if (make.includes("bmw") || make.includes("mercedes") || make.includes("audi")) return 1.8;
+  if (make.includes("tesla")) return 1.6;
+  if (make.includes("lexus")) return 1.3;
+
+  return 1.0;
+}
+
+function scaleCost(min, max, multiplier) {
+  const low = Math.round(min * multiplier);
+  const high = Math.round(max * multiplier);
+
+  return `$${low.toLocaleString("en-US")} to $${high.toLocaleString("en-US")}`;
+}
+
 function buildRiskForecast(vehicle, ownership, safety) {
   const vehicleRef = getVehicleReference(vehicle);
   const body = getBodyType(vehicle);
   const drive = getDriveTypeGroup(vehicle);
   const fuel = getFuelGroup(vehicle);
+  const multiplier = getCostMultiplier(vehicle);
 
   const items = [
     {
       area: "Suspension Wear",
       risk: drive === "awd" || body === "suv" || body === "truck" ? "High" : "Medium",
       note: `On this ${vehicleRef}, suspension components such as bushings, links, and control arms need closer inspection and are likely to require replacement if they have not already been addressed.`,
-      estimatedCost: body === "truck" || body === "suv" ? "$500 to $1,500" : "$400 to $1,200"
+      estimatedCost: body === "truck" || body === "suv"
+  ? scaleCost(500, 1500, multiplier)
+  : scaleCost(400, 1200, multiplier)
     },
     {
       area: "Cooling System",
@@ -3319,13 +3341,17 @@ function buildRiskForecast(vehicle, ownership, safety) {
       note: fuel === "electric"
         ? `Battery and drive unit temperature management on this ${vehicleRef} deserve close attention, rather than a conventional engine cooling layout.`
         : `The cooling system on this ${vehicleRef} needs proper attention. Hoses, pumps, thermostat related parts, and coolant condition should be checked before purchase.`,
-      estimatedCost: fuel === "electric" ? "$150 to $700" : "$300 to $1,000"
+      estimatedCost: fuel === "electric"
+  ? scaleCost(150, 700, multiplier)
+  : scaleCost(300, 1000, multiplier)
     },
     {
       area: "Braking System",
       risk: body === "truck" || body === "suv" ? "Medium" : "Low",
       note: `Brake wear on this ${vehicleRef} should be judged through pad life, disc condition, and any signs of vibration or uneven braking.`,
-      estimatedCost: body === "truck" || body === "suv" ? "$350 to $900" : "$250 to $800"
+      estimatedCost: body === "truck" || body === "suv"
+  ? scaleCost(350, 900, multiplier)
+  : scaleCost(250, 800, multiplier)
     }
   ];
 
@@ -3342,7 +3368,9 @@ function buildRiskForecast(vehicle, ownership, safety) {
     area: "Transmission Condition",
     risk: String(vehicle.transmissionRisk || "").toUpperCase() === "HIGHER" ? "High" : "Medium",
     note: `With this ${vehicleRef}, transmission condition should be judged by shift quality, service history, and fluid condition. If the gearbox has not been maintained properly, repair costs can rise quickly.`,
-    estimatedCost: String(vehicle.transmissionRisk || "").toUpperCase() === "HIGHER" ? "$800 to $4,500" : "$300 to $2,500"
+    estimatedCost: String(vehicle.transmissionRisk || "").toUpperCase() === "HIGHER"
+  ? scaleCost(800, 4500, multiplier)
+  : scaleCost(300, 2500, multiplier)
   });
 
   if (drive === "awd") {
@@ -3350,7 +3378,7 @@ function buildRiskForecast(vehicle, ownership, safety) {
       area: "All Wheel Drive System",
       risk: "Medium",
       note: `The all wheel drive system in this ${vehicleRef} should be checked for binding, tire mismatch, and driveline wear before purchase.`,
-      estimatedCost: "$800 to $3,500"
+      estimatedCost: scaleCost(800, 3500, multiplier)
     });
   }
 
@@ -3359,7 +3387,7 @@ function buildRiskForecast(vehicle, ownership, safety) {
       area: "Electrified System Diagnostics",
       risk: "Medium",
       note: `As this ${vehicleRef} ages, battery cooling, charging hardware, and control electronics deserve closer attention.`,
-      estimatedCost: "$500 to $4,000+"
+      estimatedCost: scaleCost(500, 4000, multiplier) + "+"
     });
   }
 
