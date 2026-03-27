@@ -3717,6 +3717,14 @@ function money(value) {
   return `$${num.toLocaleString("en-US")}`;
 }
 
+function toTitleCase(text = "") {
+  return text
+    .toLowerCase()
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 function buildExecutiveSummary(report) {
   const riskLevel = String(report.signals.riskLevel || "Moderate");
   const recalls = Number(report.safety.recalls || 0);
@@ -3974,7 +3982,7 @@ if (cleanWatchItems.length) {
     .trim();
 
   return {
-    headline,
+    headline: toTitleCase(headline),
     summary
   };
 }
