@@ -3902,9 +3902,15 @@ function buildExecutiveSummary(report) {
     detail += " Ownership complexity is about average, but inspection quality and maintenance history still matter.";
   }
 
-  if (enginePlatform) {
+  if (enginePlatform && !enginePlatform.toLowerCase().includes("platform")) {
+  detail += ` This vehicle sits on the ${enginePlatform} platform, which is something you should factor in when thinking about future maintenance exposure and how aggressively you negotiate.`;
+} else if (enginePlatform && enginePlatform !== "Manufacturer specific platform") {
+  if (!enginePlatform.toLowerCase().includes("platform")) {
     detail += ` This vehicle sits on the ${enginePlatform} platform, which is something you should factor in when thinking about future maintenance exposure and how aggressively you negotiate.`;
+  } else {
+    detail += ` This vehicle sits on the ${enginePlatform}, which is something you should factor in when thinking about future maintenance exposure and how aggressively you negotiate.`;
   }
+}
 
   if (retailGood > 0 && buyerLow > 0 && buyerHigh > 0) {
     detail += ` Similar cars in clean condition are typically advertised around ${money(retailGood)}, but once you factor in this specific vehicle, you should really be aiming closer to ${money(buyerLow)} to ${money(buyerHigh)}.`;
@@ -3937,7 +3943,7 @@ function buildExecutiveSummary(report) {
     detail += ` ${dealInsight}`;
   }
 
-  let closing = "Bottom line: prioritize inspection quality, confirm maintenance history, and make sure the price reflects the risk profile.";
+  let closing = "Bottom line: make sure the inspection, service history, and price all line up before moving ahead.";
 
   if (stance === "promising") {
     closing = "Bottom line: keep it on the shortlist, but still make the inspection and service history support the data before moving ahead.";
