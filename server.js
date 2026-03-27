@@ -3096,7 +3096,7 @@ function buildRiskForecast(vehicle, ownership, safety) {
   };
 }
 
-function buildNegotiationLeverage(vehicle, ownership, safety) {
+function buildNegotiationLeverage(vehicle, ownership, safety, marketAnalysis) {
     const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
   const items = [
     {
