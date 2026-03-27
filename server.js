@@ -3015,38 +3015,6 @@ function buildEngineAdvisory(vehicle) {
   };
 }
 
-function buildQuickBuyerSnapshot(vehicle, ownership, safety) {
-  const vehicleRef = getVehicleReference(vehicle);
-
-  const signals = [];
-
-  if (Number(safety?.recalls || 0) >= 3) {
-    signals.push("High recall activity");
-  }
-
-  if (ownership?.maintenanceComplexity === "Higher") {
-    signals.push("Higher maintenance platform");
-  }
-
-  if (String(vehicle.engineRiskLevel || "").toUpperCase() === "HIGHER") {
-    signals.push("Higher engine risk profile");
-  }
-
-  if (String(vehicle.transmissionRisk || "").toUpperCase() === "HIGHER") {
-    signals.push("Higher transmission risk");
-  }
-
-  if (signals.length === 0) {
-    signals.push("No major risk signals detected");
-  }
-
-  return {
-    title: "Quick Buyer Snapshot",
-    summary: `This free check confirms identity and surfaces public safety, efficiency, and platform signals for this ${vehicleRef}. Title history, damage records, and deeper ownership risk checks are not included in this view.`,
-    signals
-  };
-}
-
 function buildRiskForecast(vehicle, ownership, safety) {
   const vehicleRef = getVehicleReference(vehicle);
   const body = getBodyType(vehicle);
@@ -3683,8 +3651,6 @@ if (listingPrice > 0) {
     dealInsight = "Vehicle is priced below expected range. Positive buying opportunity.";
   }
 }
-const quickBuyerSnapshot = buildQuickBuyerSnapshot(vehicle, ownership, safety);
-
 const engineAdvisory = buildEngineAdvisory(vehicle);
 const riskForecast = buildRiskForecast(vehicle, ownership, safety);
 const negotiationLeverage = buildNegotiationLeverage(vehicle, ownership, safety, marketAnalysis);
@@ -3711,7 +3677,6 @@ dealAnalysis: {
   dealInsight
 },
 
-quickBuyerSnapshot,
 engineAdvisory,
     riskForecast,
     negotiationLeverage,
