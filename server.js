@@ -3105,41 +3105,43 @@ function getVehicleReference(vehicle) {
 }
 
 function buildNegotiationLeverage(vehicle, ownership, safety, marketAnalysis) {
-    const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
+  const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
+  const vehicleRef = getVehicleReference(vehicle);
+
   const items = [
     {
       title: "Maintenance History",
-      script: "Without strong service documentation, I have to assume I may be catching up on deferred maintenance, so I need room in the price for that risk."
+      script: `If this ${vehicleRef} does not have a strong service history, the price needs to reflect catch up maintenance risk.`
     },
     {
-      title: "Wear Item",
-      script: "Tires, brakes, suspension wear, and age related service items all affect immediate ownership cost, so I need to budget for those on day one."
+      title: "Wear Items",
+      script: `For this ${vehicleRef}, tires, brakes, suspension wear, and age related service items should be expected and factored into the purchase price.`
     }
   ];
 
-  if (ownership.maintenanceComplexity === "Higher") {
+    if (ownership.maintenanceComplexity === "Higher") {
     items.push({
       title: "Platform Complexity",
-      script: "This is not a budget vehicle to own just because the purchase price is lower now. The platform carries higher maintenance exposure than a typical non luxury equivalent."
+      script: `This ${vehicleRef} carries higher maintenance exposure than a typical non luxury alternative, so the price needs to reflect that.`
     });
   }
 
-  if (Number(safety.recalls || 0) >= 3) {
+    if (Number(safety.recalls || 0) >= 3) {
     items.push({
       title: "Recall Follow Up",
-      script: "Since this vehicle profile shows multiple recall records, I need to verify remedy completion and leave room for any unresolved campaign related inconvenience."
+      script: `This ${vehicleRef} shows multiple recall records, so remedy completion should be confirmed before agreeing on price.`
     });
   }
 
-    if (ownership.enginePlatform && ownership.enginePlatform !== "Manufacturer specific platform") {
-    let engineScript = `This vehicle sits on the ${ownership.enginePlatform} platform, so I have to price in the known maintenance profile and the possibility of age related engine bay repairs.`;
+      if (ownership.enginePlatform && ownership.enginePlatform !== "Manufacturer specific platform") {
+    let engineScript = `This ${vehicleRef} sits on the ${ownership.enginePlatform} platform, so the price should reflect the maintenance exposure that comes with it.`;
 
     if (engineRisk === "HIGHER") {
-      engineScript = `This vehicle sits on the ${ownership.enginePlatform} platform, and that engine profile carries higher ownership risk, so I need stronger room in the price for inspection findings, preventive work, and possible engine related repairs.`;
+      engineScript = `This ${vehicleRef} sits on the ${ownership.enginePlatform} platform, and that engine profile carries higher ownership risk, so stronger room is needed in the price for inspection findings and possible engine related repairs.`;
     }
 
     if (engineRisk === "MODERATE") {
-      engineScript = `This vehicle sits on the ${ownership.enginePlatform} platform, so I still need room in the price for maintenance exposure, inspection findings, and possible age related engine bay repairs.`;
+      engineScript = `This ${vehicleRef} sits on the ${ownership.enginePlatform} platform, so the price should still leave room for maintenance exposure, inspection findings, and age related repairs.`;
     }
 
     items.push({
@@ -3148,21 +3150,21 @@ function buildNegotiationLeverage(vehicle, ownership, safety, marketAnalysis) {
     });
   }
 
-  if (marketAnalysis?.buyerTargetValues?.high) {
-  items.push({
-    title: "Buyer Range",
-    script: `The price for this ${safeValue(vehicle.year)} ${safeValue(vehicle.make)} ${safeValue(vehicle.model)} needs to stay aligned with the risk adjusted buyer range, not just the seller's asking number.`
-  });
-}
+    if (marketAnalysis?.buyerTargetValues?.high) {
+    items.push({
+      title: "Buyer Range",
+      script: `The price for this ${vehicleRef} needs to stay aligned with the risk adjusted buyer range, not just the seller's asking number.`
+    });
+  }
 
-    let summary = "Use these talking points to frame the vehicle as one that may still be worth buying, but only at a price that respects upcoming ownership cost.";
+     let summary = `Use these points to position this ${vehicleRef} correctly based on condition, risk, and expected ownership cost.`;
 
   if (engineRisk === "HIGHER") {
-    summary = "Use these talking points to frame the vehicle as one that may still be worth buying, but only at a price that reflects higher engine related ownership risk and possible catch up maintenance.";
+    summary = `Use these points to position this ${vehicleRef} as a higher risk buy that still needs strong inspection results and real room in the price.`;
   }
 
   if (engineRisk === "MODERATE") {
-    summary = "Use these talking points to frame the vehicle as one that may still be worth buying, but only at a price that reflects engine platform exposure, age related maintenance, and inspection risk.";
+    summary = `Use these points to position this ${vehicleRef} as a vehicle that may still be worth buying, but only at a price that reflects maintenance exposure and inspection risk.`;
   }
 
   return {
