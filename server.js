@@ -2412,17 +2412,6 @@ function getVehicleAgeBucket(year) {
   return "13_plus";
 }
 
-function getDriveGroupForMarket(vehicle) {
-  const value = String(vehicle.drive || "").trim().toUpperCase();
-
-  if (value.includes("FWD") || value.includes("FRONT")) return "fwd";
-  if (value.includes("RWD") || value.includes("REAR")) return "rwd";
-  if (value.includes("AWD") || value.includes("ALL")) return "awd";
-  if (value.includes("4WD") || value.includes("4X4") || value.includes("FOUR")) return "4wd";
-
-  return "rwd";
-}
-
 function getFuelGroupForMarket(vehicle) {
   const value = String(vehicle.fuel || "").trim().toUpperCase();
 
@@ -2433,16 +2422,6 @@ function getFuelGroupForMarket(vehicle) {
   return "gasoline";
 }
 
-function riskLabelToScore(label) {
-  const value = String(label || "").trim().toUpperCase();
-
-  if (value === "LOW") return 20;
-  if (value === "MODERATE") return 50;
-  if (value === "HIGHER") return 80;
-
-  return 50;
-}
-
 function roundToNearestHundred(value) {
   return Math.round(Number(value || 0) / 100) * 100;
 }
@@ -2451,157 +2430,376 @@ function numberWithCommas(value) {
   return Number(value || 0).toLocaleString("en-US");
 }
 
-const BASE_MARKET_RULES = {
-  brandTierMultiplier: {
-    mainstream: 1.00,
-    near_premium: 1.08,
-    premium: 1.20,
-    exotic: 1.55
-  },
+function safeNumber(value, fallback = 0) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+}
 
-  segmentBase: {
-    compact_car: 20500,
-    midsize_car: 25500,
-    fullsize_car: 33500,
-    coupe: 29000,
-    convertible: 36000,
-    hatchback: 21500,
-    wagon: 28500,
-    compact_suv: 29500,
-    midsize_suv: 37500,
-    large_suv: 52000,
-    pickup: 40500,
-    heavy_duty_truck: 58500,
-    van: 34500,
-    cargo_van: 38500
-  },
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
 
-  drivetrainMultiplier: {
-    fwd: 0.98,
-    rwd: 1.00,
-    awd: 1.06,
-    "4wd": 1.09
-  },
+function roundToNearestHundred(value) {
+  return Math.round(Number(value || 0) / 100) * 100;
+}
 
-  fuelTypeMultiplier: {
-    gasoline: 1.00,
-    diesel: 1.07,
-    hybrid: 1.09,
-    phev: 1.12,
-    electric: 1.14
-  },
+function normalizeMake(make = "") {
+  return String(make).trim().toLowerCase();
+}
 
-  ageDepreciationMultiplier: {
-    "0_1": 0.92,
-    "2_3": 0.79,
-    "4_5": 0.66,
-    "6_8": 0.50,
-    "9_12": 0.34,
-    "13_plus": 0.21,
-    unknown: 0.35
-  },
+function getBrandTier(make = "") {
+  const normalized = normalizeMake(make);
 
-  riskAdjustments: {
-    very_low: 1.00,
-    low: 0.97,
-    moderate: 0.93,
-    high: 0.88,
-    severe: 0.81
+  const tiers = {
+    exotic: ["ferrari", "lamborghini", "mclaren", "bugatti", "pagani", "koenigsegg"],
+    ultraLuxury: ["rolls-royce", "rolls royce", "bentley", "maybach"],
+    luxury: ["porsche", "mercedes-benz", "mercedes", "bmw", "audi", "lexus", "jaguar", "land rover", "range rover", "maserati", "aston martin"],
+    premium: ["acura", "infiniti", "genesis", "volvo", "alfa romeo", "cadillac", "lincoln"],
+    mainstream: ["toyota", "honda", "ford", "chevrolet", "chevy", "nissan", "hyundai", "kia", "subaru", "mazda", "volkswagen", "vw", "gmc", "ram", "jeep"],
+    budget: ["mitsubishi", "chrysler", "dodge", "fiat", "smart"]
+  };
+
+  for (const [tier, makes] of Object.entries(tiers)) {
+    if (makes.includes(normalized)) return tier;
   }
-};
+
+  return "mainstream";
+}
+
+function normalizeFuelType(vehicle = {}) {
+  const raw = String(vehicle.fuel || "").toLowerCase();
+
+  if (raw.includes("plug") || raw.includes("phev")) return "phev";
+  if (raw.includes("hybrid")) return "hybrid";
+  if (raw.includes("electric") || raw === "ev" || raw.includes("bev")) return "ev";
+  if (raw.includes("diesel")) return "diesel";
+  if (raw.includes("gas") || raw.includes("petrol")) return "gasoline";
+
+  return "other";
+}
+
+function getVehicleSegmentForPricing(vehicle = {}) {
+  const body = String(vehicle.body || "").toLowerCase();
+  const model = String(vehicle.model || "").toLowerCase();
+  const make = String(vehicle.make || "").toLowerCase();
+
+  if (body.includes("pickup") || body.includes("truck")) return "truck";
+  if (body.includes("minivan")) return "minivan";
+  if (body.includes("van")) return "van";
+  if (body.includes("wagon")) return "wagon";
+  if (body.includes("hatch")) return "hatchback";
+  if (body.includes("convertible") || body.includes("cabrio") || body.includes("roadster") || body.includes("spider")) return "convertible";
+  if (body.includes("coupe")) return "coupe";
+  if (body.includes("crossover") || body.includes("cuv")) return "crossover";
+  if (body.includes("sport utility") || body.includes("utility") || body.includes("suv")) return "suv";
+  if (body.includes("sedan") || body.includes("saloon")) return "sedan";
+
+  if (["ferrari", "lamborghini", "mclaren", "bugatti", "pagani", "koenigsegg"].includes(make)) return "exoticSports";
+
+  if (
+    model.includes("corvette") ||
+    model.includes("911") ||
+    model.includes("boxster") ||
+    model.includes("cayman") ||
+    model.includes("supra") ||
+    model.includes("gt-r") ||
+    model.includes("gtr")
+  ) {
+    return "sports";
+  }
+
+  return "sedan";
+}
+
+function getVehicleAgeBucket(year) {
+  const age = Math.max(0, 2026 - safeNumber(year, 2026));
+
+  if (age <= 1) return "0_1";
+  if (age <= 3) return "2_3";
+  if (age <= 5) return "4_5";
+  if (age <= 8) return "6_8";
+  if (age <= 12) return "9_12";
+  return "13_plus";
+}
+
+function estimateBaseMSRP(vehicle = {}) {
+  const brandTier = getBrandTier(vehicle.make || "");
+  const segment = getVehicleSegmentForPricing(vehicle);
+  const year = safeNumber(vehicle.year, 2026);
+
+  const baseMsrpMap = {
+    exotic: {
+      exoticSports: 260000,
+      sports: 210000,
+      coupe: 190000,
+      convertible: 230000,
+      sedan: 180000,
+      suv: 320000
+    },
+    ultraLuxury: {
+      sedan: 185000,
+      suv: 210000,
+      coupe: 175000,
+      convertible: 195000
+    },
+    luxury: {
+      sedan: 65000,
+      suv: 72000,
+      crossover: 58000,
+      coupe: 70000,
+      convertible: 78000,
+      sports: 105000
+    },
+    premium: {
+      sedan: 44000,
+      suv: 50000,
+      crossover: 42000,
+      coupe: 46000,
+      sports: 62000
+    },
+    mainstream: {
+      sedan: 30000,
+      suv: 39000,
+      crossover: 34000,
+      coupe: 32000,
+      hatchback: 26000,
+      wagon: 32000,
+      truck: 42000,
+      minivan: 41000,
+      van: 43000,
+      sports: 52000,
+      convertible: 39000
+    },
+    budget: {
+      sedan: 24000,
+      suv: 30000,
+      crossover: 27000,
+      hatchback: 22000,
+      truck: 34000,
+      minivan: 33000,
+      van: 34000
+    }
+  };
+
+  const tierMap = baseMsrpMap[brandTier] || baseMsrpMap.mainstream;
+  let msrp = tierMap[segment] || tierMap.sedan || 30000;
+
+  if (year >= 2023) msrp *= 1.08;
+  else if (year >= 2019) msrp *= 1.03;
+  else if (year <= 2010) msrp *= 0.92;
+
+  return Math.round(msrp);
+}
+
+function getBaseDepreciationRate(vehicle = {}) {
+  const fuelType = normalizeFuelType(vehicle);
+  const segment = getVehicleSegmentForPricing(vehicle);
+  const tier = getBrandTier(vehicle.make || "");
+
+  const defaultRates = {
+    gasoline: 0.07,
+    diesel: 0.06,
+    hybrid: 0.08,
+    phev: 0.09,
+    ev: 0.11,
+    other: 0.07
+  };
+
+  let rate = defaultRates[fuelType] || 0.07;
+
+  if (segment === "truck") rate -= 0.02;
+  if (segment === "suv") rate -= 0.01;
+  if (segment === "sports") rate -= 0.02;
+  if (segment === "exoticSports") rate = 0.035;
+  if (segment === "minivan") rate += 0.01;
+
+  if (tier === "exotic") rate = Math.min(rate, 0.035);
+  if (tier === "ultraLuxury") rate = Math.min(rate, 0.055);
+
+  return clamp(rate, 0.02, 0.22);
+}
+
+function getDepreciatedBaseValue(msrp, year, depRate) {
+  const age = Math.max(0, 2026 - safeNumber(year, 2026));
+
+  if (age === 0) return msrp * 0.93;
+  if (age === 1) return msrp * 0.82;
+
+  const postYearOneValue = msrp * 0.82;
+  const remainingYears = Math.max(0, age - 1);
+
+  return postYearOneValue * Math.pow(1 - depRate, remainingYears);
+}
+
+function getMinimumReasonableValue(vehicle = {}, msrp = 0) {
+  const year = intValue(vehicle.year) || 2018;
+  const make = safeValue(vehicle.make).toLowerCase();
+  const age = new Date().getFullYear() - year;
+
+  // Base % floors by tier
+  let minPercent = 0.10; // default fallback
+
+  if (make.includes("ferrari") || make.includes("lamborghini") || make.includes("mclaren")) {
+    minPercent = 0.45; // exotic cars hold value hard
+  } else if (make.includes("porsche")) {
+    minPercent = 0.35;
+  } else if (make.includes("bmw") || make.includes("mercedes") || make.includes("audi")) {
+    minPercent = 0.20;
+  } else if (make.includes("tesla")) {
+    minPercent = 0.25;
+  } else {
+    minPercent = 0.15; // mainstream
+  }
+
+  // Age-based adjustment
+  if (age > 15) minPercent *= 0.7;
+  if (age > 20) minPercent *= 0.5;
+
+  const floor = msrp * minPercent;
+
+  // Absolute minimum sanity floor
+  return Math.max(floor, 5000);
+}
+
+function applyBrandTierAdjustment(value, make = "") {
+  const tier = getBrandTier(make);
+
+  const multipliers = {
+    exotic: 1.35,
+    ultraLuxury: 1.22,
+    luxury: 1.10,
+    premium: 1.04,
+    mainstream: 1.00,
+    budget: 0.92
+  };
+
+  return value * (multipliers[tier] || 1);
+}
+
+function applySegmentMarketAdjustment(value, vehicle = {}) {
+  const segment = getVehicleSegmentForPricing(vehicle);
+
+  const multipliers = {
+    truck: 1.08,
+    suv: 1.04,
+    crossover: 1.01,
+    sports: 1.10,
+    coupe: 1.03,
+    sedan: 0.97,
+    hatchback: 0.96,
+    wagon: 0.98,
+    minivan: 0.92,
+    van: 0.94,
+    convertible: 1.05,
+    exoticSports: 1.18
+  };
+
+  return value * (multipliers[segment] || 1);
+}
+
+function getRiskDeductionPercent(vehicle = {}) {
+  let deduction = 0;
+
+  const engine = String(vehicle.engineRiskLevel || "").toUpperCase();
+  const transmission = String(vehicle.transmissionRisk || "").toUpperCase();
+  const mechanical = String(vehicle.mechanicalRiskLevel || "").toUpperCase();
+
+  if (engine === "HIGHER") deduction += 0.12;
+  else if (engine === "MODERATE") deduction += 0.05;
+  else if (engine === "LOW") deduction += 0.01;
+
+  if (transmission === "HIGHER") deduction += 0.10;
+  else if (transmission === "MODERATE") deduction += 0.04;
+  else if (transmission === "LOW") deduction += 0.01;
+
+  if (mechanical === "HIGHER") deduction += 0.08;
+  else if (mechanical === "MODERATE") deduction += 0.03;
+  else if (mechanical === "LOW") deduction += 0.01;
+
+  return clamp(deduction, 0, 0.28);
+}
+
+function getMinimumReasonableValue(vehicle = {}, msrp = 0) {
+  const tier = getBrandTier(vehicle.make || "");
+  const ageBucket = getVehicleAgeBucket(vehicle.year);
+
+  let floorPercent = 0.08;
+  let floorCash = 2000;
+
+  if (tier === "exotic") {
+    floorPercent = 0.35;
+    floorCash = 80000;
+  } else if (tier === "ultraLuxury") {
+    floorPercent = 0.22;
+    floorCash = 35000;
+  } else if (tier === "luxury") {
+    floorPercent = 0.14;
+    floorCash = 8000;
+  } else if (tier === "premium") {
+    floorPercent = 0.11;
+    floorCash = 5000;
+  }
+
+  if (ageBucket === "13_plus" && tier === "mainstream") {
+    floorPercent = 0.05;
+    floorCash = 1500;
+  }
+
+  return Math.max(msrp * floorPercent, floorCash);
+}
 
 function buildMarketAnalysis(vehicle) {
   const year = intValue(vehicle.year) || 2018;
-  const brandTier = getBrandTier(vehicle.make);
-  const vehicleSegment = getVehicleSegment(vehicle);
+  const make = safeValue(vehicle.make);
+  const model = safeValue(vehicle.model);
+  const brandTier = getBrandTier(make);
+  const vehicleSegment = getVehicleSegmentForPricing(vehicle);
   const ageBucket = getVehicleAgeBucket(year);
-  const drivetrain = getDriveGroupForMarket(vehicle);
-  const fuelType = getFuelGroupForMarket(vehicle);
+  const fuelType = normalizeFuelType(vehicle);
 
-  const segmentBase = BASE_MARKET_RULES.segmentBase[vehicleSegment] || 25500;
-  const brandTierMultiplier = BASE_MARKET_RULES.brandTierMultiplier[brandTier] || 1.0;
-  const drivetrainMultiplier = BASE_MARKET_RULES.drivetrainMultiplier[drivetrain] || 1.0;
-  const fuelTypeMultiplier = BASE_MARKET_RULES.fuelTypeMultiplier[fuelType] || 1.0;
-  const ageDepreciationMultiplier = BASE_MARKET_RULES.ageDepreciationMultiplier[ageBucket] || 0.35;
+  const msrp = estimateBaseMSRP(vehicle);
+  const depRate = getBaseDepreciationRate(vehicle);
 
-  const preRiskMarketCenter =
-    segmentBase *
-    brandTierMultiplier *
-    drivetrainMultiplier *
-    fuelTypeMultiplier *
-    ageDepreciationMultiplier;
+  let marketBase = getDepreciatedBaseValue(msrp, year, depRate);
+  marketBase = applyBrandTierAdjustment(marketBase, make);
+  marketBase = applySegmentMarketAdjustment(marketBase, vehicle);
+  marketBase = marketBase * (1 - getRiskDeductionPercent(vehicle));
 
-  const engineRiskScore = riskLabelToScore(vehicle.engineRiskLevel);
-  const transmissionRiskScore = riskLabelToScore(vehicle.transmissionRisk);
-  const mechanicalRiskScore = riskLabelToScore(vehicle.mechanicalRiskLevel);
+  const floorValue = getMinimumReasonableValue(vehicle, msrp);
+  marketBase = Math.max(marketBase, floorValue);
 
-  const riskLabel = String(vehicle.mechanicalRiskLevel || "").trim().toUpperCase();
+  const buyerLow = roundToNearestHundred(marketBase * 0.95);
+  const buyerHigh = roundToNearestHundred(marketBase * 1.05);
 
-let flatAdjustment = 0;
+  const tradeLow = roundToNearestHundred(marketBase * 0.85);
+  const tradeHigh = roundToNearestHundred(marketBase * 0.95);
 
-if (riskLabel === "HIGHER") {
-  flatAdjustment = -3000;
-} else if (riskLabel === "MODERATE") {
-  flatAdjustment = -1500;
-}
+  const retailFair = roundToNearestHundred(marketBase * 0.94);
+  const retailGood = roundToNearestHundred(marketBase * 1.10);
+  const retailExcellent = roundToNearestHundred(marketBase * 1.22);
 
-const weightedRiskScore = Math.round(
-  (engineRiskScore * 0.4) +
-  (transmissionRiskScore * 0.35) +
-  (mechanicalRiskScore * 0.25)
-);
-
-let overallRiskBand = "moderate";
-if (weightedRiskScore <= 15) overallRiskBand = "very_low";
-else if (weightedRiskScore <= 35) overallRiskBand = "low";
-else if (weightedRiskScore <= 55) overallRiskBand = "moderate";
-else if (weightedRiskScore <= 75) overallRiskBand = "high";
-else overallRiskBand = "severe";
-
-const riskMultiplier = BASE_MARKET_RULES.riskAdjustments[overallRiskBand] || 0.93;
-const riskAdjustedCenter = preRiskMarketCenter * riskMultiplier;
-const riskDelta = Math.round(riskAdjustedCenter - preRiskMarketCenter);
-const totalAdjustment = riskDelta + flatAdjustment;
-
-const retailLow = roundToNearestHundred(preRiskMarketCenter * 0.92);
-const retailHigh = roundToNearestHundred(preRiskMarketCenter * 1.08);
-
-const tradeLow = roundToNearestHundred(preRiskMarketCenter * 0.80);
-const tradeHigh = roundToNearestHundred(preRiskMarketCenter * 0.91);
-
-const buyerLow = roundToNearestHundred((preRiskMarketCenter * 0.84) + totalAdjustment);
-const buyerHigh = roundToNearestHundred((preRiskMarketCenter * 0.95) + totalAdjustment);
-
-const retailExcellent = roundToNearestHundred(retailHigh);
-const retailGood = roundToNearestHundred(preRiskMarketCenter);
-const retailFair = roundToNearestHundred((preRiskMarketCenter * 0.92) + totalAdjustment);
-
-  const tradeExcellent = roundToNearestHundred(tradeHigh);
-  const tradeGood = roundToNearestHundred((tradeLow + tradeHigh) / 2);
-  const tradeFair = roundToNearestHundred(tradeLow);
-
-  let analystNote = `This ${year} ${safeValue(vehicle.make)} ${safeValue(vehicle.model)} sits in the ${ageBucket} value window. Market positioning reflects brand tier, segment, drivetrain, fuel type, and age based depreciation, then adjusts buyer targets for engine, transmission, and mechanical risk.`;
+  let analystNote = `This ${year} ${make} ${model} sits in the ${ageBucket} value window. Market positioning reflects brand tier, segment, fuel type, and age based depreciation, then adjusts buyer targets for engine, transmission, and mechanical risk.`;
 
   if (brandTier === "premium") {
-    analystNote = `This ${year} ${safeValue(vehicle.make)} ${safeValue(vehicle.model)} sits in a premium vehicle value band where condition, mileage, service history, and major maintenance exposure matter more heavily than on a mainstream equivalent. Buyer targets are adjusted downward when powertrain and mechanical risk increases.`;
+    analystNote = `This ${year} ${make} ${model} sits in a premium vehicle value band where condition, mileage, service history, and major maintenance exposure matter more heavily than on a mainstream equivalent. Buyer targets are adjusted downward when powertrain and mechanical risk increases.`;
   }
 
-  if (fuelType === "electric") {
-    analystNote = `This ${year} ${safeValue(vehicle.make)} ${safeValue(vehicle.model)} sits in an EV value band where battery confidence, charging hardware, software condition, and warranty position can materially affect buyer target pricing.`;
+  if (fuelType === "ev") {
+    analystNote = `This ${year} ${make} ${model} sits in an EV value band where battery confidence, charging hardware, software condition, and warranty position can materially affect buyer target pricing.`;
   }
 
   return {
     valuationDate: "March 2026",
-    method: "Dynamic rules based valuation using brand tier, vehicle segment, drivetrain, fuel type, age bucket, and integrated engine, transmission, and mechanical risk",
+    method: "Dynamic rules based valuation using brand tier, vehicle segment, fuel type, age bucket, and integrated engine, transmission, and mechanical risk",
     retailValues: {
       excellent: retailExcellent,
       good: retailGood,
       fair: retailFair
     },
     tradeValues: {
-      excellent: tradeExcellent,
-      good: tradeGood,
-      fair: tradeFair
+      excellent: tradeHigh,
+      good: roundToNearestHundred((tradeLow + tradeHigh) / 2),
+      fair: tradeLow
     },
     buyerTargetValues: {
       low: buyerLow,
@@ -2610,35 +2808,15 @@ const retailFair = roundToNearestHundred((preRiskMarketCenter * 0.92) + totalAdj
     classification: {
       brandTier,
       vehicleSegment,
-      drivetrain,
       fuelType,
       ageBucket
     },
     pricingLogic: {
-      segmentBase: roundToNearestHundred(segmentBase),
-      brandTierMultiplier,
-      drivetrainMultiplier,
-      fuelTypeMultiplier,
-      ageDepreciationMultiplier,
-      preRiskMarketCenter: roundToNearestHundred(preRiskMarketCenter)
+      estimatedMSRP: roundToNearestHundred(msrp),
+      baseDepreciationRate: depRate,
+      marketBase: roundToNearestHundred(marketBase)
     },
-risks: {
-  engineRiskScore,
-  transmissionRiskScore,
-  mechanicalRiskScore,
-  weightedRiskScore,
-  overallRiskBand,
-  riskMultiplier
-},
-
-adjustments: {
-  percentageDelta: riskDelta,
-  flatAdjustment,
-  totalAdjustment,
-  direction: totalAdjustment > 0 ? "up" : totalAdjustment < 0 ? "down" : "neutral"
-},
-
-analystNote
+    analystNote
   };
 }
 
