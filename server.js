@@ -3140,6 +3140,13 @@ function buildNegotiationLeverage(vehicle, ownership, safety, marketAnalysis) {
     });
   }
 
+  if (marketAnalysis?.buyerTargetValues?.high) {
+    items.push({
+      title: "Buyer Range",
+      script: "The price needs to stay aligned with the risk adjusted buyer range, not just the seller's asking number."
+    });
+  }
+
     let summary = "Use these talking points to frame the vehicle as one that may still be worth buying, but only at a price that respects upcoming ownership cost.";
 
   if (engineRisk === "HIGHER") {
