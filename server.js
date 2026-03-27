@@ -3173,56 +3173,41 @@ function buildNegotiationLeverage(vehicle, ownership, safety, marketAnalysis) {
 }
 
 function buildOwnershipRoadmap(vehicle) {
+  const vehicleRef = getVehicleReference(vehicle);
   const fuel = getFuelGroup(vehicle);
 
-  const intervals = [
-    {
-      interval: "Immediate",
-      actions: [
-        "Fresh oil and filter service",
-        "Full fluid level check",
-        "Brake and tire condition review"
-      ]
-    },
-    {
-      interval: "Next 5,000 Miles",
-      actions: [
-        "Inspect suspension wear items",
-        "Review battery and charging system condition",
-        "Inspect for fluid leaks"
-      ]
-    },
-    {
-      interval: "Next 10,000 Miles",
-      actions: [
-        "Spark plugs and ignition review where applicable",
-        "Brake service review",
-        "Alignment and tire wear check"
-      ]
-    },
-    {
-      interval: "Next 20,000 to 30,000 Miles",
-      actions: [
-        "Transmission service review where applicable",
-        "Cooling system preventive inspection",
-        "Drive belt and major rubber component inspection"
-      ]
-    }
+  const intervalOne = [
+    `Check service history on this ${vehicleRef}`,
+    `Inspect suspension, brakes, and tires`,
+    `Confirm there are no active leaks or cooling issues`
+  ];
+
+  const intervalTwo = [
+    `Budget for wear items on this ${vehicleRef}`,
+    `Recheck brakes, suspension joints, and fluid condition`,
+    `Review whether any postponed maintenance now needs to be done`
+  ];
+
+  const intervalThree = [
+    `Plan for larger age related work on this ${vehicleRef}`,
+    `Reassess transmission condition and driveline behavior`,
+    `Keep ownership costs under control by fixing issues before they stack up`
   ];
 
   if (fuel === "electric") {
-    intervals[1].actions.push("Check charging behavior and cable condition");
-    intervals[2].actions.push("Inspect battery cooling system performance");
-  }
-
-  if (fuel === "hybrid") {
-    intervals[1].actions.push("Inspect hybrid cooling and charging related systems");
+    intervalOne[2] = `Confirm battery, charging, and thermal system condition`;
+    intervalTwo[1] = `Recheck tires, brakes, and battery cooling related systems`;
+    intervalThree[1] = `Reassess battery performance, charging hardware, and drive unit behavior`;
   }
 
   return {
     title: "30,000 Mile Ownership Roadmap",
-    summary: "This roadmap helps turn a vehicle from a short term purchase into a more predictable ownership experience.",
-    intervals
+    summary: `This roadmap shows the areas that should be watched most closely as this ${vehicleRef} moves through the next 30,000 miles.`,
+    intervals: [
+      { interval: "0 to 10,000 miles", actions: intervalOne },
+      { interval: "10,000 to 20,000 miles", actions: intervalTwo },
+      { interval: "20,000 to 30,000 miles", actions: intervalThree }
+    ]
   };
 }
 
