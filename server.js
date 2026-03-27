@@ -3935,13 +3935,25 @@ function buildExecutiveSummary(report) {
 
   const watchItems = [];
   if (attentionFlags.length) watchItems.push(...attentionFlags.slice(0, 3));
-  if (watchItems.length) {
-    detail += ` The main things worth keeping an eye on here are ${watchItems.join(", ")}.`;
-  }
+  const cleanWatchItems = watchItems.filter(item => {
+  if (!item) return false;
 
-  if (dealInsight) {
-    detail += ` ${dealInsight}`;
-  }
+  const lower = item.toLowerCase();
+
+  if (lower.includes("fuel economy match unavailable")) return false;
+  if (lower.includes("manufacturer specific platform")) return false;
+  if (lower.includes("engine platform: manufacturer specific platform")) return false;
+
+  return true;
+});
+
+if (cleanWatchItems.length) {
+  detail += ` The main things to pay attention to here are ${cleanWatchItems.join(", ")}.`;
+}
+
+  if (dealInsight && dealInsight !== "No pricing comparison available.") {
+  detail += ` ${dealInsight}`;
+}
 
   let closing = "Bottom line: make sure the inspection, service history, and price all line up before moving ahead.";
 
