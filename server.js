@@ -742,301 +742,679 @@ function getTransmissionIntelligence(vehicle) {
   };
 }
 
-function getEngineRiskProfile(enginePlatform) {
+function getVehicleReference(vehicle) {
+  const year = safeValue(vehicle.year, "").trim();
+  const make = safeValue(vehicle.make, "").trim();
+  const model = safeValue(vehicle.model, "").trim();
+
+  return [year, make, model].filter(Boolean).join(" ").trim() || "vehicle";
+}
+
+function getBrandTone(make) {
+  const brand = upperText(make);
+
+  if ([
+    "BMW", "AUDI", "MERCEDES-BENZ", "MERCEDES", "PORSCHE", "LEXUS", "ACURA",
+    "INFINITI", "CADILLAC", "GENESIS", "JAGUAR", "LAND ROVER", "VOLVO"
+  ].includes(brand)) {
+    return {
+      serviceWord: "service history",
+      inspectionWord: "specialist inspection",
+      ownershipWord: "ownership costs"
+    };
+  }
+
+  if (brand === "TESLA") {
+    return {
+      serviceWord: "battery and software history",
+      inspectionWord: "battery and systems inspection",
+      ownershipWord: "repair exposure"
+    };
+  }
+
+  return {
+    serviceWord: "service history",
+    inspectionWord: "inspection",
+    ownershipWord: "running costs"
+  };
+}
+
+function getEngineRiskProfile(enginePlatform, vehicle = {}) {
   const value = String(enginePlatform || "").toUpperCase();
+  const vehicleRef = getVehicleReference(vehicle);
 
   if (!value) {
     return {
       engineRiskLevel: "Unknown",
-      engineRiskNote: "No engine risk profile was confidently identified."
+      engineRiskNote: `No engine risk note could be confirmed yet for this ${vehicleRef}.`
     };
   }
 
-  // BMW
   if (value.includes("N20")) {
     return {
       engineRiskLevel: "Higher",
-      engineRiskNote: "This engine profile carries a higher ownership risk due to known timing chain, oil leak, and age related maintenance patterns."
+      engineRiskNote: `For this ${vehicleRef}, the N20 engine needs very close attention. Timing chain history, oil leaks, and overdue maintenance can turn this into an expensive buy quickly.`
     };
   }
 
   if (value.includes("N55")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This engine profile is generally known, but age, maintenance history, cooling system condition, and leak related issues still matter."
+      engineRiskNote: `This engine in this ${vehicleRef} needs a strong service history, clean cooling system condition, and evidence of proper maintenance. Age related leaks and neglected servicing will push costs up quickly.`
     };
   }
 
   if (value.includes("B48")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This engine profile is generally stronger than earlier alternatives, though cooling system, gasket, and service history still matter."
+      engineRiskNote: `This engine in this ${vehicleRef} is stronger than earlier alternatives, but cooling system condition, gasket health, and service history still need close attention.`
     };
   }
 
   if (value.includes("B58")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This engine profile is generally well regarded, but ownership cost can still rise quickly with neglected maintenance or cooling related issues."
+      engineRiskNote: `This engine in this ${vehicleRef} is one of the stronger modern options, but neglected cooling work, fluid servicing, and leak related repairs will still become expensive.`
     };
   }
 
   if (value.includes("S55") || value.includes("S58")) {
     return {
       engineRiskLevel: "Higher",
-      engineRiskNote: "High performance engine platforms can carry significantly higher ownership and repair exposure, especially if servicing has been inconsistent."
+      engineRiskNote: `For this ${vehicleRef}, the high performance engine setup raises ownership risk. Service history, cooling health, and evidence of careful maintenance matter more here than on a standard model.`
     };
   }
 
   if (value.includes("N20 OR B48")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This vehicle sits in an engine transition window, so exact engine confirmation matters before assigning a firmer ownership risk profile."
+      engineRiskNote: `This ${vehicleRef} sits in an engine transition window. Confirm the exact engine before making a final buying decision, because the ownership picture changes depending on which engine is fitted.`
     };
   }
 
-  // VAG
   if (value.includes("EA888 HIGH OUTPUT")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This higher output EA888 profile is widely used and capable, but carbon buildup, water pump related issues, and strict maintenance history should be taken seriously."
+      engineRiskNote: `For this ${vehicleRef}, the higher output EA888 needs close attention to cooling components, carbon buildup, and service history.`
     };
   }
 
   if (value.includes("EA888")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This turbocharged four cylinder profile is common and generally workable, but cooling system issues, oil consumption patterns, and carbon buildup can matter as mileage rises."
+      engineRiskNote: `For this ${vehicleRef}, the EA888 engine needs close attention to cooling components, carbon buildup, and oil service history.`
     };
   }
 
   if (value.includes("EA211")) {
     return {
       engineRiskLevel: "Low",
-      engineRiskNote: "This smaller displacement modern gasoline engine profile is generally lower risk, though regular servicing and cooling system condition still matter."
+      engineRiskNote: `For this ${vehicleRef}, the EA211 engine is lower risk than many turbo alternatives, but service history and cooling system condition still need checking.`
     };
   }
 
   if (value.includes("3.0T V6")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This turbocharged six cylinder performance profile can be strong, but ownership cost, cooling related wear, and service history become more important than on a simpler four cylinder car."
+      engineRiskNote: `For this ${vehicleRef}, the turbocharged V6 can be a strong engine, but cooling system condition, leak checks, and service history should all be verified before purchase.`
     };
   }
 
-  // Ford
   if (value.includes("2.7 ECOBOOST")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This EcoBoost profile offers strong performance, but turbocharged truck use, maintenance history, and cooling or oil related servicing should be reviewed carefully."
+      engineRiskNote: `For this ${vehicleRef}, the 2.7 EcoBoost should be judged on oil service history, cooling system condition, and signs of hard use.`
     };
   }
 
   if (value.includes("3.5 ECOBOOST")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This EcoBoost family is capable and common, but higher repair costs, timing related wear, and service history matter more than on a naturally aspirated alternative."
+      engineRiskNote: `For this ${vehicleRef}, the 3.5 EcoBoost can be a good engine, but timing related wear, turbo system condition, and service history matter a lot.`
     };
   }
 
   if (value.includes("ECOBOOST")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This turbocharged Ford engine family can offer good performance and efficiency, but cooling, oil change discipline, and long term maintenance history matter."
+      engineRiskNote: `For this ${vehicleRef}, the EcoBoost engine needs strong oil service history and close cooling system checks before purchase.`
     };
   }
 
-  // GM
   if (value.includes("GM GEN V V8")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This GM V8 profile is widely used and generally understood, but lifter related concerns, active fuel management behavior, and maintenance quality should be reviewed closely."
+      engineRiskNote: `For this ${vehicleRef}, this GM V8 should be checked for lifter related issues, maintenance history, and any signs of neglect.`
     };
   }
 
   if (value.includes("GM TURBO GASOLINE")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This modern GM turbo gasoline profile can be efficient and usable, but turbo related wear, cooling issues, and service history remain important."
+      engineRiskNote: `For this ${vehicleRef}, the turbocharged GM gasoline setup should be checked for cooling issues, turbo wear, and consistent servicing.`
     };
   }
 
-  // Toyota / Lexus
   if (value.includes("TOYOTA HYBRID SYNERGY DRIVE")) {
     return {
       engineRiskLevel: "Low",
-      engineRiskNote: "This hybrid system profile is generally viewed as one of the more predictable long term ownership setups, though battery age, cooling, and maintenance history still matter."
+      engineRiskNote: `For this ${vehicleRef}, the hybrid system is usually a strength, but battery age, cooling condition, and service records still matter before purchase.`
     };
   }
 
   if (value.includes("TOYOTA TRUCK AND SUV GASOLINE")) {
     return {
       engineRiskLevel: "Low",
-      engineRiskNote: "This body on frame Toyota gasoline profile is generally lower risk by segment standards, though mileage, towing use, and maintenance quality still matter."
+      engineRiskNote: `For this ${vehicleRef}, the Toyota truck or SUV gasoline setup is usually lower risk, but mileage, towing history, and service records still need checking.`
     };
   }
 
   if (value.includes("TOYOTA LEXUS HYBRID")) {
     return {
       engineRiskLevel: "Low",
-      engineRiskNote: "This Toyota Lexus hybrid profile is generally considered a lower risk ownership setup, though battery age, cooling system condition, and service record still matter."
+      engineRiskNote: `For this ${vehicleRef}, the Toyota Lexus hybrid setup is usually lower risk, but battery age, cooling system condition, and maintenance records still matter.`
     };
   }
 
   if (value.includes("TOYOTA LEXUS GASOLINE")) {
     return {
       engineRiskLevel: "Low",
-      engineRiskNote: "This Toyota Lexus gasoline profile is generally favorable, though service history, leak checks, and condition still matter with age."
+      engineRiskNote: `For this ${vehicleRef}, the Toyota Lexus gasoline engine is usually lower risk, but leaks, service history, and real condition still matter.`
     };
   }
 
-  // Honda / Acura
   if (value.includes("HONDA HYBRID")) {
     return {
       engineRiskLevel: "Low",
-      engineRiskNote: "This Honda hybrid profile is generally favorable, though battery age, software updates, and maintenance record should still be checked."
+      engineRiskNote: `For this ${vehicleRef}, the Honda hybrid setup is usually lower risk, but battery age, software updates, and service records still need checking.`
     };
   }
 
   if (value.includes("HONDA EARTH DREAMS")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This engine family is common and usually manageable, but oil dilution concerns in some applications, turbocharged versions, and maintenance history should be considered."
+      engineRiskNote: `For this ${vehicleRef}, the Earth Dreams engine should be judged on oil service history, exact engine version, and evidence of proper maintenance.`
     };
   }
 
   if (value.includes("HONDA ACURA MODERN GASOLINE")) {
     return {
       engineRiskLevel: "Low",
-      engineRiskNote: "This Honda Acura gasoline profile is generally solid, though service history, fluid maintenance, and age related wear still matter."
+      engineRiskNote: `For this ${vehicleRef}, the Honda Acura gasoline setup is usually solid, but service history and age related wear still need checking.`
     };
   }
 
-  // Nissan / Infiniti
   if (value.includes("NISSAN MODERN GASOLINE")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This Nissan gasoline profile is usually less concerning than the transmission side, but maintenance history, oil servicing, and cooling condition still matter."
+      engineRiskNote: `For this ${vehicleRef}, the engine side is often less concerning than the transmission, but oil service history and cooling condition still matter.`
     };
   }
 
   if (value.includes("INFINITI NISSAN MODERN GASOLINE")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This Infiniti Nissan gasoline profile can be perfectly usable, but premium ownership cost and maintenance history should be taken seriously."
+      engineRiskNote: `For this ${vehicleRef}, the Infiniti Nissan gasoline setup needs proper maintenance records and a clean inspection before the price makes sense.`
     };
   }
 
-  // Mercedes
   if (value.includes("M274") || value.includes("M264")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This modern Mercedes turbo four profile can be workable, but maintenance discipline, cooling system condition, and electronics related ownership costs matter."
+      engineRiskNote: `For this ${vehicleRef}, the Mercedes turbo four needs proper service history, cooling system checks, and a clean inspection before purchase.`
     };
   }
 
   if (value.includes("MERCEDES TURBOCHARGED SIX CYLINDER")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This Mercedes six cylinder profile offers strong performance, but repair costs and maintenance exposure can be meaningfully higher than average."
+      engineRiskNote: `For this ${vehicleRef}, the turbocharged Mercedes six cylinder carries stronger repair exposure, so service records and inspection quality matter more.`
     };
   }
 
-  // Volvo
   if (value.includes("VOLVO DRIVE E HYBRID")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This hybridized Drive E profile can be efficient and advanced, but complexity is higher, so battery system health, software behavior, and service history matter."
+      engineRiskNote: `For this ${vehicleRef}, the hybridized Drive E setup should be checked for battery system condition, software behavior, and service quality.`
     };
   }
 
   if (value.includes("VOLVO DRIVE E")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This Volvo Drive E profile is modern and efficient, but turbocharged four cylinder complexity, cooling health, and maintenance quality still matter."
+      engineRiskNote: `For this ${vehicleRef}, the Volvo Drive E engine should be judged on cooling system condition, turbo related wear, and service history.`
     };
   }
 
-  // Hyundai / Kia
   if (value.includes("KIA HYBRID") || value.includes("HYUNDAI HYBRID")) {
     return {
       engineRiskLevel: "Low",
-      engineRiskNote: "This modern hybrid profile is generally favorable for mainstream ownership, though battery age, software updates, and service history should still be checked."
+      engineRiskNote: `For this ${vehicleRef}, the hybrid setup is lower risk than many alternatives, but battery age, updates, and service history still need checking.`
     };
   }
 
   if (value.includes("KIA MODERN GASOLINE") || value.includes("HYUNDAI MODERN GASOLINE")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This mainstream gasoline engine family can be workable, but exact engine generation, oil service history, and known campaign exposure should be reviewed carefully."
+      engineRiskNote: `For this ${vehicleRef}, exact engine generation, service history, and campaign history should be reviewed before purchase.`
     };
   }
 
-  // Stellantis
   if (value.includes("PENTASTAR OR HEMI")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This Chrysler performance or utility profile can be durable, but ownership cost, fuel use, and maintenance quality matter more heavily as mileage increases."
+      engineRiskNote: `For this ${vehicleRef}, the Chrysler gasoline setup should be judged on service history, oil leaks, cooling condition, and prior use.`
     };
   }
 
   if (value.includes("JEEP CHRYSLER MODERN GASOLINE")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This Jeep Chrysler gasoline profile is common, but cooling system health, oil leaks, and service history should still guide the buying decision."
+      engineRiskNote: `For this ${vehicleRef}, cooling system health, oil leaks, and service history should guide the buying decision.`
     };
   }
 
   if (value.includes("RAM CHRYSLER TRUCK POWERTRAIN")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This truck powertrain family can be capable, but towing history, diesel or heavy duty use, and maintenance discipline should be taken seriously."
+      engineRiskNote: `For this ${vehicleRef}, towing history, heavy duty use, and maintenance discipline need close attention before purchase.`
     };
   }
 
-  // Subaru
   if (value.includes("SUBARU BOXER")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This Subaru boxer profile is distinctive and widely used, but oil consumption patterns, gasket history, and CVT pairing should still be reviewed carefully."
+      engineRiskNote: `For this ${vehicleRef}, oil usage, gasket history, and transmission pairing should all be reviewed before agreeing on price.`
     };
   }
 
-  // Mazda
   if (value.includes("SKYACTIV")) {
     return {
       engineRiskLevel: "Low",
-      engineRiskNote: "This Mazda Skyactiv profile is generally viewed favorably, though routine maintenance and condition still matter like any used vehicle."
+      engineRiskNote: `For this ${vehicleRef}, the Skyactiv engine is usually lower risk, but routine maintenance and real condition still matter.`
     };
   }
 
-  // Porsche
   if (value.includes("PORSCHE MODERN GASOLINE")) {
     return {
       engineRiskLevel: "Moderate",
-      engineRiskNote: "This Porsche performance profile may be desirable, but parts cost, service history, and specialist maintenance exposure are higher than average."
+      engineRiskNote: `For this ${vehicleRef}, parts cost, specialist servicing, and maintenance record matter more than on a mainstream alternative.`
     };
   }
 
-  // JLR
   if (value.includes("JAGUAR LAND ROVER MODERN GASOLINE")) {
     return {
       engineRiskLevel: "Higher",
-      engineRiskNote: "This Jaguar Land Rover gasoline profile can carry meaningfully higher ownership risk due to complexity, electronics exposure, and expensive repair pathways."
+      engineRiskNote: `For this ${vehicleRef}, the Jaguar Land Rover gasoline setup carries higher ownership risk due to complexity and repair cost.`
     };
   }
 
-  // Tesla
   if (value.includes("TESLA ELECTRIC DRIVE UNIT")) {
     return {
       engineRiskLevel: "Low",
-      engineRiskNote: "This electric drive unit profile removes many conventional engine failure points, though battery, charging hardware, and software condition still matter."
+      engineRiskNote: `This ${vehicleRef} avoids normal engine failure points, but battery condition, charging hardware, and software related faults still need checking.`
     };
   }
 
   return {
     engineRiskLevel: "Unknown",
-    engineRiskNote: "A deeper engine risk profile was not confidently identified for this vehicle yet."
+    engineRiskNote: `A deeper engine risk note was not confidently identified yet for this ${vehicleRef}.`
+  };
+}
+
+function applyEngineRiskToVerdict(baseVerdict, vehicle) {
+  const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
+  const vehicleRef = getVehicleReference(vehicle);
+
+  if (!engineRisk) {
+    return baseVerdict;
+  }
+
+  if (engineRisk === "HIGHER") {
+    return {
+      ...baseVerdict,
+      headline: `Engine risk on this ${vehicleRef} needs pricing discipline`,
+      summary: `This ${vehicleRef} can still be bought, but the engine risk needs to show up in the inspection, the service history, and the final price.`
+    };
+  }
+
+  if (engineRisk === "MODERATE") {
+    return {
+      ...baseVerdict,
+      headline: `This ${vehicleRef} needs a closer engine review`,
+      summary: `This ${vehicleRef} can still make sense, but the engine, cooling system, and maintenance record need proper checking before price is agreed.`
+    };
+  }
+
+  return baseVerdict;
+}
+
+function applyMechanicalRiskToVerdict(baseVerdict, vehicle) {
+  const mechRisk = String(vehicle.mechanicalRiskLevel || "").toUpperCase();
+  const vehicleRef = getVehicleReference(vehicle);
+
+  if (!mechRisk) {
+    return baseVerdict;
+  }
+
+  if (mechRisk === "HIGHER") {
+    return {
+      ...baseVerdict,
+      headline: `This ${vehicleRef} needs a stronger inspection before purchase`,
+      summary: `This ${vehicleRef} carries higher mechanical risk. Only proceed if inspection results are strong and the price leaves room for likely repair exposure.`
+    };
+  }
+
+  if (mechRisk === "MODERATE") {
+    return {
+      ...baseVerdict,
+      headline: `This ${vehicleRef} needs risk based pricing`,
+      summary: `This ${vehicleRef} sits in a moderate risk category. Service history, inspection quality, and pricing should all be aligned before purchase.`
+    };
+  }
+
+  if (mechRisk === "LOW") {
+    return {
+      ...baseVerdict,
+      headline: `This ${vehicleRef} shows a lower mechanical risk level`,
+      summary: `This ${vehicleRef} still needs a proper inspection, but the mechanical risk is lower than average based on the available data.`
+    };
+  }
+
+  return baseVerdict;
+}
+
+function getMechanicalRisk(vehicle) {
+  const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
+  const transRisk = String(vehicle.transmissionRisk || "").toUpperCase();
+  const vehicleRef = getVehicleReference(vehicle);
+
+  const riskMap = {
+    LOW: 1,
+    MODERATE: 2,
+    HIGHER: 3
+  };
+
+  const engineScore = riskMap[engineRisk] || 2;
+  const transScore = riskMap[transRisk] || 2;
+  const combinedScore = Math.max(engineScore, transScore);
+
+  let overallRisk = "Moderate";
+  if (combinedScore === 3) overallRisk = "Higher";
+  if (combinedScore === 1) overallRisk = "Low";
+
+  let summary = `This ${vehicleRef} sits in a moderate mechanical risk category. Service history, inspection quality, and price should all be checked carefully before purchase.`;
+
+  if (overallRisk === "Higher") {
+    summary = `This ${vehicleRef} sits in a higher mechanical risk category. Inspection depth, service evidence, and price discipline matter more on this vehicle.`;
+  }
+
+  if (overallRisk === "Low") {
+    summary = `This ${vehicleRef} sits in a lower mechanical risk category, but service history and inspection still need to support the asking price.`;
+  }
+
+  return {
+    overallRisk,
+    summary
+  };
+}
+
+function getBuyerProfile(vehicle) {
+  const risk = String(vehicle.mechanicalRiskLevel || "").toUpperCase();
+  const vehicleRef = getVehicleReference(vehicle);
+
+  if (risk === "LOW") {
+    return {
+      buyerType: "",
+      buyerSummary: `This ${vehicleRef} shows a lower mechanical risk level.`,
+      explanation: `This ${vehicleRef} does not show strong public risk signals across engine, transmission, or complaint data. That does not remove risk, but it does put more focus on condition, mileage, and service history.`,
+      guidance: `If this ${vehicleRef} has a good service history and passes inspection, the risk level is lower than average.`
+    };
+  }
+
+  if (risk === "MODERATE") {
+    return {
+      buyerType: "",
+      buyerSummary: `This ${vehicleRef} shows a moderate mechanical risk level.`,
+      explanation: `This ${vehicleRef} shows risk signals in one or more key areas such as engine, transmission, or ownership history. That means service records, inspection quality, and price need to work together before purchase.`,
+      guidance: `If this ${vehicleRef} has a strong service history, take it for a test drive and make sure the price reflects the risk already identified.`
+    };
+  }
+
+  if (risk === "HIGHER") {
+    return {
+      buyerType: "",
+      buyerSummary: `This ${vehicleRef} shows a higher mechanical risk level.`,
+      explanation: `This ${vehicleRef} carries stronger risk signals in the areas that usually drive repair bills. Inspection depth, mechanical condition, and pricing all matter more here.`,
+      guidance: `Only move forward with this ${vehicleRef} if inspection results are strong, service history is clear, and the price leaves room for repair exposure.`
+    };
+  }
+
+  return {
+    buyerType: "",
+    buyerSummary: `Risk on this ${vehicleRef} could not be fully defined.`,
+    explanation: `This ${vehicleRef} does not yet have a fully defined mechanical risk picture from the available data.`,
+    guidance: `Check service history, inspect the vehicle properly, and keep the price tied to confirmed condition.`
+  };
+}
+
+function buildEngineAdvisory(vehicle) {
+  const vehicleRef = getVehicleReference(vehicle);
+  const tone = getBrandTone(vehicle.make);
+
+  return {
+    title: `${vehicleRef} Engine Advisory`,
+    summary: `The engine in this ${vehicleRef} should be judged on ${tone.serviceWord}, cooling system condition, and known weak points for this platform. A smooth test drive does not replace records or inspection evidence.`,
+    advisoryItems: [
+      {
+        heading: "Service History",
+        body: `If this ${vehicleRef} has a strong ${tone.serviceWord}, confirm it before the test drive. Records matter more than a short drive that feels normal.`
+      },
+      {
+        heading: "Cooling System Condition",
+        body: `For this ${vehicleRef}, cooling system condition directly affects reliability. Pumps, hoses, thermostats, and prior replacement history should be checked closely.`
+      },
+      {
+        heading: "Leaks and Wear",
+        body: `For this ${vehicleRef}, look for oil leaks, gasket seepage, and signs of delayed maintenance. These issues tend to get more expensive once they are ignored.`
+      }
+    ]
+  };
+}
+
+function buildRiskForecast(vehicle, ownership, safety) {
+  const vehicleRef = getVehicleReference(vehicle);
+  const body = getBodyType(vehicle);
+  const drive = getDriveTypeGroup(vehicle);
+  const fuel = getFuelGroup(vehicle);
+
+  const items = [
+    {
+      area: "Suspension Wear",
+      risk: drive === "awd" || body === "suv" || body === "truck" ? "High" : "Medium",
+      note: `For this ${vehicleRef}, the bushings, links, and control arms should be checked closely. These parts take more load over time and are likely worn if they have not already been replaced.`,
+      estimatedCost: body === "truck" || body === "suv" ? "$500 to $1,500" : "$400 to $1,200"
+    },
+    {
+      area: "Cooling System",
+      risk: fuel === "electric" ? "Low" : "Medium",
+      note: fuel === "electric"
+        ? `For this ${vehicleRef}, cooling checks should focus on battery and drive unit temperature management rather than a conventional engine cooling layout.`
+        : `For this ${vehicleRef}, the cooling system needs proper attention. Hoses, pumps, thermostat related parts, and coolant condition should be checked before purchase.`,
+      estimatedCost: fuel === "electric" ? "$150 to $700" : "$300 to $1,000"
+    },
+    {
+      area: "Braking System",
+      risk: body === "truck" || body === "suv" ? "Medium" : "Low",
+      note: `For this ${vehicleRef}, brake wear should be checked through pad life, disc condition, and any signs of vibration or uneven braking.`,
+      estimatedCost: body === "truck" || body === "suv" ? "$350 to $900" : "$250 to $800"
+    }
+  ];
+
+  if (fuel !== "electric") {
+    items.push({
+      area: "Engine Seals and Service Items",
+      risk: "Medium",
+      note: `For this ${vehicleRef}, gasket condition, fluid leaks, and oil service history should be reviewed closely. If service records are weak, budget for catch up maintenance.`,
+      estimatedCost: "$250 to $1,500"
+    });
+  }
+
+  items.push({
+    area: "Transmission Condition",
+    risk: String(vehicle.transmissionRisk || "").toUpperCase() === "HIGHER" ? "High" : "Medium",
+    note: `For this ${vehicleRef}, the transmission should be judged by shift quality, service history, and fluid condition. If this gearbox has not been maintained properly, repair costs can rise quickly.`,
+    estimatedCost: String(vehicle.transmissionRisk || "").toUpperCase() === "HIGHER" ? "$800 to $4,500" : "$300 to $2,500"
+  });
+
+  if (drive === "awd") {
+    items.push({
+      area: "All Wheel Drive System",
+      risk: "Medium",
+      note: `For this ${vehicleRef}, the all wheel drive system should be checked for binding, tire mismatch, and driveline wear before purchase.`,
+      estimatedCost: "$800 to $3,500"
+    });
+  }
+
+  if (fuel === "hybrid" || fuel === "electric") {
+    items.push({
+      area: "Electrified System Diagnostics",
+      risk: "Medium",
+      note: `For this ${vehicleRef}, battery cooling, charging hardware, and control electronics deserve closer attention as the vehicle ages.`,
+      estimatedCost: "$500 to $4,000+"
+    });
+  }
+
+  if (Number(safety?.recalls || 0) >= 3) {
+    items.push({
+      area: "Recall Related Follow Up",
+      risk: "Medium",
+      note: `For this ${vehicleRef}, multiple recall records increase the need to confirm completed remedies and verify service campaign history.`,
+      estimatedCost: "Varies by open remedy status"
+    });
+  }
+
+  return {
+    title: "24 Month Risk Forecast",
+    summary: `Over the next 24 months, this ${vehicleRef} will need attention in the same areas that usually drive used car costs. The focus should be on condition now, not just mileage today.`,
+    items
+  };
+}
+
+function getVehicleReference(vehicle) {
+  const year = safeValue(vehicle.year, "").trim();
+  const make = safeValue(vehicle.make, "").trim();
+  const model = safeValue(vehicle.model, "").trim();
+
+  return [year, make, model].filter(Boolean).join(" ").trim() || "vehicle";
+}
+
+function getVehicleReference(vehicle) {
+  const year = safeValue(vehicle.year, "").trim();
+  const make = safeValue(vehicle.make, "").trim();
+  const model = safeValue(vehicle.model, "").trim();
+
+  return [year, make, model].filter(Boolean).join(" ").trim() || "vehicle";
+}
+
+function buildNegotiationLeverage(vehicle, ownership, safety, marketAnalysis) {
+  const vehicleRef = getVehicleReference(vehicle);
+
+  const items = [
+    {
+      title: "Use service history gaps",
+      script: `Ask for the full service history for this ${vehicleRef}. If records are incomplete, treat that as a cost risk and adjust the offer down.`
+    },
+    {
+      title: "Use known mechanical exposure",
+      script: `Point to the engine, transmission, or mechanical risk on this ${vehicleRef} and make the price reflect the likely work still to come.`
+    },
+    {
+      title: "Use condition against asking price",
+      script: `Compare the asking price for this ${vehicleRef} against its risk adjusted buy range. If the price sits too high, reduce the offer to match the actual risk.`
+    }
+  ];
+
+  if ((safety?.recalls || 0) > 0) {
+    items.push({
+      title: "Use recall history",
+      script: `Confirm whether recall work on this ${vehicleRef} has been completed. If recall history is unclear, use that uncertainty to support a lower offer.`
+    });
+  }
+
+  if ((safety?.complaints || 0) > 0) {
+    items.push({
+      title: "Use complaint history",
+      script: `Use complaint history on this ${vehicleRef} to ask direct questions about repeat faults, prior repairs, and unresolved issues before agreeing on price.`
+    });
+  }
+
+  if (marketAnalysis?.buyerTargetValues?.high) {
+    items.push({
+      title: "Anchor to buyer range",
+      script: `Keep the discussion anchored to the recommended buy range for this ${vehicleRef}. Do not negotiate from the seller's number alone.`
+    });
+  }
+
+  return {
+    title: "Negotiation Leverage",
+    summary: `Use the known risks, service history, and market position of this ${vehicleRef} to control the negotiation and keep the price aligned with condition.`,
+    items: items.slice(0, 4)
+  };
+}
+
+function buildOwnershipRoadmap(vehicle) {
+  const vehicleRef = getVehicleReference(vehicle);
+  const fuel = getFuelGroup(vehicle);
+
+  const intervalOne = [
+    `Check service history on this ${vehicleRef}`,
+    `Inspect suspension, brakes, and tires`,
+    `Confirm there are no active leaks or cooling issues`
+  ];
+
+  const intervalTwo = [
+    `Budget for wear items on this ${vehicleRef}`,
+    `Recheck brakes, suspension joints, and fluid condition`,
+    `Review whether any postponed maintenance now needs to be done`
+  ];
+
+  const intervalThree = [
+    `Plan for larger age related work on this ${vehicleRef}`,
+    `Reassess transmission condition and driveline behavior`,
+    `Keep ownership costs under control by fixing issues before they stack up`
+  ];
+
+  if (fuel === "electric") {
+    intervalOne[2] = `Confirm battery, charging, and thermal system condition`;
+    intervalTwo[1] = `Recheck tires, brakes, and battery cooling related systems`;
+    intervalThree[1] = `Reassess battery performance, charging hardware, and drive unit behavior`;
+  }
+
+  return {
+    title: "30,000 Mile Ownership Roadmap",
+    summary: `This roadmap shows the areas that should be watched most closely as this ${vehicleRef} moves through the next 30,000 miles.`,
+    intervals: [
+      { interval: "0 to 10,000 miles", actions: intervalOne },
+      { interval: "10,000 to 20,000 miles", actions: intervalTwo },
+      { interval: "20,000 to 30,000 miles", actions: intervalThree }
+    ]
+  };
+}
+
+function buildPurchaseChecklist(vehicle, ownership) {
+  const vehicleRef = getVehicleReference(vehicle);
+  const tone = getBrandTone(vehicle.make);
+
+  return {
+    title: "Final Purchase Checklist",
+    items: [
+      `Confirm the VIN, title, and seller details match for this ${vehicleRef}`,
+      `Check the ${tone.serviceWord} before relying on the test drive`,
+      `Inspect the engine, transmission, suspension, and brakes on this ${vehicleRef}`,
+      `Make sure the price reflects the actual condition and risk`,
+      `Only proceed once this ${vehicleRef} passes a proper ${tone.inspectionWord}`
+    ]
   };
 }
 
@@ -1140,7 +1518,7 @@ function getBuyerProfile(vehicle) {
 
   if (risk === "LOW") {
     return {
-      buyerType: "Low Risk Buyer Friendly",
+      buyerType: "",
       buyerSummary: "Suitable for buyers looking for predictable ownership with fewer surprises.",
       explanation: "Low means this vehicle does not show strong public risk signals across engine, transmission, or complaint data. That does not mean risk is zero, but it suggests a more predictable ownership profile where standard inspection and maintenance checks are usually sufficient.",
       guidance: "Focus on condition, mileage, and service history, but overall ownership risk is lower than average."
@@ -1149,7 +1527,7 @@ function getBuyerProfile(vehicle) {
 
   if (risk === "MODERATE") {
     return {
-      buyerType: "Balanced Buyer",
+      buyerType: "",
       buyerSummary: "Suitable for buyers comfortable managing some risk in exchange for value or spec.",
       explanation: "Moderate means this vehicle shows some risk signals either in engine platform, transmission type, or ownership patterns. This does not automatically make it a bad buy, but it does mean service history, inspection quality, and price become more important to get right.",
       guidance: "Prioritize inspection quality, confirm maintenance history, and ensure the price reflects the risk profile."
@@ -1158,7 +1536,7 @@ function getBuyerProfile(vehicle) {
 
   if (risk === "HIGHER") {
     return {
-      buyerType: "Risk Tolerant Buyer",
+      buyerType: "",
       buyerSummary: "Better suited to experienced buyers or those prepared for higher ownership costs.",
       explanation: "Higher means this vehicle shows stronger risk signals in key areas such as engine platform, transmission profile, or complaint history. This does not automatically mean you should avoid it, but it does mean inspection depth, mechanical condition, and price negotiation should carry significantly more weight before making a decision.",
       guidance: "Only proceed with strong inspection results, clear service history, and a price that reflects potential repair exposure."
@@ -1166,7 +1544,7 @@ function getBuyerProfile(vehicle) {
   }
 
   return {
-    buyerType: "General Buyer",
+    buyerType: "",
     buyerSummary: "Risk profile could not be clearly defined.",
     explanation: "This vehicle does not have a clearly defined risk profile based on available data.",
     guidance: "Proceed with a standard inspection and ensure service history is reviewed."
@@ -1230,13 +1608,229 @@ function xmlTag(xml, tag) {
   return match ? match[1].trim() : "";
 }
 
-function buildVehicleTitle(vehicle) {
-  return [
-    safeValue(vehicle.year),
-    safeValue(vehicle.make),
-    safeValue(vehicle.model),
-    safeValue(vehicle.trim)
-  ].filter(Boolean).join(" ");
+function getVehicleReference(vehicle) {
+  const year = safeValue(vehicle.year);
+  const make = safeValue(vehicle.make);
+  const model = safeValue(vehicle.model);
+  return [year, make, model].filter(Boolean).join(" ");
+}
+
+function getBrandTone(make) {
+  const brand = upperText(make);
+
+  if (["BMW", "AUDI", "MERCEDES-BENZ", "MERCEDES", "PORSCHE", "LEXUS", "ACURA", "INFINITI", "CADILLAC", "GENESIS", "JAGUAR", "LAND ROVER", "VOLVO"].includes(brand)) {
+    return {
+      ownershipWord: "ownership costs",
+      serviceWord: "service history",
+      inspectionWord: "specialist inspection"
+    };
+  }
+
+  if (["FORD", "CHEVROLET", "GMC", "RAM", "JEEP", "DODGE", "TOYOTA", "HONDA", "NISSAN", "SUBARU", "MAZDA", "HYUNDAI", "KIA", "VOLKSWAGEN"].includes(brand)) {
+    return {
+      ownershipWord: "running costs",
+      serviceWord: "service history",
+      inspectionWord: "inspection"
+    };
+  }
+
+  if (brand === "TESLA") {
+    return {
+      ownershipWord: "repair exposure",
+      serviceWord: "battery and software history",
+      inspectionWord: "battery and systems inspection"
+    };
+  }
+
+  return {
+    ownershipWord: "ownership costs",
+    serviceWord: "service history",
+    inspectionWord: "inspection"
+  };
+}
+
+function getRiskForecastTemplate(vehicle) {
+  const body = getBodyType(vehicle);
+  const drive = getDriveTypeGroup(vehicle);
+  const fuel = getFuelGroup(vehicle);
+
+  const vehicleRef = getVehicleReference(vehicle);
+
+  const items = [
+    {
+      area: "Suspension Wear",
+      risk: drive === "awd" || body === "suv" || body === "truck" ? "High" : "Medium",
+      note: `For this ${vehicleRef}, the bushings, links, and control arms should be checked closely. These parts take more load over time and are likely worn if they have not already been replaced.`,
+      estimatedCost: body === "truck" || body === "suv" ? "$500 to $1,500" : "$400 to $1,200"
+    },
+    {
+      area: "Cooling System",
+      risk: fuel === "electric" ? "Low" : "Medium",
+      note: fuel === "electric"
+        ? `For this ${vehicleRef}, cooling system checks should focus on battery and drive unit temperature management rather than a conventional engine cooling layout.`
+        : `For this ${vehicleRef}, the cooling system needs proper attention. Hoses, pumps, thermostat related parts, and coolant condition should be checked before purchase.`,
+      estimatedCost: fuel === "electric" ? "$150 to $700" : "$300 to $1,000"
+    },
+    {
+      area: "Braking System",
+      risk: body === "truck" || body === "suv" ? "Medium" : "Low",
+      note: `For this ${vehicleRef}, brake wear should be checked through pad life, disc condition, and any signs of vibration or uneven braking.`,
+      estimatedCost: body === "truck" || body === "suv" ? "$350 to $900" : "$250 to $800"
+    }
+  ];
+
+  if (fuel !== "electric") {
+    items.push({
+      area: "Engine Seals and Service Items",
+      risk: "Medium",
+      note: `For this ${vehicleRef}, gasket condition, fluid leaks, and oil service history should be reviewed closely. If service records are weak, budget for catch up maintenance.`,
+      estimatedCost: "$250 to $1,500"
+    });
+  }
+
+  items.push({
+    area: "Transmission Condition",
+    risk: String(vehicle.transmissionRisk || "").toUpperCase() === "HIGHER" ? "High" : "Medium",
+    note: `For this ${vehicleRef}, the transmission should be judged by shift quality, service history, and fluid condition. If this gearbox has not been maintained properly, repair costs can rise quickly.`,
+    estimatedCost: String(vehicle.transmissionRisk || "").toUpperCase() === "HIGHER" ? "$800 to $4,500" : "$300 to $2,500"
+  });
+
+  return items;
+}
+
+function buildDynamicEngineAdvisory(vehicle) {
+  const vehicleRef = getVehicleReference(vehicle);
+  const tone = getBrandTone(vehicle.make);
+
+  return {
+    title: `${vehicleRef} Engine Advisory`,
+    summary: `The engine in this ${vehicleRef} should be judged on ${tone.serviceWord}, cooling system condition, and known weak points for this platform. A smooth test drive does not replace records or inspection evidence.`,
+    advisoryItems: [
+      {
+        heading: "Service History",
+        body: `If this ${vehicleRef} has a strong ${tone.serviceWord}, confirm it before the test drive. Records matter more than a short drive that feels normal.`
+      },
+      {
+        heading: "Cooling System Condition",
+        body: `For this ${vehicleRef}, cooling system condition directly affects engine reliability. Pumps, hoses, thermostats, and prior replacement history should be checked closely.`
+      },
+      {
+        heading: "Leaks and Wear",
+        body: `For this ${vehicleRef}, look for oil leaks, gasket seepage, and signs of delayed maintenance. These issues tend to get more expensive once they are ignored.`
+      }
+    ]
+  };
+}
+
+function buildDynamicRiskForecast(vehicle) {
+  const vehicleRef = getVehicleReference(vehicle);
+
+  return {
+    title: "24 Month Ownership Risk Forecast",
+    summary: `Over the next 24 months, this ${vehicleRef} will need attention in the same areas that usually drive used car costs. The focus should be on condition now, not just mileage today.`,
+    items: getRiskForecastTemplate(vehicle)
+  };
+}
+
+function buildDynamicNegotiationLeverage(vehicle, ownership, safety, marketAnalysis) {
+  const vehicleRef = getVehicleReference(vehicle);
+
+  const items = [
+    {
+      title: "Use service history gaps",
+      script: `Ask for the full service history for this ${vehicleRef}. If records are incomplete, treat that as a cost risk and adjust the offer down.`
+    },
+    {
+      title: "Use known mechanical exposure",
+      script: `Point to the engine, transmission, or mechanical risk on this ${vehicleRef} and make the price reflect the likely work still to come.`
+    },
+    {
+      title: "Use condition against asking price",
+      script: `Compare the asking price for this ${vehicleRef} against its risk adjusted buy range. If the price sits too high, reduce the offer to match the actual risk.`
+    }
+  ];
+
+  if ((safety?.recalls || 0) > 0) {
+    items.push({
+      title: "Use recall history",
+      script: `Confirm whether recall work on this ${vehicleRef} has been completed. If recall history is unclear, use that uncertainty to support a lower offer.`
+    });
+  }
+
+  if ((safety?.complaints || 0) > 0) {
+    items.push({
+      title: "Use complaint history",
+      script: `Use complaint history on this ${vehicleRef} to ask direct questions about repeat faults, prior repairs, and unresolved issues before agreeing on price.`
+    });
+  }
+
+  if (marketAnalysis?.buyerTargetValues?.high) {
+    items.push({
+      title: "Anchor to buyer range",
+      script: `Keep the discussion anchored to the recommended buy range for this ${vehicleRef}. Do not negotiate from the seller's number alone.`
+    });
+  }
+
+  return {
+    title: "Negotiation Leverage",
+    summary: `Use the known risks, service history, and market position of this ${vehicleRef} to control the negotiation and keep the price aligned with condition.`,
+    items: items.slice(0, 4)
+  };
+}
+
+function buildDynamicOwnershipRoadmap(vehicle) {
+  const vehicleRef = getVehicleReference(vehicle);
+  const fuel = getFuelGroup(vehicle);
+
+  const intervalOne = [
+    `Check service history on this ${vehicleRef}`,
+    `Inspect suspension, brakes, and tires`,
+    `Confirm there are no active leaks or cooling issues`
+  ];
+
+  const intervalTwo = [
+    `Budget for wear items on this ${vehicleRef}`,
+    `Recheck brakes, suspension joints, and fluid condition`,
+    `Review whether any postponed maintenance now needs to be done`
+  ];
+
+  const intervalThree = [
+    `Plan for larger age related work on this ${vehicleRef}`,
+    `Reassess transmission condition and driveline behavior`,
+    `Keep ownership costs under control by fixing issues before they stack up`
+  ];
+
+  if (fuel === "electric") {
+    intervalOne[2] = `Confirm battery, charging, and thermal system condition`;
+    intervalTwo[1] = `Recheck tires, brakes, and battery cooling related systems`;
+    intervalThree[1] = `Reassess battery performance, charging hardware, and drive unit behavior`;
+  }
+
+  return {
+    title: "30,000 Mile Ownership Roadmap",
+    summary: `This roadmap shows the areas that should be watched most closely as this ${vehicleRef} moves through the next 30,000 miles.`,
+    intervals: [
+      { interval: "0 to 10,000 miles", actions: intervalOne },
+      { interval: "10,000 to 20,000 miles", actions: intervalTwo },
+      { interval: "20,000 to 30,000 miles", actions: intervalThree }
+    ]
+  };
+}
+
+function buildDynamicPurchaseChecklist(vehicle, ownership) {
+  const vehicleRef = getVehicleReference(vehicle);
+  const tone = getBrandTone(vehicle.make);
+
+  return {
+    title: "Final Purchase Checklist",
+    items: [
+      `Confirm the VIN, title, and seller details match for this ${vehicleRef}`,
+      `Check the ${tone.serviceWord} before relying on the test drive`,
+      `Inspect the engine, transmission, suspension, and brakes on this ${vehicleRef}`,
+      `Make sure the price reflects the actual condition and risk`,
+      `Only proceed once this ${vehicleRef} passes a proper ${tone.inspectionWord}`
+    ]
+  };
 }
 
 function buildEcoBadge(ghgScore, smartwayScore) {
@@ -3096,64 +3690,49 @@ function buildRiskForecast(vehicle, ownership, safety) {
   };
 }
 
-function buildNegotiationLeverage(vehicle, ownership, safety) {
-    const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
+function buildNegotiationLeverage(vehicle, ownership, safety, marketAnalysis) {
+  const vehicleRef = getVehicleReference(vehicle);
+
   const items = [
     {
-      title: "Maintenance History",
-      script: "Without strong service documentation, I have to assume I may be catching up on deferred maintenance, so I need room in the price for that risk."
+      title: "Use service history gaps",
+      script: `Ask for the full service history for this ${vehicleRef}. If records are incomplete, treat that as a cost risk and adjust the offer down.`
     },
     {
-      title: "Wear Item",
-      script: "Tires, brakes, suspension wear, and age related service items all affect immediate ownership cost, so I need to budget for those on day one."
+      title: "Use known mechanical exposure",
+      script: `Point to the engine, transmission, or mechanical risk on this ${vehicleRef} and make the price reflect the likely work still to come.`
+    },
+    {
+      title: "Use condition against asking price",
+      script: `Compare the asking price for this ${vehicleRef} against its risk adjusted buy range. If the price sits too high, reduce the offer to match the actual risk.`
     }
   ];
 
-  if (ownership.maintenanceComplexity === "Higher") {
+  if ((safety?.recalls || 0) > 0) {
     items.push({
-      title: "Platform Complexity",
-      script: "This is not a budget vehicle to own just because the purchase price is lower now. The platform carries higher maintenance exposure than a typical non luxury equivalent."
+      title: "Use recall history",
+      script: `Confirm whether recall work on this ${vehicleRef} has been completed. If recall history is unclear, use that uncertainty to support a lower offer.`
     });
   }
 
-  if (Number(safety.recalls || 0) >= 3) {
+  if ((safety?.complaints || 0) > 0) {
     items.push({
-      title: "Recall Follow Up",
-      script: "Since this vehicle profile shows multiple recall records, I need to verify remedy completion and leave room for any unresolved campaign related inconvenience."
+      title: "Use complaint history",
+      script: `Use complaint history on this ${vehicleRef} to ask direct questions about repeat faults, prior repairs, and unresolved issues before agreeing on price.`
     });
   }
 
-    if (ownership.enginePlatform && ownership.enginePlatform !== "Manufacturer specific platform") {
-    let engineScript = `This vehicle sits on the ${ownership.enginePlatform} platform, so I have to price in the known maintenance profile and the possibility of age related engine bay repairs.`;
-
-    if (engineRisk === "HIGHER") {
-      engineScript = `This vehicle sits on the ${ownership.enginePlatform} platform, and that engine profile carries higher ownership risk, so I need stronger room in the price for inspection findings, preventive work, and possible engine related repairs.`;
-    }
-
-    if (engineRisk === "MODERATE") {
-      engineScript = `This vehicle sits on the ${ownership.enginePlatform} platform, so I still need room in the price for maintenance exposure, inspection findings, and possible age related engine bay repairs.`;
-    }
-
+  if (marketAnalysis?.buyerTargetValues?.high) {
     items.push({
-      title: "Engine Platform",
-      script: engineScript
+      title: "Anchor to buyer range",
+      script: `Keep the discussion anchored to the recommended buy range for this ${vehicleRef}. Do not negotiate from the seller's number alone.`
     });
-  }
-
-    let summary = "Use these talking points to frame the vehicle as one that may still be worth buying, but only at a price that respects upcoming ownership cost.";
-
-  if (engineRisk === "HIGHER") {
-    summary = "Use these talking points to frame the vehicle as one that may still be worth buying, but only at a price that reflects higher engine related ownership risk and possible catch up maintenance.";
-  }
-
-  if (engineRisk === "MODERATE") {
-    summary = "Use these talking points to frame the vehicle as one that may still be worth buying, but only at a price that reflects engine platform exposure, age related maintenance, and inspection risk.";
   }
 
   return {
     title: "Negotiation Leverage",
-    summary,
-    items
+    summary: `Use the known risks, service history, and market position of this ${vehicleRef} to control the negotiation and keep the price aligned with condition.`,
+    items: items.slice(0, 4)
   };
 }
 
@@ -3606,7 +4185,7 @@ vehicle.transmissionType = transIntel.transmissionType;
 vehicle.transmissionRisk = transIntel.transmissionRisk;
 vehicle.transmissionSummary = transIntel.transmissionSummary;
 
-const engineRisk = getEngineRiskProfile(vehicle.enginePlatform);
+const engineRisk = getEngineRiskProfile(vehicle.enginePlatform, vehicle);
 vehicle.engineRiskLevel = engineRisk.engineRiskLevel;
 vehicle.engineRiskNote = engineRisk.engineRiskNote;
 
@@ -3653,7 +4232,7 @@ if (listingPrice > 0) {
 }
 const engineAdvisory = buildEngineAdvisory(vehicle);
 const riskForecast = buildRiskForecast(vehicle, ownership, safety);
-const negotiationLeverage = buildNegotiationLeverage(vehicle, ownership, safety);
+const negotiationLeverage = buildNegotiationLeverage(vehicle, ownership, safety, marketAnalysis);
 const ownershipRoadmap = buildOwnershipRoadmap(vehicle);
 const purchaseChecklist = buildPurchaseChecklist(vehicle, ownership);
 
