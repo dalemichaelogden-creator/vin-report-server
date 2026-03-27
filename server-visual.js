@@ -28,7 +28,7 @@ const sentReportEmails = new Set()
 async function sendAdminReportCopy({ vin, sessionId, reportHtml, vehicleTitle }) {
   const to = "contact@car-spec-check.co.uk"
 
-  await transporter.sendMail({
+  const result = await transporter.sendMail({
     from: process.env.SMTP_USER,
     to,
     subject: `Paid VIN Report Copy | ${vehicleTitle} | ${vin}`,
@@ -42,7 +42,42 @@ async function sendAdminReportCopy({ vin, sessionId, reportHtml, vehicleTitle })
       </div>
     `
   })
+
+  return result
 }
+
+app.get("/test-admin-email", async (req, res) => {
+  try {
+    const result = await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to: "contact@car-spec-check.co.uk",
+      subject: "SMTP test from VIN report server",
+      html: "<p>This is a test email from the VIN report server.</p>"
+    })
+
+    console.log("SMTP test success:", result)
+
+    res.json({
+      ok: true,
+      message: "Test email sent",
+      result
+    })
+  } catch (error) {
+    console.error("SMTP test failed full object:", error)
+    console.error("SMTP test failed message:", error?.message)
+    console.error("SMTP test failed code:", error?.code)
+    console.error("SMTP test failed response:", error?.response)
+    console.error("SMTP test failed responseCode:", error?.responseCode)
+
+    res.status(500).json({
+      ok: false,
+      message: error?.message || "SMTP test failed",
+      code: error?.code || "",
+      response: error?.response || "",
+      responseCode: error?.responseCode || ""
+    })
+  }
+})
 
 console.log("THIS IS THE VISUAL CUSTOMER REPORT FILE")
 console.log("SERVER_VISUAL_JS_BOOTED");
@@ -1772,16 +1807,28 @@ console.log("Full report fetched successfully");
     `
     if (sessionId && !sentReportEmails.has(sessionId)) {
   try {
-    await sendAdminReportCopy({
+    console.log("About to send admin report email")
+    console.log("SMTP_HOST:", process.env.SMTP_HOST)
+    console.log("SMTP_PORT:", process.env.SMTP_PORT)
+    console.log("SMTP_USER:", process.env.SMTP_USER)
+    console.log("ADMIN_REPORT_EMAIL:", "contact@car-spec-check.co.uk")
+
+    const emailResult = await sendAdminReportCopy({
       vin,
       sessionId,
       reportHtml,
       vehicleTitle: report.vehicle.title || "Vehicle"
     })
 
+    console.log("Admin report email sent successfully:", emailResult)
+
     sentReportEmails.add(sessionId)
   } catch (emailError) {
-    console.error("Failed to send admin report copy:", emailError)
+    console.error("Failed to send admin report copy full object:", emailError)
+    console.error("Failed to send admin report copy message:", emailError?.message)
+    console.error("Failed to send admin report copy code:", emailError?.code)
+    console.error("Failed to send admin report copy response:", emailError?.response)
+    console.error("Failed to send admin report copy responseCode:", emailError?.responseCode)
   }
 }
 
