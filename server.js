@@ -3016,55 +3016,55 @@ function buildEngineAdvisory(vehicle) {
 }
 
 function buildRiskForecast(vehicle, ownership, safety) {
-    const engineRisk = String(vehicle.engineRiskLevel || "").toUpperCase();
-  const drive = getDriveTypeGroup(vehicle);
+  const vehicleRef = getVehicleReference(vehicle);
   const body = getBodyType(vehicle);
+  const drive = getDriveTypeGroup(vehicle);
   const fuel = getFuelGroup(vehicle);
 
   const items = [
     {
-      area: "Cooling System",
-      risk: isLuxuryBrand(vehicle.make) ? "High" : "Medium",
-      note: "Cooling components become more failure prone with age, especially on turbocharged and luxury platforms.",
-      estimatedCost: isLuxuryBrand(vehicle.make) ? "$900 to $1,500" : "$500 to $1,000"
-    },
-    {
       area: "Suspension Wear",
-      risk: body === "suv" || drive === "awd" ? "Medium" : "Low",
-      note: "Bushings, links, and control arms take more load as mileage increases, especially on heavier vehicles and all wheel drive systems.",
-      estimatedCost: "$500 to $1,400"
+      risk: drive === "awd" || body === "suv" || body === "truck" ? "High" : "Medium",
+      note: `For this ${vehicleRef}, suspension components such as bushings, links, and control arms will need closer inspection, and are likely to require replacement if they have not already been addressed.`,
+      estimatedCost: body === "truck" || body === "suv" ? "$500 to $1,500" : "$400 to $1,200"
     },
     {
-      area: "Oil Leaks and Seals",
-      risk: isLuxuryBrand(vehicle.make) ? "High" : "Medium",
-      note: "Aging gaskets and seals frequently become a budget item on older vehicles, especially turbocharged examples.",
-      estimatedCost: "$400 to $1,200"
+      area: "Cooling System",
+      risk: fuel === "electric" ? "Low" : "Medium",
+      note: fuel === "electric"
+        ? `For this ${vehicleRef}, cooling checks should focus on battery and drive unit temperature management rather than a conventional engine cooling layout.`
+        : `For this ${vehicleRef}, the cooling system needs proper attention. Hoses, pumps, thermostat related parts, and coolant condition should be checked before purchase.`,
+      estimatedCost: fuel === "electric" ? "$150 to $700" : "$300 to $1,000"
+    },
+    {
+      area: "Braking System",
+      risk: body === "truck" || body === "suv" ? "Medium" : "Low",
+      note: `For this ${vehicleRef}, brake wear should be checked through pad life, disc condition, and any signs of vibration or uneven braking.`,
+      estimatedCost: body === "truck" || body === "suv" ? "$350 to $900" : "$250 to $800"
     }
   ];
 
-  if (engineRisk === "HIGHER") {
-    items.unshift({
-      area: "Engine Platform Related Risk",
-      risk: "High",
-      note: "This engine family carries a higher ownership risk profile, so engine inspection, service records, and leak or timing related checks should carry more weight in the next 24 months.",
-      estimatedCost: "$800 to $3,500"
+  if (fuel !== "electric") {
+    items.push({
+      area: "Engine Seals and Service Items",
+      risk: "Medium",
+      note: `For this ${vehicleRef}, gasket condition, fluid leaks, and oil service history should be reviewed closely. If service records are weak, budget for catch up maintenance.`,
+      estimatedCost: "$250 to $1,500"
     });
   }
 
-  if (engineRisk === "MODERATE") {
-    items.unshift({
-      area: "Engine Platform Related Risk",
-      risk: "Medium",
-      note: "This engine family is not automatically a problem, but engine platform and maintenance history should still influence inspection depth and ownership expectations.",
-      estimatedCost: "$400 to $1,800"
-    });
-  }
+  items.push({
+    area: "Transmission Condition",
+    risk: String(vehicle.transmissionRisk || "").toUpperCase() === "HIGHER" ? "High" : "Medium",
+    note: `For this ${vehicleRef}, the transmission should be judged by shift quality, service history, and fluid condition. If this gearbox has not been maintained properly, repair costs can rise quickly.`,
+    estimatedCost: String(vehicle.transmissionRisk || "").toUpperCase() === "HIGHER" ? "$800 to $4,500" : "$300 to $2,500"
+  });
 
   if (drive === "awd") {
     items.push({
       area: "All Wheel Drive System",
       risk: "Medium",
-      note: "All wheel drive components add complexity and can become expensive when neglected or when tire sizes and tread depths are mismatched.",
+      note: `For this ${vehicleRef}, the all wheel drive system should be checked for binding, tire mismatch, and driveline wear before purchase.`,
       estimatedCost: "$800 to $3,500"
     });
   }
@@ -3073,33 +3073,23 @@ function buildRiskForecast(vehicle, ownership, safety) {
     items.push({
       area: "Electrified System Diagnostics",
       risk: "Medium",
-      note: "Battery cooling, charging hardware, and control electronics deserve closer attention as the vehicle ages.",
+      note: `For this ${vehicleRef}, battery cooling, charging hardware, and control electronics deserve closer attention as the vehicle ages.`,
       estimatedCost: "$500 to $4,000+"
     });
   }
 
-  if (Number(safety.recalls || 0) >= 3) {
+  if (Number(safety?.recalls || 0) >= 3) {
     items.push({
       area: "Recall Related Follow Up",
       risk: "Medium",
-      note: "Multiple recall records increase the need to confirm completed remedies and verify service campaign history.",
+      note: `For this ${vehicleRef}, multiple recall records increase the need to confirm completed remedies and verify service campaign history.`,
       estimatedCost: "Varies by open remedy status"
     });
   }
 
-  let summary = `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} should be viewed as a vehicle where wear items, platform complexity, and past servicing all influence the next 24 months of ownership cost.`;
-
-  if (engineRisk === "HIGHER") {
-    summary = `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} should be viewed as a vehicle where engine related ownership risk, wear items, platform complexity, and past servicing all influence the next 24 months of ownership cost.`;
-  }
-
-  if (engineRisk === "MODERATE") {
-    summary = `${safeValue(vehicle.make)} ${safeValue(vehicle.model)} should be viewed as a vehicle where engine platform, wear items, platform complexity, and past servicing all influence the next 24 months of ownership cost.`;
-  }
-
-    return {
+  return {
     title: "24 Month Risk Forecast",
-    summary,
+    summary: `Over the next 24 months, this ${vehicleRef} will need attention in the areas that typically drive used vehicle ownership cost. The focus should be on current condition, not just mileage.`,
     items
   };
 }
