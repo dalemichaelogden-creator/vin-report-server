@@ -3424,121 +3424,143 @@ function buildExecutiveSummary(report) {
 
   const buyerLow = Number(report.marketAnalysis?.buyerTargetValues?.low || 0);
   const buyerHigh = Number(report.marketAnalysis?.buyerTargetValues?.high || 0);
-  const retailGood = Number(report.marketAnalysis?.retailValues?.good || 0);
-  const totalAdjustment = Number(report.marketAnalysis?.adjustments?.totalAdjustment || 0);
 
   const dealRating = safeValue(report.dealAnalysis?.dealRating);
-  const dealInsight = safeValue(report.dealAnalysis?.dealInsight);
   const listingPrice = Number(report.dealAnalysis?.listingPrice || 0);
 
-  let headline = "Solid Car. Still Check The Details.";
+  const yearMakeModel = `${safeValue(report.vehicle.year)} ${safeValue(report.vehicle.make)} ${safeValue(report.vehicle.model)}`.trim() || "This vehicle";
 
-  if (mechanicalRisk === "HIGHER" || riskLevel === "High") {
-    headline = "Higher Risk Car. Price Matters A Lot.";
-  } else if (mechanicalRisk === "MODERATE" || riskLevel === "Moderate") {
-    headline = "Decent Car. Price Needs Work.";
-  }
-
-  const lines = [];
-
-  const yearMakeModel = `${safeValue(report.vehicle.year)} ${safeValue(report.vehicle.make)} ${safeValue(report.vehicle.model)}`.trim();
-
-  let opening = `On paper, this ${yearMakeModel} isn’t a bad car, but it’s not a no brainer either. `;
+  let stance = "mixed";
 
   if (mechanicalRisk === "HIGHER") {
-    if (engineRisk === "HIGHER" && transmissionRisk === "HIGHER") {
-      opening += `It sits in a higher risk bracket, mainly around the engine and transmission, so condition and service history matter heavily here.`;
-    } else if (engineRisk === "HIGHER") {
-      opening += `It sits in a higher risk bracket, mainly around the engine, so condition and service history matter heavily here.`;
-    } else if (transmissionRisk === "HIGHER") {
-      opening += `It sits in a higher risk bracket, mainly around the transmission, so condition and service history matter heavily here.`;
+    if (dealRating === "overpriced" || dealRating === "slightly_overpriced") {
+      stance = "high_caution";
     } else {
-      opening += `It sits in a higher risk bracket, so condition and service history matter heavily here.`;
+      stance = "cautious_but_possible";
     }
-  } else if (mechanicalRisk === "MODERATE") {
-    if ((engineRisk === "MODERATE" || engineRisk === "HIGHER") && (transmissionRisk === "MODERATE" || transmissionRisk === "HIGHER")) {
-      opening += `It sits in a moderate risk bracket, mainly around the engine and transmission, so condition and service history matter more than usual.`;
-    } else if (engineRisk === "MODERATE" || engineRisk === "HIGHER") {
-      opening += `It sits in a moderate risk bracket, mainly around the engine, so condition and service history matter more than usual.`;
-    } else if (transmissionRisk === "MODERATE" || transmissionRisk === "HIGHER") {
-      opening += `It sits in a moderate risk bracket, mainly around the transmission, so condition and service history matter more than usual.`;
+  } else if (mechanicalRisk === "LOW") {
+    if (dealRating === "strong_buy" || dealRating === "good_buy") {
+      stance = "promising";
+    } else if (dealRating === "fair") {
+      stance = "worth_pursuing";
     } else {
-      opening += `It sits in a moderate risk bracket, so condition and service history matter more than usual.`;
+      stance = "mixed";
     }
   } else {
-    opening += `It sits in a relatively lower risk bracket, but condition and maintenance history should still guide your decision.`;
-  }
-
-  lines.push(opening);
-
-  if (recalls || complaints) {
-    let safetySentence = `We found ${recalls} recall record${recalls === 1 ? "" : "s"} and ${complaints} complaint record${complaints === 1 ? "" : "s"}`;
-    if (topComponent) {
-      safetySentence += `, with ${topComponent} standing out as the main complaint area`;
-    }
-    safetySentence += `.`;
-    lines.push(safetySentence);
-  }
-
-  if (complexity) {
-    lines.push(
-      `Ownership complexity is on the ${complexity.toLowerCase()} side, so condition, service history, and inspection quality matter more here than headline mileage or a clean looking exterior.`
-    );
-  }
-
-  if (enginePlatform && enginePlatform !== "Manufacturer specific platform") {
-    lines.push(
-      `This vehicle sits on the ${enginePlatform} platform, which is something you should factor in when thinking about future maintenance exposure and how aggressively you negotiate.`
-    );
-  }
-
-  if (retailGood > 0 && buyerLow > 0 && buyerHigh > 0) {
-    let pricingLine = `Similar cars in clean condition are typically advertised around ${money(retailGood)}, but once you factor in this specific vehicle, you should really be aiming closer to ${money(buyerLow)} to ${money(buyerHigh)}. That’s where this starts to make sense.`;
-
-    if (totalAdjustment < 0) {
-      pricingLine += ` That gap reflects roughly ${money(Math.abs(totalAdjustment))} in reduced value versus a cleaner, lower risk example, so the asking price should reflect that difference.`;
-    } else if (totalAdjustment > 1000) {
-      pricingLine += ` Current signals support slightly stronger than average pricing if condition, mileage, and service history are all solid.`;
-    }
-
-    lines.push(pricingLine);
-  }
-
-  if (listingPrice > 0 && dealRating) {
-    let dealSentence = `At ${money(listingPrice)}, `;
-
-    if (dealRating === "Good Deal") {
-      dealSentence += `this is actually positioned well for the level of risk involved.`;
-    } else if (dealRating === "Fair Deal") {
-      dealSentence += `this isn’t unreasonable, but there is still room to improve the deal.`;
-    } else if (dealRating === "Overpriced") {
-      dealSentence += `this is too close to clean example pricing for the level of risk involved.`;
+    if (dealRating === "strong_buy" || dealRating === "good_buy") {
+      stance = "worth_pursuing";
+    } else if (dealRating === "overpriced" || dealRating === "slightly_overpriced") {
+      stance = "price_too_strong";
     } else {
-      dealSentence += `this is a deal you should look at carefully before moving forward.`;
+      stance = "mixed";
     }
-
-    if (dealInsight) {
-      dealSentence += ` ${dealInsight}`;
-    }
-
-    lines.push(dealSentence);
   }
 
-  if (attentionFlags.length) {
-    lines.push(
-      `The main things worth keeping an eye on here are ${attentionFlags.slice(0, 3).join(", ")}.`
-    );
+  const positives = [];
+  const cautions = [];
+
+  if (dealRating === "strong_buy") {
+    positives.push("The current pricing looks strong on paper.");
+  } else if (dealRating === "good_buy") {
+    positives.push("The price sits below the safer buyer range.");
+  } else if (dealRating === "fair") {
+    positives.push("The current pricing is not obviously out of line.");
+  } else if (dealRating === "slightly_overpriced") {
+    cautions.push("The asking price is starting to lean above the safer range.");
+  } else if (dealRating === "overpriced") {
+    cautions.push("The asking price looks too ambitious for the current risk picture.");
   }
 
-  if (buyerGuidance) {
-    lines.push(`Bottom line: ${buyerGuidance}`);
+  if (engineRisk === "LOW") {
+    positives.push("The engine profile looks more manageable than average.");
+  } else if (engineRisk === "HIGHER") {
+    cautions.push("The engine profile adds more ownership risk than average.");
+  }
+
+  if (transmissionRisk === "LOW") {
+    positives.push("The transmission profile looks fairly reassuring on paper.");
+  } else if (transmissionRisk === "HIGHER") {
+    cautions.push("The transmission profile needs more care than average.");
+  }
+
+  if (recalls === 0) {
+    positives.push("There are no recall records showing here.");
+  } else if (recalls >= 3) {
+    cautions.push("The recall picture deserves closer attention.");
+  }
+
+  if (complaints >= 20) {
+    cautions.push(`Complaint activity is heavier than you would want${topComponent ? `, especially around ${topComponent.toLowerCase()}` : ""}.`);
+  } else if (complaints > 0 && complaints < 10) {
+    positives.push("Complaint activity is not especially heavy.");
+  }
+
+  if (complexity === "Higher") {
+    cautions.push("Maintenance complexity is higher than average, so inspection and service history matter more.");
+  }
+
+  if (attentionFlags.length >= 3) {
+    cautions.push("There are several public risk signals worth checking more closely.");
+  }
+
+  let headline = "Not a write off, but you would want to inspect it carefully";
+
+  if (stance === "promising") {
+    headline = "Looks promising on paper, but still inspect it properly";
+  } else if (stance === "worth_pursuing") {
+    headline = "Could be worth pursuing if the condition and price line up";
+  } else if (stance === "price_too_strong") {
+    headline = "Could still make sense, but the price needs to come back";
+  } else if (stance === "cautious_but_possible") {
+    headline = "This one needs more care than the better examples";
+  } else if (stance === "high_caution") {
+    headline = "Hard to justify at this price without a very strong inspection";
+  }
+
+  let opening = `${yearMakeModel} looks mixed on paper.`;
+
+  if (stance === "promising") {
+    opening = `On paper, ${yearMakeModel} looks more encouraging than many similar vehicles.`;
+  } else if (stance === "worth_pursuing") {
+    opening = `On paper, ${yearMakeModel} could be worth pursuing.`;
+  } else if (stance === "price_too_strong") {
+    opening = `On paper, ${yearMakeModel} is not necessarily out of the running, but the current price asks a lot.`;
+  } else if (stance === "cautious_but_possible") {
+    opening = `On paper, ${yearMakeModel} may still suit the right buyer, but it carries more ownership exposure than the better examples.`;
+  } else if (stance === "high_caution") {
+    opening = `On paper, ${yearMakeModel} is hard to support at the current price and risk mix.`;
+  }
+
+  const bestPositive = positives[0] || "";
+  const biggestCaution = cautions[0] || "";
+
+  let middle = "";
+
+  if (bestPositive && biggestCaution) {
+    middle = `${bestPositive} That said, ${biggestCaution.toLowerCase()}`;
+  } else if (biggestCaution) {
+    middle = biggestCaution;
+  } else if (bestPositive) {
+    middle = bestPositive;
+  } else if (buyerGuidance) {
+    middle = buyerGuidance;
+  } else if (enginePlatform) {
+    middle = `The ${enginePlatform} platform and wider ownership picture still need to be judged alongside real world condition.`;
   } else {
-    lines.push(`Bottom line: if the seller can’t clearly back up maintenance and condition, this is either a negotiation play or one to walk away from.`);
+    middle = "The data gives you something to work with, but not enough to skip the usual checks.";
   }
+
+  let closing = "Treat the report as a filter, not a substitute for a proper inspection and service history review.";
+
+  if (listingPrice > 0 && buyerLow > 0 && buyerHigh > 0) {
+    closing = `Use the report to judge whether the seller's number makes sense, but still inspect the vehicle properly before agreeing anything.`;
+  }
+
+  const summary = `${opening} ${middle} ${closing}`.replace(/\s+/g, " ").trim();
 
   return {
     headline,
-    summary: lines.filter(Boolean).join(" ")
+    summary
   };
 }
 
