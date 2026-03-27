@@ -1,6 +1,7 @@
 const express = require("express")
 const cors = require("cors")
 const Stripe = require("stripe")
+const nodemailer = require("nodemailer")
 
 const app = express()
 app.use(cors())
@@ -11,6 +12,37 @@ const BASE_URL = process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || `htt
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "REPLACE_WITH_YOUR_STRIPE_SECRET_KEY"
 
 const stripe = new Stripe(STRIPE_SECRET_KEY)
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT || 587),
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+})
+
+const sentReportEmails = new Set()
+
+async function sendAdminReportCopy({ vin, sessionId, reportHtml, vehicleTitle }) {
+  const to = "contact@car-spec-check.co.uk"
+
+  await transporter.sendMail({
+    from: process.env.SMTP_USER,
+    to,
+    subject: `Paid VIN Report Copy | ${vehicleTitle} | ${vin}`,
+    html: `
+      <div style="font-family: Arial, sans-serif;">
+        <p><strong>Paid VIN report generated</strong></p>
+        <p><strong>VIN:</strong> ${vin}</p>
+        <p><strong>Session ID:</strong> ${sessionId}</p>
+        <hr>
+        ${reportHtml}
+      </div>
+    `
+  })
+}
 
 console.log("THIS IS THE VISUAL CUSTOMER REPORT FILE")
 console.log("SERVER_VISUAL_JS_BOOTED");
@@ -991,7 +1023,7 @@ console.log("Full report fetched successfully");
       ? "8-Speed ZF Automatic"
       : "Automatic transmission configuration"
 
-    res.send(`
+    const reportHtml = `
 <!doctype html>
 <html>
 <head>
@@ -1737,7 +1769,23 @@ console.log("Full report fetched successfully");
   </div>
 </body>
 </html>
-    `)
+    `
+    if (sessionId && !sentReportEmails.has(sessionId)) {
+  try {
+    await sendAdminReportCopy({
+      vin,
+      sessionId,
+      reportHtml,
+      vehicleTitle: report.vehicle.title || "Vehicle"
+    })
+
+    sentReportEmails.add(sessionId)
+  } catch (emailError) {
+    console.error("Failed to send admin report copy:", emailError)
+  }
+}
+
+res.send(reportHtml)
   } catch (error) {
   console.error("Customer report route failed full object:", error);
   console.error("Customer report route failed message:", error?.message);
