@@ -3215,7 +3215,7 @@ function buildPurchaseChecklist(vehicle, ownership) {
   const vehicleRef = getVehicleReference(vehicle);
   const fuel = getFuelGroup(vehicle);
 
-  const checklist = [
+  const items = [
     `Confirm service history on this ${vehicleRef} before agreeing on price`,
     `Inspect this ${vehicleRef} for fluid leaks, cooling system condition, and general engine bay health`,
     `Check brake condition, tire wear, and suspension behavior during inspection`,
@@ -3224,27 +3224,26 @@ function buildPurchaseChecklist(vehicle, ownership) {
   ];
 
   if (ownership?.enginePlatform && ownership.enginePlatform !== "Manufacturer specific platform") {
-    checklist.push(
+    items.push(
       `This ${vehicleRef} runs on the ${ownership.enginePlatform} platform, so known maintenance patterns should be considered before buying`
     );
   }
 
   if (fuel === "hybrid" || fuel === "electric") {
-    checklist.push(
+    items.push(
       `Check battery condition, charging behavior, and system warnings on this ${vehicleRef} before purchase`
     );
   }
 
   if (ownership?.maintenanceComplexity === "Higher") {
-    checklist.push(
+    items.push(
       `This ${vehicleRef} carries higher ownership complexity, so inspection quality and service records matter more than average`
     );
   }
 
   return {
     title: "Final Purchase Checklist",
-    summary: `Before buying this ${vehicleRef}, these checks should be completed to reduce the risk of unexpected ownership costs.`,
-    checklist
+    items
   };
 }
 
