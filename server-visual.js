@@ -857,7 +857,7 @@ app.get("/scan/:vin", async (req, res) => {
           <div class="confidence-box">
             Coverage Score ${escapeHtml(String(report.signals.coverageScore))} • ${escapeHtml(report.signals.confidenceLevel)}<br>
             <span style="display:block;margin-top:8px;font-size:12px;line-height:1.6;font-weight:600;">
-              Coverage Score shows how much usable public data was matched to this VIN and vehicle profile. High Confidence means multiple strong data points matched cleanly. Good Coverage means the report is solid but not complete in every category. Partial Coverage means some datasets matched, but others were limited.
+              Coverage Score shows how much usable data was matched to this VIN and vehicle profile. High Confidence means multiple strong data points matched cleanly. Good Coverage means the report is solid but not complete in every category. Partial Coverage means some datasets matched, but others were limited.
             </span>
           </div>
         </div>
@@ -1566,7 +1566,7 @@ console.log("Full report fetched successfully");
           <div class="confidence-box">
             Coverage Score ${escapeHtml(String(report.signals.coverageScore))} • ${escapeHtml(report.signals.confidenceLevel)}<br>
             <span style="display:block;margin-top:8px;font-size:12px;line-height:1.6;font-weight:600;">
-              Coverage Score shows how much usable public data was matched to this VIN and vehicle profile. High Confidence means multiple strong data points matched cleanly. Good Coverage means the report is solid but not complete in every category. Partial Coverage means some datasets matched, but others were limited.
+              Coverage Score shows how much usable data was matched to this VIN and vehicle profile. High Confidence means multiple strong data points matched cleanly. Good Coverage means the report is solid but not complete in every category. Partial Coverage means some datasets matched, but others were limited.
             </span>
           </div>
         </div>
