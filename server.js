@@ -3843,19 +3843,32 @@ else if (stance === "balanced") {
   headline = "Worth A Proper Look, But Inspect It Carefully";
 }
 
-  let opening = `On paper, this ${yearMakeModel} looks mixed.`;
+  let opening = `On paper, this ${yearMakeModel} looks fairly balanced.`;
 
-  if (stance === "promising") {
-    opening = `On paper, this ${yearMakeModel} looks more encouraging than many similar vehicles.`;
-  } else if (stance === "worth_pursuing") {
-    opening = `On paper, this ${yearMakeModel} could be worth pursuing.`;
-  } else if (stance === "price_too_strong") {
-    opening = `On paper, this ${yearMakeModel} is not necessarily out of the running, but the current price asks a lot.`;
-  } else if (stance === "cautious_but_possible") {
-    opening = `On paper, this ${yearMakeModel} may still suit the right buyer, but it carries more ownership exposure than the better examples.`;
-  } else if (stance === "high_caution") {
-    opening = `On paper, this ${yearMakeModel} is hard to support at the current price and risk mix.`;
-  }
+if (stance === "very_encouraging") {
+  opening = `On paper, this ${yearMakeModel} looks strong.`;
+}
+else if (stance === "encouraging_with_checks") {
+  opening = `On paper, this ${yearMakeModel} looks encouraging, but not without some caveats.`;
+}
+else if (stance === "broadly_in_line") {
+  opening = `On paper, this ${yearMakeModel} looks broadly in line with expectations.`;
+}
+else if (stance === "condition_sensitive") {
+  opening = `On paper, this ${yearMakeModel} looks condition dependent.`;
+}
+else if (stance === "history_sensitive") {
+  opening = `On paper, this ${yearMakeModel} looks service history dependent.`;
+}
+else if (stance === "elevated_risk_profile") {
+  opening = `On paper, this ${yearMakeModel} carries more risk than average.`;
+}
+else if (stance === "higher_exposure_example") {
+  opening = `On paper, this ${yearMakeModel} sits on the higher exposure side.`;
+}
+else if (stance === "inspection_driven") {
+  opening = `On paper, this ${yearMakeModel} will come down to inspection quality.`;
+}
 
   const positives = [];
   const cautions = [];
