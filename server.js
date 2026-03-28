@@ -3870,6 +3870,8 @@ else if (stance === "inspection_driven") {
   opening = `On paper, this ${yearMakeModel} will come down to inspection quality.`;
 }
 
+const usesOnPaperOpening = opening.toLowerCase().includes("on paper");
+
   const positives = [];
   const cautions = [];
 
@@ -3922,6 +3924,15 @@ else if (stance === "inspection_driven") {
   } else {
     middle = "The data gives you something to work with, but not enough to skip the usual checks.";
   }
+
+  if (usesOnPaperOpening) {
+  middle = middle
+    .replace(/\bon paper\b/gi, "")
+    .replace(/,\s*,/g, ",")
+    .replace(/\s+/g, " ")
+    .replace(/\s+\./g, ".")
+    .trim();
+}
 
   let detail = "";
 
