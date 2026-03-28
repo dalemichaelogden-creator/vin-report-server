@@ -3726,6 +3726,14 @@ function toTitleCase(text = "") {
 }
 
 function buildExecutiveSummary(report) {
+    const concept = {
+  used: {},
+  canUse(key) {
+    if (this.used[key]) return false;
+    this.used[key] = true;
+    return true;
+  }
+};
   const riskLevel = String(report.signals.riskLevel || "Moderate");
   const recalls = Number(report.safety.recalls || 0);
   const complaints = Number(report.safety.complaints || 0);
@@ -3757,14 +3765,6 @@ function buildExecutiveSummary(report) {
   const yearMakeModel = `${safeValue(report.vehicle.year)} ${safeValue(report.vehicle.make)} ${safeValue(report.vehicle.model)}`
     .replace(/\s+/g, " ")
     .trim() || "this vehicle";
-
-  const mentioned = {
-    risk: false,
-    recalls: false,
-    complexity: false,
-    platform: false,
-    pricing: false
-  };
 
   let stance = "balanced";
 
@@ -3925,30 +3925,27 @@ else if (stance === "inspection_driven") {
 
   let detail = "";
 
-  if (mechanicalRisk === "HIGHER") {
-    mentioned.risk = true;
-    if (engineRisk === "HIGHER" && transmissionRisk === "HIGHER") {
-      detail += " It sits in a higher risk bracket, mainly around the engine and transmission, so condition and service history matter heavily here.";
-    } else if (engineRisk === "HIGHER") {
-      detail += " It sits in a higher risk bracket, mainly around the engine, so condition and service history matter more than usual.";
-    } else if (transmissionRisk === "HIGHER") {
-      detail += " It sits in a higher risk bracket, mainly around the transmission, so condition and service history matter more than usual.";
-    } else {
-      detail += " It sits in a higher risk bracket overall, so the inspection needs to do more of the heavy lifting.";
-    }
-  } else if (mechanicalRisk === "MODERATE" || riskLevel === "Moderate") {
-    mentioned.risk = true;
-    if (engineRisk === "HIGHER") {
-      detail += " It sits in a moderate risk bracket, mainly around the engine, so condition and service history still matter more than usual.";
-    } else if (transmissionRisk === "HIGHER") {
-      detail += " It sits in a moderate risk bracket, mainly around the transmission, so condition and service history still matter more than usual.";
-    } else {
-      detail += " It sits in a moderate risk bracket, so it is worth checking carefully rather than buying on headline appeal alone.";
-    }
+  if (mechanicalRisk === "HIGHER" && concept.canUse("risk")) {
+  if (engineRisk === "HIGHER" && transmissionRisk === "HIGHER") {
+    detail += " It sits in a higher risk bracket, mainly around the engine and transmission, so condition and service history matter heavily here.";
+  } else if (engineRisk === "HIGHER") {
+    detail += " It sits in a higher risk bracket, mainly around the engine, so condition and service history matter more than usual.";
+  } else if (transmissionRisk === "HIGHER") {
+    detail += " It sits in a higher risk bracket, mainly around the transmission, so condition and service history matter more than usual.";
+  } else {
+    detail += " It sits in a higher risk bracket overall, so the inspection needs to do more of the heavy lifting.";
   }
+} else if ((mechanicalRisk === "MODERATE" || riskLevel === "Moderate") && concept.canUse("risk")) {
+  if (engineRisk === "HIGHER") {
+    detail += " It sits in a moderate risk bracket, mainly around the engine, so condition and service history still matter more than usual.";
+  } else if (transmissionRisk === "HIGHER") {
+    detail += " It sits in a moderate risk bracket, mainly around the transmission, so condition and service history still matter more than usual.";
+  } else {
+    detail += " It sits in a moderate risk bracket, so it is worth checking carefully rather than buying on headline appeal alone.";
+  }
+}
 
-  if ((recalls > 0 || complaints > 0) && !mentioned.recalls) {
-    mentioned.recalls = true;
+  if ((recalls > 0 || complaints > 0) && concept.canUse("recalls")) {
     detail += ` We found ${recalls} recall record${recalls === 1 ? "" : "s"} and ${complaints} complaint record${complaints === 1 ? "" : "s"}`;
     if (topComponent && complaints > 0) {
       detail += `, with ${topComponent.toLowerCase()} appearing most often in complaint data`;
@@ -3956,30 +3953,25 @@ else if (stance === "inspection_driven") {
     detail += ".";
   }
 
-  if (complexity === "Higher" && !mentioned.complexity) {
-    mentioned.complexity = true;
-    detail += " Ownership complexity is on the higher side, so service history and inspection quality matter more here.";
-  } else if (complexity === "Moderate" && !mentioned.complexity) {
-    mentioned.complexity = true;
-    detail += " Ownership complexity is about average, but inspection quality and maintenance history still matter.";
-  }
+  if (complexity === "Higher" && concept.canUse("ownership")) {
+  detail += " Ownership complexity is on the higher side, so service history and inspection quality matter more here.";
+} else if (complexity === "Moderate" && concept.canUse("ownership")) {
+  detail += " Ownership complexity is about average, but inspection quality and maintenance history still matter.";
+}
 
-  if (enginePlatform && !mentioned.platform) {
-    mentioned.platform = true;
-    if (!enginePlatform.toLowerCase().includes("platform")) {
-      detail += ` This vehicle sits on the ${enginePlatform} platform, which is something you should factor in when thinking about future maintenance exposure and how aggressively you negotiate.`;
-    } else {
-      detail += ` This vehicle sits on the ${enginePlatform}, which is something you should factor in when thinking about future maintenance exposure and how aggressively you negotiate.`;
-    }
+  if (enginePlatform && concept.canUse("platform")) {
+  if (!enginePlatform.toLowerCase().includes("platform")) {
+    detail += ` This vehicle sits on the ${enginePlatform} platform, which is something you should factor in when thinking about future maintenance exposure and how aggressively you negotiate.`;
+  } else {
+    detail += ` This vehicle sits on the ${enginePlatform}, which is something you should factor in when thinking about future maintenance exposure and how aggressively you negotiate.`;
   }
+}
 
-  if (retailGood > 0 && buyerLow > 0 && buyerHigh > 0 && !mentioned.pricing) {
-    mentioned.pricing = true;
-    detail += ` Similar cars in clean condition are typically advertised around ${money(retailGood)}, but once you factor in this specific vehicle, you should really be aiming closer to ${money(buyerLow)} to ${money(buyerHigh)}. That is where this starts to make sense.`;
-  } else if (buyerLow > 0 && buyerHigh > 0 && !mentioned.pricing) {
-    mentioned.pricing = true;
-    detail += ` A more realistic target here is closer to ${money(buyerLow)} to ${money(buyerHigh)}.`;
-  }
+  if (retailGood > 0 && buyerLow > 0 && buyerHigh > 0 && concept.canUse("pricing")) {
+  detail += ` Similar cars in clean condition are typically advertised around ${money(retailGood)}, but once you factor in this specific vehicle, you should really be aiming closer to ${money(buyerLow)} to ${money(buyerHigh)}. That is where this starts to make sense.`;
+} else if (buyerLow > 0 && buyerHigh > 0 && concept.canUse("pricing")) {
+  detail += ` A more realistic target here is closer to ${money(buyerLow)} to ${money(buyerHigh)}.`;
+}
 
   if (listingPrice > 0 && buyerHigh > 0) {
     if (listingPrice > buyerHigh) {
@@ -3993,20 +3985,19 @@ else if (stance === "inspection_driven") {
 
   const rawWatchItems = attentionFlags.slice(0, 5);
   const cleanWatchItems = rawWatchItems
-    .filter(item => {
-      if (!item) return false;
+  .filter(item => {
+    if (!item) return false;
 
-      const lower = item.toLowerCase();
+    const lower = item.toLowerCase();
 
-      if (lower.includes("fuel economy match unavailable")) return false;
-      if (lower.includes("manufacturer specific platform")) return false;
-      if (lower.includes("engine platform: manufacturer specific platform")) return false;
-      if (lower.includes("higher maintenance platform") && complexity === "Higher") return false;
-      if (lower.includes("engine platform") && mentioned.platform) return false;
-      if (lower.includes("recall") && mentioned.recalls) return false;
+    if (lower.includes("fuel economy match unavailable")) return false;
+    if (lower.includes("manufacturer specific platform")) return false;
+    if (lower.includes("higher maintenance platform") && complexity === "Higher") return false;
+    if (lower.includes("engine platform") && concept.used.platform) return false;
+    if (lower.includes("recall") && concept.used.recalls) return false;
 
-      return true;
-    })
+    return true;
+  })
     .map(item => {
       if (item.toLowerCase().includes("engine platform:")) {
         return item.replace(/engine platform:/i, "").trim();
