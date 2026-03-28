@@ -3766,45 +3766,82 @@ function buildExecutiveSummary(report) {
     pricing: false
   };
 
-  let stance = "mixed";
+  let stance = "balanced";
 
-  if (mechanicalRisk === "HIGHER" || riskLevel === "High") {
-    if (dealRating === "overpriced" || dealRating === "slightly_overpriced") {
-      stance = "high_caution";
-    } else {
-      stance = "cautious_but_possible";
-    }
-  } else if (mechanicalRisk === "LOW") {
-    if (dealRating === "strong_buy" || dealRating === "good_buy") {
-      stance = "promising";
-    } else if (dealRating === "fair") {
-      stance = "worth_pursuing";
-    } else {
-      stance = "mixed";
-    }
-  } else {
-    if (dealRating === "strong_buy" || dealRating === "good_buy") {
-      stance = "worth_pursuing";
-    } else if (dealRating === "overpriced" || dealRating === "slightly_overpriced") {
-      stance = "price_too_strong";
-    } else {
-      stance = "mixed";
-    }
-  }
+const mechanicalStrong = mechanicalRisk === "LOW";
+const mechanicalWeak = mechanicalRisk === "HIGHER";
 
-  let headline = "Not A Write Off, But You Would Want To Inspect It Carefully";
+const engineWeak = engineRisk === "HIGHER";
+const transmissionWeak = transmissionRisk === "HIGHER";
 
-  if (stance === "promising") {
-    headline = "Looks Promising On Paper, But Still Inspect It Properly";
-  } else if (stance === "worth_pursuing") {
-    headline = "Could Be Worth Pursuing If The Condition And Price Line Up";
-  } else if (stance === "price_too_strong") {
-    headline = "Could Still Make Sense, But The Price Needs To Come Back";
-  } else if (stance === "cautious_but_possible") {
-    headline = "This One Needs More Care Than The Better Examples";
-  } else if (stance === "high_caution") {
-    headline = "Hard To Justify At This Price Without A Very Strong Inspection";
-  }
+const highRecall = recalls >= 3;
+const highComplaints = complaints >= 20;
+const highComplexity = complexity === "Higher";
+
+// 🟢 Stronger side (but safe language)
+if (mechanicalStrong && !engineWeak && !transmissionWeak && !highRecall && !highComplexity) {
+  stance = "very_encouraging";
+}
+else if (mechanicalStrong && (highRecall || highComplexity)) {
+  stance = "encouraging_with_checks";
+}
+
+// 🟡 Middle ground
+else if (!mechanicalWeak && !engineWeak && !transmissionWeak) {
+  stance = "broadly_in_line";
+}
+else if (!mechanicalWeak && (engineWeak || transmissionWeak)) {
+  stance = "condition_sensitive";
+}
+else if (!mechanicalWeak && highComplexity) {
+  stance = "history_sensitive";
+}
+
+// 🔴 Higher exposure
+else if (mechanicalWeak && !highRecall) {
+  stance = "elevated_risk_profile";
+}
+else if (mechanicalWeak && (highRecall || highComplaints)) {
+  stance = "higher_exposure_example";
+}
+else if (mechanicalWeak && highComplexity) {
+  stance = "inspection_driven";
+}
+
+// fallback
+else {
+  stance = "balanced";
+}
+
+  let headline = "Worth A Proper Look, But Inspect It Carefully";
+
+if (stance === "very_encouraging") {
+  headline = "Looks Strong On Paper, But Still Needs Proper Verification";
+}
+else if (stance === "encouraging_with_checks") {
+  headline = "Encouraging On Paper, But Worth Checking Carefully";
+}
+else if (stance === "broadly_in_line") {
+  headline = "Broadly In Line With Expectations, But Still Needs Proper Checks";
+}
+else if (stance === "condition_sensitive") {
+  headline = "Condition Will Make The Difference On This One";
+}
+else if (stance === "history_sensitive") {
+  headline = "Service History Will Be Key On This Example";
+}
+else if (stance === "elevated_risk_profile") {
+  headline = "Carries More Risk Than Average, So Needs Careful Inspection";
+}
+else if (stance === "higher_exposure_example") {
+  headline = "Higher Exposure Example, So Proceed With More Caution";
+}
+else if (stance === "inspection_driven") {
+  headline = "This One Will Come Down To Inspection Quality";
+}
+else if (stance === "balanced") {
+  headline = "Worth A Proper Look, But Inspect It Carefully";
+}
 
   let opening = `On paper, this ${yearMakeModel} looks mixed.`;
 
@@ -3822,18 +3859,6 @@ function buildExecutiveSummary(report) {
 
   const positives = [];
   const cautions = [];
-
-  if (dealRating === "strong_buy") {
-    positives.push("The current pricing looks strong on paper.");
-  } else if (dealRating === "good_buy") {
-    positives.push("The price sits below the safer buyer range.");
-  } else if (dealRating === "fair") {
-    positives.push("The current pricing is not obviously out of line.");
-  } else if (dealRating === "slightly_overpriced") {
-    cautions.push("The asking price is starting to lean above the safer range.");
-  } else if (dealRating === "overpriced") {
-    cautions.push("The asking price looks too ambitious for the current risk picture.");
-  }
 
   if (engineRisk === "LOW") {
     positives.push("The engine profile looks more manageable than average.");
