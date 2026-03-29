@@ -1924,19 +1924,22 @@ const report = {
   vehicleTitle: baseReport.vehicle?.title || "Unknown Vehicle",
 
   liveSignals: {
-    recallCount: recallCountFinal,
+  recallCount: recallCountFinal,
 
-    recallType:
-      baseReport.safety?.recallSummary ||
-      baseReport.frontEndSummary?.subheadline ||
-      "No recall summary available",
+  recallType:
+    Array.isArray(baseReport.safety?.recalls) && baseReport.safety.recalls.length
+      ? baseReport.safety.recalls[0].component || "General safety item"
+      : "General safety item",
 
-    complaints: Number(baseReport.safety?.complaints || 0),
+  complaints: Number(baseReport.safety?.complaints || 0),
 
-    issues: Array.isArray(baseReport.signals?.attentionFlags)
-      ? baseReport.signals.attentionFlags.length
-      : 0
-  },
+  mechanicalLevel:
+    Number(baseReport.safety?.complaints || 0) > 10
+      ? "High"
+      : Number(baseReport.safety?.complaints || 0) > 3
+      ? "Moderate"
+      : "Low"
+},
 
   efficiency: {
     mpgCombined: baseReport.efficiency?.combinedMPG || "N/A",
