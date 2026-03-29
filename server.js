@@ -2584,6 +2584,7 @@ function getOptionLabelSet(make) {
   const brand = upperText(make);
 
   const labelSets = {
+
     BMW: {
       sport: "M Sport Package",
       comfort: "Premium Package",
@@ -2593,24 +2594,27 @@ function getOptionLabelSet(make) {
       utility: "Tow or Utility Package",
       efficiency: "Efficiency Package"
     },
+
     AUDI: {
       sport: "S line / Black Optics",
       comfort: "Premium Interior",
       tech: "Technology Package",
-      weather: "Cold Weather Package ",
+      weather: "Cold Weather Package",
       audio: "Premium Audio",
       utility: "Tow or Utility Package",
       efficiency: "Efficiency Package"
     },
+
     "MERCEDES-BENZ": {
       sport: "AMG Line / Night Package",
       comfort: "Premium Package",
       tech: "Driver Assistance Package",
       weather: "Cold Weather Package",
       audio: "Premium Audio",
-      utility: "Tow or Utility Package ",
+      utility: "Tow or Utility Package",
       efficiency: "Efficiency Package"
     },
+
     MERCEDES: {
       sport: "AMG Line / Night Package",
       comfort: "Premium Package",
@@ -2620,195 +2624,87 @@ function getOptionLabelSet(make) {
       utility: "Tow or Utility Package",
       efficiency: "Efficiency Package"
     },
-    LEXUS: {
-      sport: "F Sport Package",
-      comfort: "Luxury Package",
-      tech: "Navigation / Safety Package",
-      weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Tow or Utility Package",
-      efficiency: "Hybrid Efficiency"
-    },
-    ACURA: {
-      sport: "A Spec",
-      comfort: "Advance / Luxury",
-      tech: "Technology Package",
-      weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Utility Package",
-      efficiency: "Efficiency Package"
-    },
-    INFINITI: {
-      sport: "Sport Appearance",
-      comfort: "Luxury Package",
-      tech: "Technology Package",
-      weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Utility Package",
-      efficiency: "Efficiency Package"
-    },
-    CADILLAC: {
-      sport: "Sport / Performance",
-      comfort: "Luxury Package",
-      tech: "Driver Assistance Package",
-      weather: "Cold Weather Package ",
-      audio: "Premium Audio",
-      utility: "Tow / Utility Package",
-      efficiency: "Efficiency Package"
-    },
-    GENESIS: {
-      sport: "Sport Prestige",
-      comfort: "Prestige / Luxury",
-      tech: "Technology Package",
-      weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Utility Package",
-      efficiency: "Efficiency Package"
-    },
+
     PORSCHE: {
       sport: "Sport Chrono / Performance",
       comfort: "Premium Comfort",
       tech: "Technology Package",
-      weather: "Cold Weather Package ",
-      audio: "Premium Audio",
-      utility: "Tow / Utility Package ",
-      efficiency: "Hybrid Efficiency"
-    },
-    VOLVO: {
-      sport: "R Design / Black Edition",
-      comfort: "Luxury / Lounge",
-      tech: "Advanced Safety Package",
       weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Tow / Utility Package",
-      efficiency: "Recharge / Efficiency"
-    },
-    TOYOTA: {
-      sport: "Sport Appearance",
-      comfort: "Premium / Convenience",
-      tech: "Technology / Safety",
-      weather: "Cold Weather Package",
-      audio: "Premium Audio",
+      audio: "Bose / Burmester Audio",
       utility: "Tow / Utility Package",
       efficiency: "Hybrid Efficiency"
     },
-    HONDA: {
-      sport: "Sport Appearance",
-      comfort: "EX-L / Touring Comfort",
-      tech: "Technology Package",
+
+    FERRARI: {
+      sport: "Carbon / Exterior Sport",
+      comfort: "Luxury Interior Package",
+      tech: "Navigation / Driver Display",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Luggage / Utility Package",
+      efficiency: "Efficiency Package"
+    },
+
+    LAMBORGHINI: {
+      sport: "Carbon / Performance Package",
+      comfort: "Luxury Interior",
+      tech: "Digital Display / Navigation",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Luggage Package",
+      efficiency: "Efficiency Package"
+    },
+
+    MCLAREN: {
+      sport: "Track / Performance Package",
+      comfort: "Luxury Interior",
+      tech: "Navigation / Driver Tech",
       weather: "Cold Weather Package",
       audio: "Premium Audio",
       utility: "Utility Package",
-      efficiency: "Hybrid Efficiency"
+      efficiency: "Efficiency Package"
     },
-    NISSAN: {
-      sport: "Sport Appearance",
-      comfort: "Premium Package",
+
+    ASTON: {
+      sport: "Sport / Carbon Pack",
+      comfort: "Luxury Interior",
       tech: "Technology Package",
       weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Tow / Utility Package",
+      audio: "Bang & Olufsen Audio",
+      utility: "Touring Package",
       efficiency: "Efficiency Package"
     },
-    HYUNDAI: {
-      sport: "N Line / Sport Appearance",
-      comfort: "Limited / Luxury",
-      tech: "Technology Package",
-      weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Tow / Utility Package",
-      efficiency: "Hybrid / EV Efficiency"
-    },
-    KIA: {
-      sport: "GT Line / Sport Appearance",
-      comfort: "Premium / Luxury",
-      tech: "Technology Package",
-      weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Tow / Utility Package",
-      efficiency: "Hybrid / EV Efficiency"
-    },
-    FORD: {
-      sport: "Sport Appearance / FX",
-      comfort: "Luxury / Comfort",
-      tech: "Technology / Co Pilot",
-      weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Tow / Utility Package",
-      efficiency: "Hybrid / EV Efficiency"
-    },
-    CHEVROLET: {
-      sport: "RS / Sport Appearance",
-      comfort: "Premium / Convenience",
-      tech: "Technology / Driver Assist",
-      weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Tow / Utility Package",
-      efficiency: "EV / Efficiency"
-    },
-    GMC: {
-      sport: "Sport / AT4 Appearance",
-      comfort: "Premium / Luxury",
-      tech: "Technology / Driver Assist",
-      weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Tow / Utility Package",
+
+    BENTLEY: {
+      sport: "Mulliner / Sport Specification",
+      comfort: "Luxury Interior",
+      tech: "Touring Specification",
+      weather: "Cold Weather Specification",
+      audio: "Naim Audio",
+      utility: "Touring Package",
       efficiency: "Efficiency Package"
     },
-    JEEP: {
-      sport: "Sport / Appearance",
-      comfort: "Luxury Group",
-      tech: "Technology Group",
-      weather: "Cold Weather Group",
-      audio: "Premium Audio",
-      utility: "Tow / Off Road Group",
-      efficiency: "4xe Efficiency"
-    },
-    RAM: {
-      sport: "Sport Appearance",
-      comfort: "Luxury / Laramie",
-      tech: "Technology / Safety",
-      weather: "Cold Weather Group",
-      audio: "Premium Audio",
-      utility: "Tow Package",
-      efficiency: "Efficiency Package"
-    },
-    DODGE: {
-      sport: "Performance / Appearance",
-      comfort: "Premium Interior",
-      tech: "Technology Group",
-      weather: "Cold Weather Group",
-      audio: "Premium Audio",
-      utility: "Tow / Utility",
-      efficiency: "Efficiency Package"
-    },
-    SUBARU: {
-      sport: "Sport / Wilderness",
-      comfort: "Limited / Touring",
-      tech: "Technology / EyeSight",
+
+    "ROLLS-ROYCE": {
+      sport: "Black Badge",
+      comfort: "Luxury Interior",
+      tech: "Driver Assistance",
       weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Tow / Utility",
+      audio: "Bespoke Audio",
+      utility: "Touring Package",
       efficiency: "Efficiency Package"
     },
-    MAZDA: {
-      sport: "Sport Appearance",
-      comfort: "Premium / Signature",
-      tech: "Technology Package",
+
+    MASERATI: {
+      sport: "GranSport / Sport Package",
+      comfort: "GranLusso / Luxury Package",
+      tech: "Driver Assistance Package",
       weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Tow / Utility",
+      audio: "Harman Kardon Audio",
+      utility: "Utility Package",
       efficiency: "Efficiency Package"
     },
-    VOLKSWAGEN: {
-      sport: "R Line / Sport",
-      comfort: "Premium Comfort",
-      tech: "Technology Package",
-      weather: "Cold Weather Package",
-      audio: "Premium Audio",
-      utility: "Tow / Utility",
-      efficiency: "Efficiency Package"
-    },
+
     TESLA: {
       sport: "Performance Upgrade",
       comfort: "Premium Interior",
@@ -2817,7 +2713,88 @@ function getOptionLabelSet(make) {
       audio: "Premium Audio",
       utility: "Tow Package",
       efficiency: "Range / Efficiency"
+    },
+
+    LEXUS: {
+      sport: "F Sport Package",
+      comfort: "Luxury Package",
+      tech: "Navigation / Safety Package",
+      weather: "Cold Weather Package",
+      audio: "Mark Levinson Audio",
+      utility: "Tow / Utility Package",
+      efficiency: "Hybrid Efficiency"
+    },
+
+    ACURA: {
+      sport: "A Spec",
+      comfort: "Advance / Luxury",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "ELS Studio Audio",
+      utility: "Utility Package",
+      efficiency: "Efficiency Package"
+    },
+
+    INFINITI: {
+      sport: "Sport Appearance",
+      comfort: "Luxury Package",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "Bose Audio",
+      utility: "Utility Package",
+      efficiency: "Efficiency Package"
+    },
+
+    GENESIS: {
+      sport: "Sport Prestige",
+      comfort: "Prestige / Luxury",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "Lexicon Audio",
+      utility: "Utility Package",
+      efficiency: "Efficiency Package"
+    },
+
+    VOLVO: {
+      sport: "R Design / Black Edition",
+      comfort: "Luxury / Lounge",
+      tech: "Advanced Safety Package",
+      weather: "Cold Weather Package",
+      audio: "Bowers & Wilkins",
+      utility: "Tow / Utility Package",
+      efficiency: "Recharge / Efficiency"
+    },
+
+    TOYOTA: {
+      sport: "Sport Appearance",
+      comfort: "Premium / Convenience",
+      tech: "Technology / Safety",
+      weather: "Cold Weather Package",
+      audio: "JBL Audio",
+      utility: "Tow / Utility Package",
+      efficiency: "Hybrid Efficiency"
+    },
+
+    HONDA: {
+      sport: "Sport Appearance",
+      comfort: "EX-L / Touring",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "Premium Audio",
+      utility: "Utility Package",
+      efficiency: "Hybrid Efficiency"
+    },
+
+    NISSAN: {
+      sport: "Sport Appearance",
+      comfort: "Premium Package",
+      tech: "Technology Package",
+      weather: "Cold Weather Package",
+      audio: "Bose Audio",
+      utility: "Tow / Utility Package",
+      efficiency: "Efficiency Package"
     }
+
   };
 
   return labelSets[brand] || {
