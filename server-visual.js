@@ -1915,35 +1915,44 @@ const report = {
   vehicleTitle: baseReport.vehicle?.title || "Unknown Vehicle",
 
   liveSignals: {
-    recallCount: baseReport.safety?.recallCount ?? 0,
+    recallCount: Array.isArray(baseReport.safety?.recalls)
+      ? baseReport.safety.recalls.length
+      : 0,
+
     recallType:
       baseReport.frontEndSummary?.subheadline ||
       baseReport.safety?.recallSummary ||
       "No recall summary available",
-    complaints: baseReport.safety?.complaintCount ?? 0,
+
+    complaints: Number(baseReport.safety?.complaints || 0),
+
     issues: Array.isArray(baseReport.signals?.attentionFlags)
       ? baseReport.signals.attentionFlags.length
       : 0
   },
 
   efficiency: {
-    mpgCombined: baseReport.efficiency?.combinedMPG ?? "N/A",
-    fuelCost: baseReport.efficiency?.annualFuelCost ?? "N/A",
-    ghg: baseReport.efficiency?.ghgScore ?? "N/A",
-    ecoBadge: baseReport.efficiency?.ecoBadge ?? "N/A"
+    mpgCombined: baseReport.efficiency?.combinedMPG || "N/A",
+    fuelCost: baseReport.efficiency?.annualFuelCost || "N/A",
+    ghg: baseReport.efficiency?.ghgScore || "N/A",
+    ecoBadge: baseReport.efficiency?.ecoBadge || "N/A"
   },
 
   specs: {
-    horsepower: baseReport.specs?.horsepower ?? "N/A",
-    transmission: baseReport.specs?.transmission ?? "N/A",
-    dimensions: baseReport.specs?.dimensions ?? "N/A",
-    weight: baseReport.specs?.curbWeight ?? "N/A"
+    horsepower: baseReport.specs?.horsepower || "N/A",
+    transmission: baseReport.specs?.transmission || "N/A",
+    dimensions: baseReport.specs?.dimensions || "N/A",
+    weight: baseReport.specs?.curbWeight || "N/A"
   },
 
   safety: {
-    recallCount: baseReport.safety?.recallCount ?? 0,
-    complaintCount: baseReport.safety?.complaintCount ?? 0,
-    topComponent: baseReport.safety?.topComplaintArea ?? "N/A"
+    recallCount: Array.isArray(baseReport.safety?.recalls)
+      ? baseReport.safety.recalls.length
+      : 0,
+
+    complaintCount: Number(baseReport.safety?.complaints || 0),
+
+    topComponent: baseReport.safety?.topComponent || "N/A"
   }
 };
 
