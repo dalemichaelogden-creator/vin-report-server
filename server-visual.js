@@ -1946,9 +1946,5 @@ app.get("/api/vin-report", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log("Server running");
+  console.log("Customer visual report server running on port " + PORT);
 });
-
-app.listen(PORT, () => {
-  console.log("Customer visual report server running on port " + PORT)
-})
