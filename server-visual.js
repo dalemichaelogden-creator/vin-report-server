@@ -1911,18 +1911,25 @@ console.log("SAFETY DEBUG:", JSON.stringify(baseReport.safety, null, 2));
 console.log("EFFICIENCY DEBUG:", JSON.stringify(baseReport.efficiency, null, 2));
 console.log("SPECS DEBUG:", JSON.stringify(baseReport.specs, null, 2));
 
+const recallCountFromArray = Array.isArray(baseReport.safety?.recalls)
+  ? baseReport.safety.recalls.length
+  : 0;
+
+const recallCountFromSummaryMatch = String(baseReport.safety?.recallSummary || "")
+  .match(/\d+/);
+
+const recallCountFinal = recallCountFromArray || Number(recallCountFromSummaryMatch?.[0] || 0);
+
 const report = {
   vehicleTitle: baseReport.vehicle?.title || "Unknown Vehicle",
 
   liveSignals: {
-    recallCount: Array.isArray(baseReport.safety?.recalls)
-      ? baseReport.safety.recalls.length
-      : 0,
+    recallCount: recallCountFinal,
 
     recallType:
-  baseReport.safety?.recallSummary ||
-  baseReport.frontEndSummary?.subheadline ||
-  "No recall summary available",
+      baseReport.safety?.recallSummary ||
+      baseReport.frontEndSummary?.subheadline ||
+      "No recall summary available",
 
     complaints: Number(baseReport.safety?.complaints || 0),
 
@@ -1946,12 +1953,8 @@ const report = {
   },
 
   safety: {
-    recallCount: Array.isArray(baseReport.safety?.recalls)
-      ? baseReport.safety.recalls.length
-      : 0,
-
+    recallCount: recallCountFinal,
     complaintCount: Number(baseReport.safety?.complaints || 0),
-
     topComponent: baseReport.safety?.topComponent || "N/A"
   }
 };
