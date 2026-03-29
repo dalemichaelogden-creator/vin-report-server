@@ -1905,32 +1905,38 @@ app.get("/api/vin-report", async (req, res) => {
       });
     }
 
-    const report = {
-      vehicleTitle: "Test Vehicle",
-      liveSignals: {
-        recallCount: 2,
-        recallType: "Safety",
-        complaints: 5,
-        issues: 3
-      },
-      efficiency: {
-        mpgCombined: "28 MPG",
-        fuelCost: "$1,800/year",
-        ghg: "6/10",
-        ecoBadge: "Standard"
-      },
-      specs: {
-        horsepower: "240 HP",
-        transmission: "Automatic",
-        dimensions: "N/A",
-        weight: "3,500 lbs"
-      },
-      safety: {
-        recallCount: 2,
-        complaintCount: 5,
-        topComponent: "Engine"
-      }
-    };
+    const baseReport = await getReport(vin);
+
+const report = {
+  vehicleTitle: baseReport.vehicle?.title || "Unknown Vehicle",
+
+  liveSignals: {
+    recallCount: baseReport.recalls?.total || 0,
+    recallType: baseReport.recalls?.summary || "No active recalls found",
+    complaints: baseReport.complaints?.total || 0,
+    issues: baseReport.complaints?.total || 0
+  },
+
+  efficiency: {
+    mpgCombined: baseReport.efficiency?.mpgCombined || "N/A",
+    fuelCost: baseReport.efficiency?.annualFuelCost || "N/A",
+    ghg: baseReport.efficiency?.ghgScore || "N/A",
+    ecoBadge: baseReport.efficiency?.ecoBadge || "Standard"
+  },
+
+  specs: {
+    horsepower: baseReport.specs?.horsepower || "N/A",
+    transmission: baseReport.specs?.transmission || "N/A",
+    dimensions: baseReport.specs?.dimensions || "N/A",
+    weight: baseReport.specs?.weight || "N/A"
+  },
+
+  safety: {
+    recallCount: baseReport.recalls?.total || 0,
+    complaintCount: baseReport.complaints?.total || 0,
+    topComponent: baseReport.complaints?.topComponent || "General"
+  }
+};
 
     res.json({
       success: true,
