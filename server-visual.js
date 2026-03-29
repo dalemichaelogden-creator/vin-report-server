@@ -1912,30 +1912,30 @@ const report = {
   vehicleTitle: baseReport.vehicle?.title || "Unknown Vehicle",
 
   liveSignals: {
-    recallCount: baseReport.recalls?.total || 0,
-    recallType: baseReport.recalls?.summary || "No active recalls found",
-    complaints: baseReport.complaints?.total || 0,
-    issues: baseReport.complaints?.total || 0
+    recallCount: baseReport.vehicle?.recallCount ?? 0,
+    recallType: baseReport.frontEndSummary?.subheadline || "No recall summary available",
+    complaints: baseReport.vehicle?.complaintCount ?? 0,
+    issues: Array.isArray(baseReport.signals?.attentionFlags) ? baseReport.signals.attentionFlags.length : 0
   },
 
   efficiency: {
-    mpgCombined: baseReport.efficiency?.mpgCombined || "N/A",
-    fuelCost: baseReport.efficiency?.annualFuelCost || "N/A",
-    ghg: baseReport.efficiency?.ghgScore || "N/A",
-    ecoBadge: baseReport.efficiency?.ecoBadge || "Standard"
+    mpgCombined: baseReport.vehicle?.fuelEconomyCombined || "N/A",
+    fuelCost: baseReport.vehicle?.annualFuelCost || "N/A",
+    ghg: baseReport.vehicle?.greenhouseGasScore || "N/A",
+    ecoBadge: baseReport.vehicle?.ecoBadge || "Standard"
   },
 
   specs: {
-    horsepower: baseReport.specs?.horsepower || "N/A",
-    transmission: baseReport.specs?.transmission || "N/A",
-    dimensions: baseReport.specs?.dimensions || "N/A",
-    weight: baseReport.specs?.weight || "N/A"
+    horsepower: baseReport.vehicle?.horsepower || "N/A",
+    transmission: baseReport.vehicle?.transmission || "N/A",
+    dimensions: baseReport.vehicle?.dimensions || "N/A",
+    weight: baseReport.vehicle?.curbWeight || "N/A"
   },
 
   safety: {
-    recallCount: baseReport.recalls?.total || 0,
-    complaintCount: baseReport.complaints?.total || 0,
-    topComponent: baseReport.complaints?.topComponent || "General"
+    recallCount: baseReport.vehicle?.recallCount ?? 0,
+    complaintCount: baseReport.vehicle?.complaintCount ?? 0,
+    topComponent: baseReport.vehicle?.topComplaintComponent || "General"
   }
 };
 
