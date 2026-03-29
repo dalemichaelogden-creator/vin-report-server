@@ -1920,9 +1920,9 @@ const report = {
       : 0,
 
     recallType:
-      baseReport.frontEndSummary?.subheadline ||
-      baseReport.safety?.recallSummary ||
-      "No recall summary available",
+  baseReport.safety?.recallSummary ||
+  baseReport.frontEndSummary?.subheadline ||
+  "No recall summary available",
 
     complaints: Number(baseReport.safety?.complaints || 0),
 
