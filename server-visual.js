@@ -1906,7 +1906,7 @@ app.get("/api/vin-report", async (req, res) => {
     }
 
     const baseReport = await getReport(vin);
-    console.log("VIN REPORT DEBUG:", JSON.stringify(baseReport, null, 2));
+    console.log("VEHICLE DEBUG:", JSON.stringify(baseReport.vehicle, null, 2));
 
 const report = {
   vehicleTitle: baseReport.vehicle?.title || "Unknown Vehicle",
