@@ -76,6 +76,31 @@ function matchesEngineRule(vehicle, match) {
   return true;
 }
 
+function getFuelTypeKey(vehicle = {}) {
+  const raw = String(
+    vehicle.fuelType ||
+    vehicle.fuel ||
+    ""
+  ).toLowerCase();
+
+  if (raw.includes("electric") || raw.includes("bev") || raw === "ev") return "ev";
+  if (raw.includes("plug") || raw.includes("phev")) return "phev";
+  if (raw.includes("hybrid")) return "hybrid";
+  if (raw.includes("diesel")) return "diesel";
+  if (raw.includes("gas") || raw.includes("petrol")) return "gasoline";
+
+  return "unknown";
+}
+
+function isElectricVehicle(vehicle = {}) {
+  return getFuelTypeKey(vehicle) === "ev";
+}
+
+function isHybridVehicle(vehicle = {}) {
+  const fuel = getFuelTypeKey(vehicle);
+  return fuel === "hybrid" || fuel === "phev";
+}
+
 const ENGINE_RULES = [
   {
     match: {
@@ -2929,6 +2954,7 @@ const analystNote = buildAnalystNote({
 
 function buildEngineAdvisory(vehicle) {
   const vehicleRef = getVehicleReference(vehicle);
+  const isEV = isElectricVehicle(vehicle);
   const make = upperText(vehicle.make);
   const model = safeValue(vehicle.model);
   const year = intValue(vehicle.year);
@@ -2936,6 +2962,27 @@ function buildEngineAdvisory(vehicle) {
   const enginePlatform = upperText(engineInfo.enginePlatform);
   const engineRisk = upperText(vehicle.engineRiskLevel);
   const transmissionRisk = upperText(vehicle.transmissionRisk);
+
+  if (isEV) {
+    return {
+      title: "Electric Drivetrain Advisory",
+      summary: `For this ${vehicleRef}, buying confidence should rely more heavily on battery health, charging behavior, warning history, software stability, and high voltage system condition than on traditional engine concerns.`,
+      advisoryItems: [
+        {
+          heading: "Battery condition matters most",
+          body: `On this ${vehicleRef}, range consistency, charging performance, and any battery related warnings or repairs matter heavily to long term ownership confidence.`
+        },
+        {
+          heading: "Check charging and thermal behavior",
+          body: `This ${vehicleRef} should be checked for charging faults, overheating warnings, thermal management issues, or software related drivability concerns.`
+        },
+        {
+          heading: "Do not treat an EV like a normal used car",
+          body: `With this ${vehicleRef}, warning history, battery confidence, and completed recall work matter more than traditional engine service items.`
+        }
+      ]
+    };
+  }
 
   if (make === "BMW" && year === 2016 && upperText(model).includes("320")) {
     return {
@@ -3324,6 +3371,7 @@ function buildRiskForecast(vehicle, ownership, safety) {
   const body = getBodyType(vehicle);
   const drive = getDriveTypeGroup(vehicle);
   const fuel = getFuelGroup(vehicle);
+const isEV = isElectricVehicle(vehicle);
   const multiplier = getCostMultiplier(vehicle);
 
   const items = [
@@ -3336,15 +3384,15 @@ function buildRiskForecast(vehicle, ownership, safety) {
   : scaleCost(400, 1200, multiplier)
     },
     {
-      area: "Cooling System",
-      risk: fuel === "electric" ? "Low" : "Medium",
-      note: fuel === "electric"
-        ? `Battery and drive unit temperature management on this ${vehicleRef} deserve close attention, rather than a conventional engine cooling layout.`
-        : `The cooling system on this ${vehicleRef} needs proper attention. Hoses, pumps, thermostat related parts, and coolant condition should be checked before purchase.`,
-      estimatedCost: fuel === "electric"
-  ? scaleCost(150, 700, multiplier)
-  : scaleCost(300, 1000, multiplier)
-    },
+  area: isEV ? "Thermal Management System" : "Cooling System",
+  risk: "Medium",
+  note: isEV
+    ? `On this ${vehicleRef}, battery and electronics cooling systems should be checked carefully, as they directly affect performance, charging consistency, and battery life.`
+    : `The cooling system on this ${vehicleRef} needs proper attention. Hoses, pumps, thermostat related parts, and coolant condition should be checked before purchase.`,
+  estimatedCost: isEV
+    ? scaleCost(500, 3000, multiplier)
+    : scaleCost(300, 1000, multiplier)
+},
     {
       area: "Braking System",
       risk: body === "truck" || body === "suv" ? "Medium" : "Low",
@@ -3355,34 +3403,52 @@ function buildRiskForecast(vehicle, ownership, safety) {
     }
   ];
 
-  if (fuel !== "electric") {
-    items.push({
-      area: "Engine Seals and Service Items",
-      risk: "Medium",
-      note: `This ${vehicleRef} should be checked for gasket condition, fluid leaks, and oil service history. If service records are weak, budget for catch up maintenance.`,
-      estimatedCost: "$250 to $1,500"
-    });
-  }
+  if (!isEV) {
+  items.push({
+    area: "Combustion Engine Service Items",
+    risk: "Medium",
+    note: `If this ${vehicleRef} uses a combustion engine, it should be checked for gasket condition, fluid leaks, and oil service history. If service records are weak, budget for catch up maintenance.`,
+    estimatedCost: scaleCost(250, 1500, multiplier)
+  });
+}
 
+  if (!isEV) {
   items.push({
     area: "Transmission Condition",
     risk: String(vehicle.transmissionRisk || "").toUpperCase() === "HIGHER" ? "High" : "Medium",
     note: `With this ${vehicleRef}, transmission condition should be judged by shift quality, service history, and fluid condition. If the gearbox has not been maintained properly, repair costs can rise quickly.`,
     estimatedCost: String(vehicle.transmissionRisk || "").toUpperCase() === "HIGHER"
-  ? scaleCost(800, 4500, multiplier)
-  : scaleCost(300, 2500, multiplier)
+      ? scaleCost(800, 4500, multiplier)
+      : scaleCost(300, 2500, multiplier)
+  });
+} else {
+  items.push({
+    area: "Drive Unit and Power Delivery",
+    risk: "Medium",
+    note: `On this ${vehicleRef}, the electric drive unit should be checked for warning lights, vibration, unusual noise, charging faults, or inconsistent power delivery.`,
+    estimatedCost: scaleCost(1000, 5000, multiplier)
   });
 
-  if (drive === "awd") {
-    items.push({
-      area: "All Wheel Drive System",
-      risk: "Medium",
-      note: `The all wheel drive system in this ${vehicleRef} should be checked for binding, tire mismatch, and driveline wear before purchase.`,
-      estimatedCost: scaleCost(800, 3500, multiplier)
-    });
-  }
+  items.push({
+    area: "Battery Health and Degradation",
+    risk: "Medium",
+    note: `Battery condition is one of the biggest ownership factors on this ${vehicleRef}. Check for range consistency, charging speed, warning history, and any evidence of battery related repairs or recalls.`,
+    estimatedCost: scaleCost(1500, 15000, multiplier) + "+"
+  });
+}
 
-  if (fuel === "hybrid" || fuel === "electric") {
+  if (drive === "awd") {
+  items.push({
+    area: isEV ? "Dual Motor / All Wheel Drive System" : "All Wheel Drive System",
+    risk: "Medium",
+    note: isEV
+      ? `On this ${vehicleRef}, the all wheel drive system should be checked for warning lights, uneven tire wear, drivability issues, and any signs of inconsistent front to rear power delivery.`
+      : `The all wheel drive system in this ${vehicleRef} should be checked for binding, tire mismatch, and driveline wear before purchase.`,
+    estimatedCost: scaleCost(800, 3500, multiplier)
+  });
+}
+
+  if (isEV || isHybridVehicle(vehicle)) {
     items.push({
       area: "Electrified System Diagnostics",
       risk: "Medium",
@@ -3487,7 +3553,40 @@ function buildNegotiationLeverage(vehicle, ownership, safety, marketAnalysis) {
 
 function buildOwnershipRoadmap(vehicle) {
   const vehicleRef = getVehicleReference(vehicle);
-  const fuel = getFuelGroup(vehicle);
+  const isEV = isElectricVehicle(vehicle);
+
+  if (isEV) {
+    return {
+      title: "30,000 Mile Ownership Roadmap",
+      summary: `This roadmap shows the areas that should be watched most closely as this ${vehicleRef} moves through the next 30,000 miles.`,
+      intervals: [
+        {
+          interval: "0 to 10,000 miles",
+          actions: [
+            `Check service and recall history on this ${vehicleRef}`,
+            `Monitor battery range consistency and charging behavior`,
+            `Check for warning lights, software faults, and thermal management issues`
+          ]
+        },
+        {
+          interval: "10,000 to 20,000 miles",
+          actions: [
+            `Budget for tires, brakes, and suspension wear on this ${vehicleRef}`,
+            `Recheck charging performance and battery cooling related systems`,
+            `Review whether any recall or software campaign work is still outstanding`
+          ]
+        },
+        {
+          interval: "20,000 to 30,000 miles",
+          actions: [
+            `Plan for heavier age related wear items on this ${vehicleRef}`,
+            `Reassess battery performance, drive unit behavior, and charging consistency`,
+            `Keep ownership costs under control by fixing faults before they stack up`
+          ]
+        }
+      ]
+    };
+  }
 
   const intervalOne = [
     `Check service history on this ${vehicleRef}`,
@@ -3507,12 +3606,6 @@ function buildOwnershipRoadmap(vehicle) {
     `Keep ownership costs under control by fixing issues before they stack up`
   ];
 
-  if (fuel === "electric") {
-    intervalOne[2] = `Confirm battery, charging, and thermal system condition`;
-    intervalTwo[1] = `Recheck tires, brakes, and battery cooling related systems`;
-    intervalThree[1] = `Reassess battery performance, charging hardware, and drive unit behavior`;
-  }
-
   return {
     title: "30,000 Mile Ownership Roadmap",
     summary: `This roadmap shows the areas that should be watched most closely as this ${vehicleRef} moves through the next 30,000 miles.`,
@@ -3525,6 +3618,24 @@ function buildOwnershipRoadmap(vehicle) {
 }
 
 function buildPurchaseChecklist(vehicle, ownership) {
+  const vehicleRef = getVehicleReference(vehicle);
+  const isEV = isElectricVehicle(vehicle);
+
+  // ✅ EV-specific checklist FIRST (early return)
+  if (isEV) {
+    return {
+      title: "Final Purchase Checklist",
+      items: [
+        "Check for battery, charging, or drivetrain warning lights",
+        "Review service history and recall completion records",
+        "Inspect tire condition and tread match",
+        "Check charging behavior and displayed range consistency",
+        "Look for software faults, error messages, or poor repair history"
+      ]
+    };
+  }
+
+  // ✅ Standard ICE checklist (fallback)
   const items = [
     "Cold start test and listen for unusual noises",
     "Check for warning lights before and after the drive",
@@ -3532,14 +3643,6 @@ function buildPurchaseChecklist(vehicle, ownership) {
     "Inspect tire condition and tread match",
     "Check for fluid leaks or signs of poor repairs"
   ];
-
-  if (getDriveTypeGroup(vehicle) === "awd") {
-    items.push("Perform a tight low speed turn and feel for binding or driveline shudder");
-  }
-
-  if (ownership.maintenanceComplexity === "Higher") {
-    items.push("Confirm oil changes were done regularly rather than stretched too far");
-  }
 
   return {
     title: "Final Purchase Checklist",
@@ -3549,6 +3652,7 @@ function buildPurchaseChecklist(vehicle, ownership) {
 
 function buildAttentionFlags(report) {
   const flags = [];
+  const isEV = isElectricVehicle(report.vehicle);
 
   if (Number(report.safety.recalls || 0) >= 8) {
     flags.push("High recall activity");
@@ -3570,17 +3674,21 @@ function buildAttentionFlags(report) {
     flags.push("Investigation history present");
   }
 
-  if (!report.efficiency.combinedMPG) {
-    flags.push("Fuel economy match unavailable");
-  }
+  if (!isEV && !report.efficiency.combinedMPG) {
+  flags.push("Fuel economy match unavailable");
+}
 
   if (report.ownership.maintenanceComplexity === "Higher") {
     flags.push("Higher maintenance platform");
   }
 
   if (report.ownership.enginePlatform) {
+  if (isEV) {
+    flags.push(`Electric drivetrain: ${report.ownership.enginePlatform}`);
+  } else {
     flags.push(`Engine platform: ${report.ownership.enginePlatform}`);
   }
+}
 
   return flags;
 }
@@ -4159,6 +4267,7 @@ if (listingPrice > 0) {
     dealInsight = "Vehicle is priced below expected range. Positive buying opportunity.";
   }
 }
+const isEV = isElectricVehicle(vehicle);
 const engineAdvisory = buildEngineAdvisory(vehicle);
 const riskForecast = buildRiskForecast(vehicle, ownership, safety);
 const negotiationLeverage = buildNegotiationLeverage(vehicle, ownership, safety, marketAnalysis);
