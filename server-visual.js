@@ -1906,36 +1906,95 @@ app.get("/api/vin-report", async (req, res) => {
     }
 
     const baseReport = await getReport(vin);
-    console.log("VEHICLE DEBUG:", JSON.stringify(baseReport.vehicle, null, 2));
+    console.log("BASE REPORT KEYS:", Object.keys(baseReport));
+console.log("SAFETY DEBUG:", JSON.stringify(baseReport.safetyAndReliability, null, 2));
+console.log("EFFICIENCY DEBUG:", JSON.stringify(baseReport.efficiencyAndRunningCost, null, 2));
+console.log("SPECS DEBUG:", JSON.stringify(baseReport.additionalVehicleSpecs, null, 2));
 
 const report = {
   vehicleTitle: baseReport.vehicle?.title || "Unknown Vehicle",
 
   liveSignals: {
-    recallCount: baseReport.vehicle?.recallCount ?? 0,
-    recallType: baseReport.frontEndSummary?.subheadline || "No recall summary available",
-    complaints: baseReport.vehicle?.complaintCount ?? 0,
-    issues: Array.isArray(baseReport.signals?.attentionFlags) ? baseReport.signals.attentionFlags.length : 0
+    recallCount:
+      baseReport.safetyAndReliability?.recallCount ??
+      baseReport.vehicle?.recallCount ??
+      0,
+
+    recallType:
+      baseReport.frontEndSummary?.subheadline ||
+      baseReport.safetyAndReliability?.recallSummary ||
+      "No recall summary available",
+
+    complaints:
+      baseReport.safetyAndReliability?.complaintCount ??
+      baseReport.vehicle?.complaintCount ??
+      0,
+
+    issues:
+      Array.isArray(baseReport.signals?.attentionFlags)
+        ? baseReport.signals.attentionFlags.length
+        : 0
   },
 
   efficiency: {
-    mpgCombined: baseReport.vehicle?.fuelEconomyCombined || "N/A",
-    fuelCost: baseReport.vehicle?.annualFuelCost || "N/A",
-    ghg: baseReport.vehicle?.greenhouseGasScore || "N/A",
-    ecoBadge: baseReport.vehicle?.ecoBadge || "Standard"
+    mpgCombined:
+      baseReport.efficiencyAndRunningCost?.combinedMPG ??
+      baseReport.vehicle?.fuelEconomyCombined ??
+      "N/A",
+
+    fuelCost:
+      baseReport.efficiencyAndRunningCost?.annualFuelCost ??
+      baseReport.vehicle?.annualFuelCost ??
+      "N/A",
+
+    ghg:
+      baseReport.efficiencyAndRunningCost?.ghgScore ??
+      baseReport.vehicle?.greenhouseGasScore ??
+      "N/A",
+
+    ecoBadge:
+      baseReport.efficiencyAndRunningCost?.ecoBadge ??
+      baseReport.vehicle?.ecoBadge ??
+      "N/A"
   },
 
   specs: {
-    horsepower: baseReport.vehicle?.horsepower || "N/A",
-    transmission: baseReport.vehicle?.transmission || "N/A",
-    dimensions: baseReport.vehicle?.dimensions || "N/A",
-    weight: baseReport.vehicle?.curbWeight || "N/A"
+    horsepower:
+      baseReport.additionalVehicleSpecs?.horsepower ??
+      baseReport.vehicle?.horsepower ??
+      "N/A",
+
+    transmission:
+      baseReport.additionalVehicleSpecs?.transmission ??
+      baseReport.vehicle?.transmission ??
+      "N/A",
+
+    dimensions:
+      baseReport.additionalVehicleSpecs?.dimensions ??
+      baseReport.vehicle?.dimensions ??
+      "N/A",
+
+    weight:
+      baseReport.additionalVehicleSpecs?.curbWeight ??
+      baseReport.vehicle?.curbWeight ??
+      "N/A"
   },
 
   safety: {
-    recallCount: baseReport.vehicle?.recallCount ?? 0,
-    complaintCount: baseReport.vehicle?.complaintCount ?? 0,
-    topComponent: baseReport.vehicle?.topComplaintComponent || "General"
+    recallCount:
+      baseReport.safetyAndReliability?.recallCount ??
+      baseReport.vehicle?.recallCount ??
+      0,
+
+    complaintCount:
+      baseReport.safetyAndReliability?.complaintCount ??
+      baseReport.vehicle?.complaintCount ??
+      0,
+
+    topComponent:
+      baseReport.safetyAndReliability?.topComplaintArea ??
+      baseReport.vehicle?.topComplaintComponent ??
+      "N/A"
   }
 };
 
