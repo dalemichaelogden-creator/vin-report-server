@@ -1916,18 +1916,16 @@ const report = {
 
   liveSignals: {
     recallCount:
-      baseReport.safetyAndReliability?.recallCount ??
-      baseReport.vehicle?.recallCount ??
+      baseReport.safety?.recallCount ??
       0,
 
     recallType:
       baseReport.frontEndSummary?.subheadline ||
-      baseReport.safetyAndReliability?.recallSummary ||
+      baseReport.safety?.recallSummary ||
       "No recall summary available",
 
     complaints:
-      baseReport.safetyAndReliability?.complaintCount ??
-      baseReport.vehicle?.complaintCount ??
+      baseReport.safety?.complaintCount ??
       0,
 
     issues:
@@ -1938,62 +1936,51 @@ const report = {
 
   efficiency: {
     mpgCombined:
-      baseReport.efficiencyAndRunningCost?.combinedMPG ??
-      baseReport.vehicle?.fuelEconomyCombined ??
+      baseReport.efficiency?.combinedMPG ??
       "N/A",
 
     fuelCost:
-      baseReport.efficiencyAndRunningCost?.annualFuelCost ??
-      baseReport.vehicle?.annualFuelCost ??
+      baseReport.efficiency?.annualFuelCost ??
       "N/A",
 
     ghg:
-      baseReport.efficiencyAndRunningCost?.ghgScore ??
-      baseReport.vehicle?.greenhouseGasScore ??
+      baseReport.efficiency?.ghgScore ??
       "N/A",
 
     ecoBadge:
-      baseReport.efficiencyAndRunningCost?.ecoBadge ??
-      baseReport.vehicle?.ecoBadge ??
+      baseReport.efficiency?.ecoBadge ??
       "N/A"
   },
 
   specs: {
     horsepower:
-      baseReport.additionalVehicleSpecs?.horsepower ??
-      baseReport.vehicle?.horsepower ??
+      baseReport.specs?.horsepower ??
       "N/A",
 
     transmission:
-      baseReport.additionalVehicleSpecs?.transmission ??
-      baseReport.vehicle?.transmission ??
+      baseReport.specs?.transmission ??
       "N/A",
 
     dimensions:
-      baseReport.additionalVehicleSpecs?.dimensions ??
-      baseReport.vehicle?.dimensions ??
+      baseReport.specs?.dimensions ??
       "N/A",
 
     weight:
-      baseReport.additionalVehicleSpecs?.curbWeight ??
-      baseReport.vehicle?.curbWeight ??
+      baseReport.specs?.curbWeight ??
       "N/A"
   },
 
   safety: {
     recallCount:
-      baseReport.safetyAndReliability?.recallCount ??
-      baseReport.vehicle?.recallCount ??
+      baseReport.safety?.recallCount ??
       0,
 
     complaintCount:
-      baseReport.safetyAndReliability?.complaintCount ??
-      baseReport.vehicle?.complaintCount ??
+      baseReport.safety?.complaintCount ??
       0,
 
     topComponent:
-      baseReport.safetyAndReliability?.topComplaintArea ??
-      baseReport.vehicle?.topComplaintComponent ??
+      baseReport.safety?.topComplaintArea ??
       "N/A"
   }
 };
