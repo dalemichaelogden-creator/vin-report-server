@@ -1949,17 +1949,19 @@ const report = {
   },
 
   specs: {
-    horsepower: baseReport.specs?.horsepower || "N/A",
-    transmission: baseReport.specs?.transmission || "N/A",
-    dimensions: baseReport.specs?.dimensions || "N/A",
-    weight: baseReport.specs?.curbWeight || "N/A"
-  },
+  horsepower: baseReport.specs?.horsepower || "N/A",
+  transmission: baseReport.specs?.transmission || "N/A",
+  dimensions: baseReport.specs?.dimensions || "N/A",
+  weight: baseReport.specs?.curbWeight || "N/A"
+},
 
-  safety: {
-    recallCount: recallCountFinal,
-    complaintCount: Number(baseReport.safety?.complaints || 0),
-    topComponent: baseReport.safety?.topComponent || "N/A"
-  }
+safety: {
+  recallCount: recallCountFinal,
+  complaintCount: Number(baseReport.safety?.complaints || 0),
+  topComponent: baseReport.safety?.topComponent || "N/A"
+},
+
+optionProfile: baseReport.optionProfile || {}
 };
 
     res.json({
