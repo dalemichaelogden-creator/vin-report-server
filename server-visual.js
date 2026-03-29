@@ -1894,6 +1894,61 @@ app.get("/api/decode-test/:vin", async (req, res) => {
   }
 });
 
+app.get("/api/vin-report", async (req, res) => {
+  try {
+    const vin = (req.query.vin || "").toUpperCase().trim();
+
+    if (vin.length !== 17) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid VIN"
+      });
+    }
+
+    const report = {
+      vehicleTitle: "Test Vehicle",
+      liveSignals: {
+        recallCount: 2,
+        recallType: "Safety",
+        complaints: 5,
+        issues: 3
+      },
+      efficiency: {
+        mpgCombined: "28 MPG",
+        fuelCost: "$1,800/year",
+        ghg: "6/10",
+        ecoBadge: "Standard"
+      },
+      specs: {
+        horsepower: "240 HP",
+        transmission: "Automatic",
+        dimensions: "N/A",
+        weight: "3,500 lbs"
+      },
+      safety: {
+        recallCount: 2,
+        complaintCount: 5,
+        topComponent: "Engine"
+      }
+    };
+
+    res.json({
+      success: true,
+      report
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log("Server running");
+});
+
 app.listen(PORT, () => {
   console.log("Customer visual report server running on port " + PORT)
 })
