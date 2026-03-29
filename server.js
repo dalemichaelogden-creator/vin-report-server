@@ -77,17 +77,252 @@ function matchesEngineRule(vehicle, match) {
 }
 
 function getFuelTypeKey(vehicle = {}) {
-  const raw = String(
+  const fuelRaw = String(
     vehicle.fuelType ||
     vehicle.fuel ||
     ""
   ).toLowerCase();
 
-  if (raw.includes("electric") || raw.includes("bev") || raw === "ev") return "ev";
-  if (raw.includes("plug") || raw.includes("phev")) return "phev";
-  if (raw.includes("hybrid")) return "hybrid";
-  if (raw.includes("diesel")) return "diesel";
-  if (raw.includes("gas") || raw.includes("petrol")) return "gasoline";
+  const make = String(vehicle.make || "").toLowerCase();
+  const model = String(vehicle.model || "").toLowerCase();
+  const trim = String(vehicle.trim || "").toLowerCase();
+  const enginePlatform = String(vehicle.enginePlatform || "").toLowerCase();
+
+  const evOnlyModels = [
+    // Tesla
+    "model 3",
+    "model y",
+    "model s",
+    "model x",
+    "cybertruck",
+
+    // Porsche / Audi / VW group
+    "taycan",
+    "e-tron gt",
+    "etron gt",
+    "q4 e-tron",
+    "q4 etron",
+    "a6 e-tron",
+    "a6 etron",
+    "s6 e-tron",
+    "s6 etron",
+    "id.4",
+    "id4",
+    "id buzz",
+    "id.buzz",
+
+    // Jaguar / Volvo / Polestar / Lotus
+    "i-pace",
+    "polestar 2",
+    "polestar 3",
+    "polestar 4",
+    "ex30",
+    "ex40",
+    "ec40",
+    "ex90",
+    "emeya",
+    "eletre",
+
+    // BMW / Mini / Mercedes / Smart / Rolls / Maserati
+    "i3",
+    "i4",
+    "i5",
+    "i7",
+    "ix",
+    "ix1",
+    "ix2",
+    "countryman electric",
+    "cooper electric",
+    "eqb",
+    "eqe",
+    "eqs",
+    "g580 with eq technology",
+    "spectre",
+    "granturismo folgore",
+    "grancabrio folgore",
+
+    // Hyundai / Kia / Genesis
+    "ioniq 5",
+    "ioniq 6",
+    "kona electric",
+    "ev3",
+    "ev4",
+    "ev5",
+    "ev6",
+    "ev9",
+    "gv60",
+    "electrified gv70",
+    "electrified g80",
+
+    // GM / Honda / Acura
+    "bolt",
+    "bolt ev",
+    "bolt euv",
+    "equinox ev",
+    "blazer ev",
+    "silverado ev",
+    "sierra ev",
+    "lyriq",
+    "escalade iq",
+    "optiq",
+    "celestiq",
+    "prologue",
+    "zdx",
+
+    // Ford / Lincoln / Rivian / Lucid
+    "mustang mach-e",
+    "mach-e",
+    "f-150 lightning",
+    "lightning",
+    "r1t",
+    "r1s",
+    "air",
+    "gravity",
+
+    // Nissan / Toyota / Subaru / Lexus
+    "leaf",
+    "ariya",
+    "bz4x",
+    "bz woodland",
+    "solterra",
+    "trailseeker",
+    "rz",
+    "rz 450e",
+    "rz 300e",
+
+    // Stellantis / others
+    "500e",
+    "wagoneer s",
+    "charger daytona",
+    "macan electric",
+    "macan ev"
+  ];
+
+  const evTrimHints = [
+    "electric",
+    "bev",
+    "battery electric",
+    "eq",
+    "folgore"
+  ];
+
+  if (
+    fuelRaw.includes("electric") ||
+    fuelRaw.includes("bev") ||
+    fuelRaw === "ev" ||
+    enginePlatform.includes("electric drive") ||
+    enginePlatform.includes("electric drivetrain") ||
+    enginePlatform.includes("drive unit") ||
+    evOnlyModels.some(name => model.includes(name)) ||
+    evTrimHints.some(hint => trim.includes(hint)) ||
+    (make === "jaguar" && model.includes("i-pace")) ||
+    (make === "porsche" && model.includes("taycan")) ||
+    (make === "porsche" && model.includes("macan electric")) ||
+    (make === "audi" && (model.includes("e-tron") || model.includes("etron"))) ||
+    (make === "tesla") ||
+    (make === "lucid") ||
+    (make === "rivian") ||
+    (make === "polestar") ||
+    (make === "rolls-royce" && model.includes("spectre")) ||
+    (make === "rolls royce" && model.includes("spectre")) ||
+    (make === "mini" && (model.includes("countryman electric") || model.includes("cooper electric"))) ||
+    (make === "mercedes-benz" && model.startsWith("eq")) ||
+    (make === "mercedes benz" && model.startsWith("eq")) ||
+    (make === "cadillac" && (
+      model.includes("lyriq") ||
+      model.includes("optiq") ||
+      model.includes("celestiq") ||
+      model.includes("escalade iq")
+    )) ||
+    (make === "chevrolet" && (
+      model.includes("bolt") ||
+      model.includes("equinox ev") ||
+      model.includes("blazer ev") ||
+      model.includes("silverado ev")
+    )) ||
+    (make === "gmc" && model.includes("sierra ev")) ||
+    (make === "ford" && (
+      model.includes("mustang mach-e") ||
+      model.includes("mach-e") ||
+      model.includes("f-150 lightning") ||
+      model.includes("lightning")
+    )) ||
+    (make === "hyundai" && (
+      model.includes("ioniq 5") ||
+      model.includes("ioniq 6") ||
+      model.includes("kona electric")
+    )) ||
+    (make === "kia" && (
+      model.includes("ev3") ||
+      model.includes("ev4") ||
+      model.includes("ev5") ||
+      model.includes("ev6") ||
+      model.includes("ev9")
+    )) ||
+    (make === "genesis" && (
+      model.includes("gv60") ||
+      model.includes("electrified gv70") ||
+      model.includes("electrified g80")
+    )) ||
+    (make === "bmw" && (
+      model === "ix" ||
+      model.includes("i4") ||
+      model.includes("i5") ||
+      model.includes("i7") ||
+      model.includes("ix1") ||
+      model.includes("ix2")
+    )) ||
+    (make === "volvo" && (
+      model.includes("ex30") ||
+      model.includes("ex40") ||
+      model.includes("ec40") ||
+      model.includes("ex90")
+    )) ||
+    (make === "nissan" && (
+      model.includes("leaf") ||
+      model.includes("ariya")
+    )) ||
+    (make === "toyota" && (
+      model.includes("bz4x") ||
+      model.includes("bz woodland")
+    )) ||
+    (make === "subaru" && (
+      model.includes("solterra") ||
+      model.includes("trailseeker")
+    )) ||
+    (make === "lexus" && model.includes("rz")) ||
+    (make === "honda" && model.includes("prologue")) ||
+    (make === "acura" && model.includes("zdx")) ||
+    (make === "fiat" && model.includes("500e")) ||
+    (make === "jeep" && model.includes("wagoneer s")) ||
+    (make === "dodge" && model.includes("charger daytona")) ||
+    (make === "maserati" && (
+      model.includes("granturismo folgore") ||
+      model.includes("grancabrio folgore")
+    ))
+  ) {
+    return "ev";
+  }
+
+  if (
+    fuelRaw.includes("plug") ||
+    fuelRaw.includes("phev") ||
+    trim.includes("plug-in hybrid") ||
+    trim.includes("plug in hybrid") ||
+    trim.includes("phev")
+  ) {
+    return "phev";
+  }
+
+  if (
+    fuelRaw.includes("hybrid") ||
+    trim.includes("hybrid")
+  ) {
+    return "hybrid";
+  }
+
+  if (fuelRaw.includes("diesel")) return "diesel";
+  if (fuelRaw.includes("gas") || fuelRaw.includes("petrol")) return "gasoline";
 
   return "unknown";
 }
@@ -102,6 +337,339 @@ function isHybridVehicle(vehicle = {}) {
 }
 
 const ENGINE_RULES = [
+  // EV specific matches first
+  {
+    match: {
+      make: "TESLA",
+      modelIncludes: ["MODEL 3", "MODEL Y", "MODEL S", "MODEL X", "CYBERTRUCK"]
+    },
+    result: {
+      enginePlatform: "Tesla Electric Drive Unit",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Tesla electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "PORSCHE",
+      modelIncludes: ["TAYCAN"]
+    },
+    result: {
+      enginePlatform: "Porsche Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Porsche electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "PORSCHE",
+      modelIncludes: ["MACAN ELECTRIC", "MACAN EV"]
+    },
+    result: {
+      enginePlatform: "Porsche Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Porsche electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "JAGUAR",
+      modelIncludes: ["I-PACE", "IPACE"]
+    },
+    result: {
+      enginePlatform: "Jaguar Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Jaguar electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "AUDI",
+      modelIncludes: ["E-TRON", "ETRON", "Q4 E-TRON", "Q4 ETRON", "E-TRON GT", "ETRON GT", "A6 E-TRON", "A6 ETRON", "S6 E-TRON", "S6 ETRON"]
+    },
+    result: {
+      enginePlatform: "Audi Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Audi electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "VOLKSWAGEN",
+      modelIncludes: ["ID.4", "ID4", "ID BUZZ", "ID.BUZZ"]
+    },
+    result: {
+      enginePlatform: "Volkswagen Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Volkswagen electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "BMW",
+      modelIncludes: ["I3", "I4", "I5", "I7", "IX", "IX1", "IX2"]
+    },
+    result: {
+      enginePlatform: "BMW Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to BMW electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "MERCEDESBENZ",
+      modelIncludes: ["EQB", "EQE", "EQS"]
+    },
+    result: {
+      enginePlatform: "Mercedes Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Mercedes electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "HYUNDAI",
+      modelIncludes: ["IONIQ 5", "IONIQ 6", "KONA ELECTRIC"]
+    },
+    result: {
+      enginePlatform: "Hyundai Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Hyundai electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "KIA",
+      modelIncludes: ["EV3", "EV4", "EV5", "EV6", "EV9"]
+    },
+    result: {
+      enginePlatform: "Kia Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Kia electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "GENESIS",
+      modelIncludes: ["GV60", "ELECTRIFIED GV70", "ELECTRIFIED G80"]
+    },
+    result: {
+      enginePlatform: "Genesis Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Genesis electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "LUCID",
+      modelIncludes: ["AIR", "GRAVITY"]
+    },
+    result: {
+      enginePlatform: "Lucid Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Lucid electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "RIVIAN",
+      modelIncludes: ["R1T", "R1S"]
+    },
+    result: {
+      enginePlatform: "Rivian Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Rivian electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "POLESTAR",
+      modelIncludes: ["POLESTAR 2", "POLESTAR 3", "POLESTAR 4"]
+    },
+    result: {
+      enginePlatform: "Polestar Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Polestar electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "VOLVO",
+      modelIncludes: ["EX30", "EX40", "EC40", "EX90"]
+    },
+    result: {
+      enginePlatform: "Volvo Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Volvo electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "NISSAN",
+      modelIncludes: ["LEAF", "ARIYA"]
+    },
+    result: {
+      enginePlatform: "Nissan Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Nissan electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "CHEVROLET",
+      modelIncludes: ["BOLT", "BOLT EV", "BOLT EUV", "EQUINOX EV", "BLAZER EV", "SILVERADO EV"]
+    },
+    result: {
+      enginePlatform: "GM Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to GM electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "GMC",
+      modelIncludes: ["SIERRA EV"]
+    },
+    result: {
+      enginePlatform: "GM Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to GM electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "CADILLAC",
+      modelIncludes: ["LYRIQ", "OPTIQ", "CELESTIQ", "ESCALADE IQ"]
+    },
+    result: {
+      enginePlatform: "Cadillac Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Cadillac electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "FORD",
+      modelIncludes: ["MUSTANG MACH-E", "MACH-E", "F-150 LIGHTNING", "LIGHTNING"]
+    },
+    result: {
+      enginePlatform: "Ford Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Ford electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "TOYOTA",
+      modelIncludes: ["BZ4X", "BZ WOODLAND"]
+    },
+    result: {
+      enginePlatform: "Toyota Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Toyota electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "SUBARU",
+      modelIncludes: ["SOLTERRA", "TRAILSEEKER"]
+    },
+    result: {
+      enginePlatform: "Subaru Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Subaru electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "HONDA",
+      modelIncludes: ["PROLOGUE"]
+    },
+    result: {
+      enginePlatform: "Honda Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Honda electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "ACURA",
+      modelIncludes: ["ZDX"]
+    },
+    result: {
+      enginePlatform: "Acura Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Acura electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "LEXUS",
+      modelIncludes: ["RZ", "RZ 450E", "RZ 300E"]
+    },
+    result: {
+      enginePlatform: "Lexus Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Lexus electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "FIAT",
+      modelIncludes: ["500E"]
+    },
+    result: {
+      enginePlatform: "Fiat Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Fiat electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "JEEP",
+      modelIncludes: ["WAGONEER S"]
+    },
+    result: {
+      enginePlatform: "Jeep Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Jeep electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "DODGE",
+      modelIncludes: ["CHARGER DAYTONA"]
+    },
+    result: {
+      enginePlatform: "Dodge Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Dodge electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "ROLLSROYCE",
+      modelIncludes: ["SPECTRE"]
+    },
+    result: {
+      enginePlatform: "Rolls-Royce Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Rolls-Royce electric drive architecture rather than a conventional engine platform."
+    }
+  },
+  {
+    match: {
+      make: "MASERATI",
+      modelIncludes: ["GRANTURISMO FOLGORE", "GRANCABRIO FOLGORE"]
+    },
+    result: {
+      enginePlatform: "Maserati Electric Drive",
+      engineConfidence: "High",
+      engineSummary: "This vehicle profile strongly points to Maserati electric drive architecture rather than a conventional engine platform."
+    }
+  },
+
+  // Existing gasoline and hybrid rules below
   {
     match: {
       make: "BMW",
@@ -613,21 +1181,332 @@ const ENGINE_RULES = [
       engineConfidence: "Moderate",
       engineSummary: "This Jaguar profile commonly aligns with a modern Jaguar Land Rover gasoline engine family."
     }
-  },
-  {
-    match: {
-      make: "TESLA",
-      modelIncludes: ["MODEL 3", "MODEL Y", "MODEL S", "MODEL X"]
-    },
-    result: {
-      enginePlatform: "Tesla Electric Drive Unit",
-      engineConfidence: "High",
-      engineSummary: "This Tesla profile strongly points to Tesla electric drive unit architecture rather than a conventional engine platform."
-    }
   }
 ];
 
 const TRANSMISSION_RULES = [
+  // EV specific matches first
+  {
+    match: {
+      make: "TESLA",
+      modelIncludes: ["MODEL 3", "MODEL Y", "MODEL S", "MODEL X", "CYBERTRUCK"]
+    },
+    result: {
+      transmissionType: "Single Speed Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes traditional transmission complexity and reduces mechanical failure points, though drive unit and power electronics still matter."
+    }
+  },
+  {
+    match: {
+      make: "PORSCHE",
+      modelIncludes: ["TAYCAN", "MACAN ELECTRIC", "MACAN EV"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes traditional multi gear transmission complexity, though battery, drive unit, and power electronics still matter."
+    }
+  },
+  {
+    match: {
+      make: "JAGUAR",
+      modelIncludes: ["I-PACE", "IPACE"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes traditional transmission complexity, though battery, drive unit, and software behavior still matter."
+    }
+  },
+  {
+    match: {
+      make: "AUDI",
+      modelIncludes: ["E-TRON", "ETRON", "Q4 E-TRON", "Q4 ETRON", "E-TRON GT", "ETRON GT", "A6 E-TRON", "A6 ETRON", "S6 E-TRON", "S6 ETRON"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes traditional gearbox complexity, though battery condition, drive units, and charging related systems still matter."
+    }
+  },
+  {
+    match: {
+      make: "VOLKSWAGEN",
+      modelIncludes: ["ID.4", "ID4", "ID BUZZ", "ID.BUZZ"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes normal transmission servicing, though power electronics and drive unit behavior still matter."
+    }
+  },
+  {
+    match: {
+      make: "BMW",
+      modelIncludes: ["I3", "I4", "I5", "I7", "IX", "IX1", "IX2"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture reduces traditional transmission complexity, though drive unit behavior and battery condition still matter."
+    }
+  },
+  {
+    match: {
+      make: "MERCEDESBENZ",
+      modelIncludes: ["EQB", "EQE", "EQS"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture avoids normal gearbox complexity, though software, drive units, and battery systems still matter."
+    }
+  },
+  {
+    match: {
+      make: "HYUNDAI",
+      modelIncludes: ["IONIQ 5", "IONIQ 6", "KONA ELECTRIC"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes traditional transmission servicing, though battery, charging, and drive unit behavior still matter."
+    }
+  },
+  {
+    match: {
+      make: "KIA",
+      modelIncludes: ["EV3", "EV4", "EV5", "EV6", "EV9"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes traditional gearbox complexity, though drive unit, charging, and battery systems still matter."
+    }
+  },
+  {
+    match: {
+      make: "GENESIS",
+      modelIncludes: ["GV60", "ELECTRIFIED GV70", "ELECTRIFIED G80"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture avoids normal transmission concerns, though battery and drive unit behavior still matter."
+    }
+  },
+  {
+    match: {
+      make: "LUCID",
+      modelIncludes: ["AIR", "GRAVITY"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes traditional transmission complexity, though battery condition, charging systems, and power electronics still matter."
+    }
+  },
+  {
+    match: {
+      make: "RIVIAN",
+      modelIncludes: ["R1T", "R1S"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes traditional transmission servicing, though multi motor systems, software, and battery health still matter."
+    }
+  },
+  {
+    match: {
+      make: "POLESTAR",
+      modelIncludes: ["POLESTAR 2", "POLESTAR 3", "POLESTAR 4"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes conventional gearbox complexity, though battery, charging, and power delivery still matter."
+    }
+  },
+  {
+    match: {
+      make: "VOLVO",
+      modelIncludes: ["EX30", "EX40", "EC40", "EX90"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture avoids normal transmission complexity, though battery condition, thermal systems, and drive unit behavior still matter."
+    }
+  },
+  {
+    match: {
+      make: "NISSAN",
+      modelIncludes: ["LEAF", "ARIYA"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes traditional transmission servicing, though battery condition, charging behavior, and power delivery still matter."
+    }
+  },
+  {
+    match: {
+      make: "CHEVROLET",
+      modelIncludes: ["BOLT", "BOLT EV", "BOLT EUV", "EQUINOX EV", "BLAZER EV", "SILVERADO EV"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes conventional gearbox complexity, though drive unit, battery, and charging systems still matter."
+    }
+  },
+  {
+    match: {
+      make: "GMC",
+      modelIncludes: ["SIERRA EV"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture avoids normal transmission complexity, though battery systems, drive units, and software behavior still matter."
+    }
+  },
+  {
+    match: {
+      make: "CADILLAC",
+      modelIncludes: ["LYRIQ", "OPTIQ", "CELESTIQ", "ESCALADE IQ"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes traditional transmission servicing, though battery condition, charging systems, and power electronics still matter."
+    }
+  },
+  {
+    match: {
+      make: "FORD",
+      modelIncludes: ["MUSTANG MACH-E", "MACH-E", "F-150 LIGHTNING", "LIGHTNING"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes normal gearbox complexity, though battery health, charging behavior, and drive unit performance still matter."
+    }
+  },
+  {
+    match: {
+      make: "TOYOTA",
+      modelIncludes: ["BZ4X", "BZ WOODLAND"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture avoids traditional transmission complexity, though battery systems, charging behavior, and software still matter."
+    }
+  },
+  {
+    match: {
+      make: "SUBARU",
+      modelIncludes: ["SOLTERRA", "TRAILSEEKER"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes traditional gearbox servicing, though battery condition, charging systems, and power delivery still matter."
+    }
+  },
+  {
+    match: {
+      make: "HONDA",
+      modelIncludes: ["PROLOGUE"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture avoids normal transmission complexity, though battery health, charging systems, and software behavior still matter."
+    }
+  },
+  {
+    match: {
+      make: "ACURA",
+      modelIncludes: ["ZDX"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes conventional gearbox complexity, though battery systems, charging behavior, and drive unit performance still matter."
+    }
+  },
+  {
+    match: {
+      make: "LEXUS",
+      modelIncludes: ["RZ", "RZ 450E", "RZ 300E"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture avoids traditional transmission servicing, though battery condition, charging systems, and power delivery still matter."
+    }
+  },
+  {
+    match: {
+      make: "FIAT",
+      modelIncludes: ["500E"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes traditional gearbox complexity, though battery health, charging, and software behavior still matter."
+    }
+  },
+  {
+    match: {
+      make: "JEEP",
+      modelIncludes: ["WAGONEER S"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture avoids normal transmission complexity, though battery, charging, and power delivery systems still matter."
+    }
+  },
+  {
+    match: {
+      make: "DODGE",
+      modelIncludes: ["CHARGER DAYTONA"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes conventional gearbox servicing, though battery condition, power delivery, and software behavior still matter."
+    }
+  },
+  {
+    match: {
+      make: "ROLLSROYCE",
+      modelIncludes: ["SPECTRE"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture avoids traditional transmission complexity, though battery, charging, and power electronics still matter."
+    }
+  },
+  {
+    match: {
+      make: "MASERATI",
+      modelIncludes: ["GRANTURISMO FOLGORE", "GRANCABRIO FOLGORE"]
+    },
+    result: {
+      transmissionType: "Electric Drive",
+      transmissionRisk: "Low",
+      transmissionSummary: "Electric drive architecture removes normal gearbox complexity, though battery condition, charging systems, and power delivery still matter."
+    }
+  },
+
+  // Existing non EV rules below
   {
     match: {
       make: "BMW",
@@ -722,16 +1601,6 @@ const TRANSMISSION_RULES = [
       transmissionRisk: "Moderate",
       transmissionSummary: "Subaru CVT systems require proper maintenance and fluid servicing for long term reliability."
     }
-  },
-  {
-    match: {
-      make: "TESLA"
-    },
-    result: {
-      transmissionType: "Single Speed Electric Drive",
-      transmissionRisk: "Low",
-      transmissionSummary: "Electric drive units eliminate traditional transmission complexity and reduce mechanical failure points."
-    }
   }
 ];
 
@@ -774,6 +1643,14 @@ function getEngineRiskProfile(enginePlatform) {
     return {
       engineRiskLevel: "Unknown",
       engineRiskNote: "No engine risk profile was confidently identified."
+    };
+  }
+
+  // EV fallback
+  if (value.includes("ELECTRIC")) {
+    return {
+      engineRiskLevel: "Low",
+      engineRiskNote: "Electric drive systems remove traditional engine failure points, though battery condition, charging behavior, and system reliability still matter."
     };
   }
 
